@@ -2,6 +2,9 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.5'
 	id 'io.spring.dependency-management' version '1.1.6'
+
+	// 테코 커버리지 분석
+	id 'jacoco'
 }
 
 group = 'com'
@@ -45,4 +48,27 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 	ignoreFailures = true
+
+	finalizedBy 'jacocoTestReport'
+}
+
+// jacocoTestReport 구성
+jacocoTestReport {
+	dependsOn test
+
+	reports {
+		html.required = true
+		xml.required = true
+		csv.required = true
+	}
+
+	// coverage 분석에 포함시키지 않을 항목들
+	// QueryDSL 로 만들어진거 나중에 포함해야 될수도
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, excludes: [
+					"**/*Application*"
+			])
+		}))
+	}
 }
