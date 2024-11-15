@@ -80,7 +80,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2.18.0
         if: ${{ always() }}   # 앞에 step 이 fail 해도 실행
         with:
-          files: app/build/test-results/**/*.xml
+          files: build/test-results/**/*.xml
 
 
       # 테스트 실패한 부분 PR Code Review 에 주석 달기
