@@ -35,12 +35,15 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Gathering> gatherings = new ArrayList<>();
 
+    @Builder
     public User(String email, String imageUrl, String name,
-            String nickname, String briefIntro) {
+            String nickname, String briefIntro,
+            List<Gathering> gatherings) {
         this.email = email;
         this.imageUrl = imageUrl;
         this.name = name;
         this.nickname = nickname;
         this.briefIntro = briefIntro;
+        this.gatherings = gatherings;
     }
 }
