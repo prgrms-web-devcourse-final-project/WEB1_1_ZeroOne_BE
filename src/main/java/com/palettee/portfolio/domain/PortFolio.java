@@ -3,6 +3,7 @@ package com.palettee.portfolio.domain;
 import com.palettee.portfolioUrl.domain.PortFolioUrl;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,10 +32,11 @@ public class PortFolio {
     @OneToMany(mappedBy = "portfolio")
     private List<PortFolioUrl> portFolioUrlList;
 
-    public PortFolio(String title, Long portfolioId, String content, int hits) {
+    @Builder
+    public PortFolio(String title, Long portfolioId, String content) {
         this.title = title;
         this.portfolioId = portfolioId;
         this.content = content;
-        this.hits = hits;
+        this.hits = 0;
     }
 }

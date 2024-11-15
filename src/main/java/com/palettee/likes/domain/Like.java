@@ -3,6 +3,7 @@ package com.palettee.likes.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,7 @@ public class Like {
 
     private Long portFolioId;
 
+    @Builder
     public Like(Long userId, Long portFolioId) {
         this.userId = userId;
         this.portFolioId = portFolioId;

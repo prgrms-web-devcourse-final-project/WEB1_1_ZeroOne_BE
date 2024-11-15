@@ -2,6 +2,7 @@ package com.palettee.bookmark.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,7 @@ public class BookMark {
     private Long portFolioId;
 
 
+    @Builder
     public BookMark( Long userId, Long portFolioId) {
         this.userId = userId;
         this.portFolioId = portFolioId;

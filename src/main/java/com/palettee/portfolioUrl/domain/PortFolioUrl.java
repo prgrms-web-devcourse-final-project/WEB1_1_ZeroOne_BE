@@ -4,6 +4,7 @@ package com.palettee.portfolioUrl.domain;
 import com.palettee.portfolio.domain.PortFolio;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,6 +25,7 @@ public class PortFolioUrl {
     private PortFolio portfolio;
 
 
+    @Builder
     public PortFolioUrl(String url, PortFolio portfolio) {
         this.url = url;
         this.portfolio = portfolio;
