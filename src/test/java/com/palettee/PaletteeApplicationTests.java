@@ -9,5 +9,4 @@ class PaletteeApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

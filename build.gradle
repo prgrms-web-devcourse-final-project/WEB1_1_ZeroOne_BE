@@ -2,6 +2,10 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.5'
 	id 'io.spring.dependency-management' version '1.1.6'
+
+	// 테코 커버리지 분석
+	id 'jacoco'
+	id "org.sonarqube" version "5.1.0.4882"
 }
 
 group = 'com'
@@ -44,4 +48,46 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	ignoreFailures = true
+
+	finalizedBy 'jacocoTestReport'
+}
+
+// jacocoTestReport 구성
+jacocoTestReport {
+	dependsOn test
+
+	reports {
+		html.required = true
+		xml.required = true
+		csv.required = true
+	}
+
+	// coverage 분석에 포함시키지 않을 항목들
+	// QueryDSL 로 만들어진거 나중에 포함해야 될수도
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, excludes: [
+					"**/*Application*"
+			])
+		}))
+	}
+}
+
+// gradlew 에 sonar task 구성
+sonar {
+	properties {
+		property "sonar.projectKey", "prgrms-web-devcourse-final-project_WEB1_1_ZeroOne_BE"
+		property "sonar.organization", "prgrms-web-devcourse-final-project"
+		property "sonar.host.url", "https://sonarcloud.io"
+		property "sonar.language", "java"
+		property "sonar.sourceEncoding", "UTF-8"
+		property "sonar.sources", "src/main/java"
+		property "sonar.tests", "src/test/java"
+
+		// jacocoTestReport 수행 시 test report xml 파일 위치 (중요)
+		property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
+		property "sonar.test.inclusions", "**/*Test.java"
+		property "sonar.coverage.exclusions", "**/dto/**, **/event/**, **/*InitData*, **/*Application*, **/exception/**, **/service/alarm/**, **/aop/**, **/config/**, **/MemberRole*"
+	}
 }
