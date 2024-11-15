@@ -32,13 +32,8 @@ public class User {
     // one to many
     // 북마크?
 
-    public User(String userEmail, String userImageUrl,
-            String userName, String userNickname,
-            String briefIntro) {
-        this.userEmail = userEmail;
-        this.userImageUrl = userImageUrl;
-        this.userName = userName;
-        this.userNickname = userNickname;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<Gathering> gatherings = new ArrayList<>();
 
     public User(String email, String imageUrl, String name,
             String nickname, String briefIntro) {
