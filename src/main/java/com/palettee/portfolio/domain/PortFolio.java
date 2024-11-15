@@ -1,9 +1,12 @@
 package com.palettee.portfolio.domain;
 
+import com.palettee.portfolioUrl.domain.PortFolioUrl;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,6 +27,9 @@ public class PortFolio {
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "user_id")
 //    private User user;
+
+    @OneToMany(mappedBy = "portfolio")
+    private List<PortFolioUrl> portFolioUrlList;
 
     public PortFolio(String title, Long portfolioId, String content, int hits) {
         this.title = title;

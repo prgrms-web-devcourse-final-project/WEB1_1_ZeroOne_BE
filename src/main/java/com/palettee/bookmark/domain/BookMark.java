@@ -20,8 +20,7 @@ public class BookMark {
     private Long portFolioId;
 
 
-    public BookMark(Long bookMarkId, Long userId, Long portFolioId) {
-        this.bookMarkId = bookMarkId;
+    public BookMark( Long userId, Long portFolioId) {
         this.userId = userId;
         this.portFolioId = portFolioId;
     }
