@@ -1,6 +1,7 @@
 package com.palettee.domain;
 
 import jakarta.persistence.*;
+import java.util.*;
 import lombok.*;
 
 @Entity
@@ -14,16 +15,16 @@ public class User {
     private Long userId;
 
     @Column(name = "user_email", nullable = false)
-    private String userEmail;
+    private String email;
 
     @Column(name = "user_iamge_url")
-    private String userImageUrl;
+    private String imageUrl;
 
     @Column(name = "user_name")
-    private String userName;
+    private String name;
 
     @Column(name = "user_nickname")
-    private String userNickname;
+    private String nickname;
 
     @Column(name = "brief_intro", length = 500)
     private String briefIntro;
@@ -38,6 +39,13 @@ public class User {
         this.userImageUrl = userImageUrl;
         this.userName = userName;
         this.userNickname = userNickname;
+
+    public User(String email, String imageUrl, String name,
+            String nickname, String briefIntro) {
+        this.email = email;
+        this.imageUrl = imageUrl;
+        this.name = name;
+        this.nickname = nickname;
         this.briefIntro = briefIntro;
     }
 }
