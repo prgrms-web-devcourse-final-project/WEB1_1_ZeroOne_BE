@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -27,6 +28,7 @@ public class ProjectImage {
     @JoinColumn(name = "project_id")
     private Project project;
 
+    @Builder
     public ProjectImage(String imageUrl, Project project) {
         this.imageUrl = imageUrl;
         this.project = project;

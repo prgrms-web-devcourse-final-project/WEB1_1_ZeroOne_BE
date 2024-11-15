@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -38,6 +39,7 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE)
     private List<ProjectImage> projectImages = new ArrayList<>();
 
+    @Builder
     public Project(String title, String description) {
         this.title = title;
         this.description = description;
