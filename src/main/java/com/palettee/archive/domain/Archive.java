@@ -1,5 +1,6 @@
 package com.palettee.archive.domain;
 
+import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
 import com.palettee.global.entity.BaseEntity;
 import com.palettee.user.domain.*;
 import jakarta.persistence.*;
@@ -63,5 +64,13 @@ public class Archive extends BaseEntity {
 
     public void addComment(Comment comment) {
         this.comments.add(comment);
+    }
+
+    public Archive update(ArchiveUpdateRequest req) {
+        this.title = req.title();
+        this.description = req.description();
+        this.type = ArchiveType.findByInput(req.colorType());
+        this.canComment = req.canComment();
+        return this;
     }
 }

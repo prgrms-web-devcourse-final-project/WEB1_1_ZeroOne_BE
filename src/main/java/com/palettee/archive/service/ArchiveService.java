@@ -1,6 +1,7 @@
 package com.palettee.archive.service;
 
 import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
+import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
 import com.palettee.archive.controller.dto.request.ImageUrlDto;
 import com.palettee.archive.controller.dto.request.TagDto;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
@@ -71,7 +72,7 @@ public class ArchiveService {
 //    }
 
     public ArchiveDetailResponse getArchiveDetail(Long archiveId) {
-        Archive archive = archiveRepository.findById(archiveId).orElseThrow(() -> new IllegalArgumentException(""));
+        Archive archive = getArchive(archiveId);
         List<ImageUrlDto> urlDtoList = archiveImageRepository.findByArchiveId(archiveId)
                 .stream().map(ImageUrlDto::new).toList();
         List<TagDto> tagDtoList = tagRepository.findByArchiveId(archiveId)
@@ -93,6 +94,14 @@ public class ArchiveService {
         );
     }
 
+    @Transactional
+    public ArchiveResponse updateArchive(Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
+        Archive archive = getArchive(archiveId);
+        Archive updatedArchive = archive.update(archiveUpdateRequest);
+        return new ArchiveResponse(updatedArchive.getId());
+    }
+
+
     private void processingTags(List<TagDto> tags, Archive archive) {
         for (TagDto dto : tags) {
             tagRepository.save(new Tag(dto.tag(), archive));
@@ -103,6 +112,10 @@ public class ArchiveService {
         for (ImageUrlDto dto : imageUrls) {
             archiveImageRepository.save(new ArchiveImage(dto.url(), archive));
         }
+    }
+
+    private Archive getArchive(Long archiveId) {
+        return archiveRepository.findById(archiveId).orElseThrow(() -> new IllegalArgumentException(""));
     }
 
     private User getUser(String email) {
