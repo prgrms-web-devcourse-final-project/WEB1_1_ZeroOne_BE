@@ -1,4 +1,5 @@
-package com.palettee.bookmark.domain;
+package com.palettee.likes.domain;
+
 
 import com.palettee.user.domain.*;
 import jakarta.persistence.*;
@@ -8,27 +9,28 @@ import lombok.*;
 
 @Entity
 @Getter
+@Table(name = "likes")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class BookMark {
+public class Likes {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "bookMark_id")
-    private Long bookMarkId;
+    @Column(name = "like_id")
+    private Long likeId;
 
-    private Long userId;
+    @Enumerated(EnumType.STRING)
+    private LikeType likeType;
 
-    private Long portFolioId;
+    private Long targetId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
     @Builder
-    public BookMark(Long userId, Long portFolioId, User user) {
-        this.userId = userId;
-        this.portFolioId = portFolioId;
+    public Likes(Long targetId, User user) {
+        this.targetId = targetId;
         this.user = user;
-        user.addBookMark(this);
+        user.addLike(this);
     }
 }

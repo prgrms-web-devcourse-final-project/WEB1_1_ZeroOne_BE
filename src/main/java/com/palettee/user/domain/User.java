@@ -1,7 +1,6 @@
 package com.palettee.user.domain;
 
 import com.palettee.archive.domain.*;
-import com.palettee.bookmark.domain.*;
 import com.palettee.gathering.*;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.domain.*;
@@ -22,12 +21,11 @@ public class User {
     @Column(name = "user_email", nullable = false)
     private String email;
 
-    @Column(name = "user_iamge_url")
+    @Column(name = "user_image_url")
     private String imageUrl;
 
     @Column(name = "user_name")
     private String name;
-
 
     @Column(name = "brief_intro", length = 500)
     private String briefIntro;
@@ -37,13 +35,10 @@ public class User {
     private List<Gathering> gatherings = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<BookMark> bookMarks = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<PortFolio> portfolios = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Like> likes = new ArrayList<>();
+    private List<Likes> likes = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<RelatedLink> relatedLinks = new ArrayList<>();
@@ -56,16 +51,12 @@ public class User {
         this.gatherings.add(gathering);
     }
 
-    public void addBookMark(BookMark bookMark) {
-        this.bookMarks.add(bookMark);
-    }
-
     public void addPortfolio(PortFolio portfolio) {
         this.portfolios.add(portfolio);
     }
 
-    public void addLike(Like like) {
-        this.likes.add(like);
+    public void addLike(Likes likes) {
+        this.likes.add(likes);
     }
 
     public void addRelatedLink(RelatedLink relatedLink) {

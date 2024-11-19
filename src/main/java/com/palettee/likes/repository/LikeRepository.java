@@ -1,7 +1,7 @@
 package com.palettee.likes.repository;
 
-import com.palettee.likes.domain.Like;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.palettee.likes.domain.*;
+import org.springframework.data.jpa.repository.*;
 
-public interface LikeRepository extends JpaRepository<Like, Long> {
+public interface LikeRepository extends JpaRepository<Likes, Long> {
 }
