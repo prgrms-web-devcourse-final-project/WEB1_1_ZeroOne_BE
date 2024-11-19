@@ -5,32 +5,28 @@ import com.palettee.user.domain.*;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
 @Entity
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Chat {
+public class ChatUser {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "chat_id", nullable = false)
+    @Column(name = "chat_user_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chat_room_id")
+    private ChatRoom chatRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_room_id", nullable = false)
-    private ChatRoom chatRoom;
-
-    private String content;
-
-
     @Builder
-    public Chat(Long id, User user,
-            ChatRoom chatRoom, String content) {
+    public ChatUser(Long id, ChatRoom chatRoom, User user) {
         this.id = id;
-        this.user = user;
         this.chatRoom = chatRoom;
-        this.content = content;
+        this.user = user;
     }
 }

@@ -1,6 +1,5 @@
-package com.palettee.repositories;
+package com.palettee.gathering;
 
-import com.palettee.domain.*;
 import org.springframework.data.jpa.repository.*;
 
 public interface GatheringRepository

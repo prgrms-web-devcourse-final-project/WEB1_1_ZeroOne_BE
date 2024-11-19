@@ -1,7 +1,10 @@
-package com.palettee.domain;
+package com.palettee.gathering;
 
+import com.palettee.user.domain.*;
 import jakarta.persistence.*;
 import lombok.*;
+
+// 완료
 
 @Entity
 @Getter
@@ -27,5 +30,6 @@ public class Gathering {
         this.title = title;
         this.content = content;
         this.user = user;
+        user.addGathering(this);
     }
 }
