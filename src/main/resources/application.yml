@@ -1,0 +1,8 @@
+spring:
+  profiles:
+    active: local
+    include: secret
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
