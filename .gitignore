@@ -9,7 +9,7 @@ build/
 .apt_generated
 .classpath
 .factorypath
-.project
+.archive
 .settings
 .springBeans
 .sts4-cache
@@ -84,7 +84,7 @@ cmake-build-*/
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
 
-# File-based project format
+# File-based archive format
 
 # IntelliJ
 
@@ -219,7 +219,7 @@ local.properties
 .target
 
 # Tern plugin
-.tern-project
+.tern-archive
 
 # TeXlipse plugin
 .texlipse
@@ -238,9 +238,9 @@ local.properties
 .scala_dependencies
 .worksheet
 
-# Uncomment this line if you wish to ignore the project description file.
+# Uncomment this line if you wish to ignore the archive description file.
 # Typically, this file would be tracked if it contains build/dependency configurations:
-#.project
+#.archive
 
 ### Sonar template
 #Sonar generated dir
@@ -341,7 +341,7 @@ dist
 
 # Gatsby files
 .cache/
-# Comment in the public line in if your project uses Gatsby and not Next.js
+# Comment in the public line in if your archive uses Gatsby and not Next.js
 # https://nextjs.org/blog/next-9-1#public-directory-support
 # public
 
@@ -504,7 +504,7 @@ bld/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
-# Uncomment if you have tasks that create the project's static files in wwwroot
+# Uncomment if you have tasks that create the archive's static files in wwwroot
 #wwwroot/
 
 # Visual Studio 2017 auto generated files
@@ -528,8 +528,8 @@ dlldata.c
 BenchmarkDotNet.Artifacts/
 
 # .NET Core
-project.lock.json
-project.fragment.lock.json
+archive.lock.json
+archive.fragment.lock.json
 artifacts/
 
 # ASP.NET Scaffolding
@@ -670,7 +670,7 @@ PublishScripts/
 !**/[Pp]ackages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
-# NuGet v3's project.json files produces more ignorable files
+# NuGet v3's archive.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
 
@@ -718,7 +718,7 @@ orleans.codegen.cs
 # RIA/Silverlight projects
 Generated_Code/
 
-# Backup & report files from converting an old project file
+# Backup & report files from converting an old archive file
 # to a newer Visual Studio version. Backup files are not needed,
 # because we have git ;-)
 _UpgradeReport_Files/
@@ -760,10 +760,10 @@ FakesAssemblies/
 # Visual Studio 6 auto-generated workspace file (contains which files were open etc.)
 *.vbw
 
-# Visual Studio 6 auto-generated project file (contains which files were open etc.)
+# Visual Studio 6 auto-generated archive file (contains which files were open etc.)
 *.vbp
 
-# Visual Studio 6 workspace and project file (working project files containing files to include in project)
+# Visual Studio 6 workspace and archive file (working archive files containing files to include in archive)
 *.dsw
 *.dsp
 
@@ -876,7 +876,7 @@ gradle-app.setting
 # Avoid ignore Gradle wrappper properties
 !gradle-wrapper.properties
 
-# Cache of project
+# Cache of archive
 .gradletasknamecache
 
 # Eclipse Gradle plugin generated files
