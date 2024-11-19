@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
 import com.palettee.archive.controller.dto.request.ImageUrlDto;
 import com.palettee.archive.controller.dto.request.TagDto;
+import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
 import com.palettee.archive.controller.dto.response.ArchiveResponse;
 import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.ArchiveImage;
@@ -80,6 +81,42 @@ public class ArchiveServiceTest {
         assertThat(archive.getTitle()).isEqualTo(request.title());
         assertThat(archive.getDescription()).isEqualTo(request.description());
         assertThat(archive.getType()).isEqualTo(ArchiveType.RED);
+    }
+
+    @Test
+    @DisplayName("정상적인 아카이브 단건 조회 성공")
+    void getArchiveDetailTest() {
+        // given
+        ArchiveRegisterRequest request = new ArchiveRegisterRequest(
+                "title", "description", "RED", true,
+                List.of(new TagDto("tag1"), new TagDto("tag2")),
+                List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
+
+        //when
+        ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse.archiveId());
+
+        //then
+        assertThat(archiveResponse.archiveId()).isNotNull();
+
+        List<TagDto> allTags = archiveDetail.tags();
+        assertThat(allTags.size()).isEqualTo(2);
+        assertThat(allTags.get(0).tag()).isEqualTo("tag1");
+        assertThat(allTags.get(1).tag()).isEqualTo("tag2");
+
+        List<ImageUrlDto> allImages = archiveDetail.imageUrls();
+        assertThat(allImages.size()).isEqualTo(2);
+        assertThat(allImages.get(0).url()).isEqualTo("url1");
+        assertThat(allImages.get(1).url()).isEqualTo("url2");
+
+        assertThat(archiveDetail.hits()).isEqualTo(0);
+        assertThat(archiveDetail.title()).isEqualTo(request.title());
+        assertThat(archiveDetail.description()).isEqualTo(request.description());
+        assertThat(archiveDetail.type()).isEqualTo("RED");
+        assertThat(archiveDetail.username()).isEqualTo(savedUser.getName());
+        assertThat(archiveDetail.job()).isEqualTo(savedUser.getEmail());
+        assertThat(archiveDetail.likeCount()).isEqualTo(0L);
+        assertThat(archiveDetail.commentCount()).isEqualTo(0L);
     }
 
 }
