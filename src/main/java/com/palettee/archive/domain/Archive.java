@@ -15,10 +15,14 @@ public class Archive {
     private Long id;
 
     private String title;
+
+    @Column(length = 2500)
     private String description;
 
     @Enumerated(EnumType.STRING)
     private ArchiveType type;
+
+    private boolean canComment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -34,12 +38,12 @@ public class Archive {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Archive(Long id, String title, String description,
-            ArchiveType type, User user) {
-        this.id = id;
+    public Archive(String title, String description,
+            ArchiveType type, boolean canComment, User user) {
         this.title = title;
         this.description = description;
         this.type = type;
+        this.canComment = canComment;
 
         this.user = user;
         this.user.addArchive(this);
