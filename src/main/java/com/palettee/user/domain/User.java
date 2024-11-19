@@ -66,4 +66,11 @@ public class User {
     public void addArchive(Archive archive) {
         this.archives.add(archive);
     }
+
+    public User(String email, String imageUrl, String name, String briefIntro) {
+        this.email = email;
+        this.imageUrl = imageUrl;
+        this.name = name;
+        this.briefIntro = briefIntro;
+    }
 }
