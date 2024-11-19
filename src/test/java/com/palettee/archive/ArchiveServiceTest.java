@@ -6,7 +6,9 @@ import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
 import com.palettee.archive.controller.dto.request.ImageUrlDto;
 import com.palettee.archive.controller.dto.request.TagDto;
 import com.palettee.archive.controller.dto.response.ArchiveResponse;
+import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.ArchiveImage;
+import com.palettee.archive.domain.ArchiveType;
 import com.palettee.archive.domain.Tag;
 import com.palettee.archive.repository.ArchiveImageRepository;
 import com.palettee.archive.repository.ArchiveRepository;
@@ -72,6 +74,12 @@ public class ArchiveServiceTest {
         assertThat(allImages.size()).isEqualTo(2);
         assertThat(allImages.get(0).getImageUrl()).isEqualTo("url1");
         assertThat(allImages.get(1).getImageUrl()).isEqualTo("url2");
+
+        Archive archive = archiveRepository.findById(archiveResponse.archiveId()).orElseThrow();
+        assertThat(archive.getHits()).isEqualTo(0);
+        assertThat(archive.getTitle()).isEqualTo(request.title());
+        assertThat(archive.getDescription()).isEqualTo(request.description());
+        assertThat(archive.getType()).isEqualTo(ArchiveType.RED);
     }
 
 }

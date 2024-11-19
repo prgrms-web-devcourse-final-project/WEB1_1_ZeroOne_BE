@@ -24,6 +24,8 @@ public class Archive {
 
     private boolean canComment;
 
+    private int hits;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -44,6 +46,7 @@ public class Archive {
         this.description = description;
         this.type = type;
         this.canComment = canComment;
+        this.hits = 0;
 
         this.user = user;
         this.user.addArchive(this);
