@@ -1,6 +1,6 @@
-package com.palettee.repositories;
+package com.palettee.user.repository;
 
-import com.palettee.domain.*;
+import com.palettee.user.domain.*;
 import org.springframework.data.jpa.repository.*;
 
 public interface UserRepository
