@@ -3,6 +3,7 @@ package com.palettee.archive;
 import static org.assertj.core.api.Assertions.*;
 
 import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
+import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
 import com.palettee.archive.controller.dto.request.ImageUrlDto;
 import com.palettee.archive.controller.dto.request.TagDto;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
@@ -113,6 +114,49 @@ public class ArchiveServiceTest {
         assertThat(archiveDetail.title()).isEqualTo(request.title());
         assertThat(archiveDetail.description()).isEqualTo(request.description());
         assertThat(archiveDetail.type()).isEqualTo("RED");
+        assertThat(archiveDetail.username()).isEqualTo(savedUser.getName());
+        assertThat(archiveDetail.job()).isEqualTo(savedUser.getEmail());
+        assertThat(archiveDetail.likeCount()).isEqualTo(0L);
+        assertThat(archiveDetail.commentCount()).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("정상적인 아카이브 수정 성공")
+    void updateArchiveTest() {
+        // given
+        ArchiveRegisterRequest request = new ArchiveRegisterRequest(
+                "title", "description", "RED", true,
+                List.of(new TagDto("tag1"), new TagDto("tag2")),
+                List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
+
+        //when
+        ArchiveUpdateRequest archiveUpdateRequest = new ArchiveUpdateRequest("new _title", "new_description", "YELLOW",
+                false,
+                List.of(new TagDto("tag11"), new TagDto("tag12")),
+                List.of(new ImageUrlDto("url11"), new ImageUrlDto("url12")));
+        ArchiveResponse archiveResponse1 = archiveService.updateArchive(archiveResponse.archiveId(),
+                archiveUpdateRequest);
+
+        ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse1.archiveId());
+
+        //then
+        assertThat(archiveResponse.archiveId()).isNotNull();
+
+//        List<TagDto> allTags = archiveDetail.tags();
+//        assertThat(allTags.size()).isEqualTo(2);
+//        assertThat(allTags.get(0).tag()).isEqualTo("tag11");
+//        assertThat(allTags.get(1).tag()).isEqualTo("tag12");
+//
+//        List<ImageUrlDto> allImages = archiveDetail.imageUrls();
+//        assertThat(allImages.size()).isEqualTo(2);
+//        assertThat(allImages.get(0).url()).isEqualTo("url11");
+//        assertThat(allImages.get(1).url()).isEqualTo("url12");
+
+        assertThat(archiveDetail.hits()).isEqualTo(0);
+        assertThat(archiveDetail.title()).isEqualTo(archiveUpdateRequest.title());
+        assertThat(archiveDetail.description()).isEqualTo(archiveUpdateRequest.description());
+        assertThat(archiveDetail.type()).isEqualTo("YELLOW");
         assertThat(archiveDetail.username()).isEqualTo(savedUser.getName());
         assertThat(archiveDetail.job()).isEqualTo(savedUser.getEmail());
         assertThat(archiveDetail.likeCount()).isEqualTo(0L);
