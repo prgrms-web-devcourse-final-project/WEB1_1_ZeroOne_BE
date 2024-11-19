@@ -1,5 +1,6 @@
 package com.palettee.archive.domain;
 
+import com.palettee.global.entity.BaseEntity;
 import com.palettee.user.domain.*;
 import jakarta.persistence.*;
 import java.util.*;
@@ -8,7 +9,7 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Archive {
+public class Archive extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "archive_id")

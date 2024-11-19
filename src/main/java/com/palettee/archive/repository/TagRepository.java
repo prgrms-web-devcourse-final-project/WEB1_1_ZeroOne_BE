@@ -1,7 +1,12 @@
 package com.palettee.archive.repository;
 
 import com.palettee.archive.domain.*;
+import java.util.List;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
 
 public interface TagRepository extends JpaRepository<Tag, Long> {
+
+    @Query("select t.content from Tag t where t.archive.id = :archiveId")
+    List<String> findByArchiveId(@Param("archiveId") Long archiveId);
 }
