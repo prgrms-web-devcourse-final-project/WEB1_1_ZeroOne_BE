@@ -6,8 +6,8 @@ build/
 !**/src/test/**/build/
 
 ### Secrets ###
-src/main/resources/application-secret.yml
-src/main/resources/application-deploy.yml
+src/**/resources/application-secret.yml
+src/**/resources/application-deploy.yml
 
 ### STS ###
 .apt_generated
