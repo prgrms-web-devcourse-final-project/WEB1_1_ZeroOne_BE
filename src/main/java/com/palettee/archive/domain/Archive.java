@@ -35,9 +35,7 @@ public class Archive {
 
     @Builder
     public Archive(Long id, String title, String description,
-            ArchiveType type, User user,
-            List<Tag> tags, List<ArchiveImage> archiveImages,
-            List<Comment> comments) {
+            ArchiveType type, User user) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -45,10 +43,6 @@ public class Archive {
 
         this.user = user;
         this.user.addArchive(this);
-
-        this.tags = tags;
-        this.archiveImages = archiveImages;
-        this.comments = comments;
     }
 
     public void addTag(Tag tag) {

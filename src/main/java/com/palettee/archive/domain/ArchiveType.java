@@ -1,5 +1,5 @@
 package com.palettee.archive.domain;
 
 public enum ArchiveType {
-    RED, YELLOW, GREEN, BLUE
+    RED, YELLOW, GREEN, BLUE, PURPLE
 }
