@@ -1,6 +1,8 @@
 package com.palettee.portfolio.service;
 
 import com.palettee.portfolio.controller.dto.PortFolioResponseDTO;
+import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.portfolio.exception.PortFolioNotFoundException;
 import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
@@ -29,7 +31,11 @@ public class PortFolioService {
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
     }
 
+    @Transactional
     public void clickPortFolio(Long portPolioId){
+        PortFolio portFolio = portFolioRepository.findById(portPolioId).orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
+
+        portFolio.incrementHits();
 
     }
 

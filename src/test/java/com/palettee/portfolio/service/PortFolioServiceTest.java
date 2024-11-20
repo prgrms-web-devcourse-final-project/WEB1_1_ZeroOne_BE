@@ -34,6 +34,8 @@ class PortFolioServiceTest {
 
     User user;
 
+    PortFolio portFolio;
+
     @BeforeEach
     void setUp() {
          user = User.builder()
@@ -48,7 +50,7 @@ class PortFolioServiceTest {
 
         userRepository.save(user);
 
-        PortFolio portFolio = PortFolio.builder()
+        portFolio = PortFolio.builder()
                 .user(user)
                 .url("테스트테스트")
                 .build();
@@ -93,6 +95,24 @@ class PortFolioServiceTest {
         //then
         Assertions.assertThat(results.getSize()).isEqualTo(10);
         Assertions.assertThat(results.hasNext()).isEqualTo(true);
+    }
+
+
+    @Test
+    @DisplayName("포트 폴리오 조회시 조회 수 증가")
+    public void portFolio_click() throws Exception {
+
+        //총 3번 클릭
+        portFolioService.clickPortFolio(portFolio.getPortfolioId());
+
+        portFolioService.clickPortFolio(portFolio.getPortfolioId());
+
+        portFolioService.clickPortFolio(portFolio.getPortfolioId());
+
+        PortFolio findPortFolio = portFolioRepository.findById(portFolio.getPortfolioId()).get();
+
+        //then
+        Assertions.assertThat(findPortFolio.getHits()).isEqualTo(3);
     }
 
 }

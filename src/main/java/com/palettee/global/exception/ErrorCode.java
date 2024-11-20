@@ -18,6 +18,8 @@ public enum ErrorCode {
     CHAT_ROOM_NOT_FOUND(404, "해당하는 채팅방이 없습니다."),
     CHAT_USER_NOT_FOUND(404, "해당하는 채팅방 참여자가 없습니다."),
 
+    PORT_FOLIO_NOT_FOUND(404, "해당 포트폴리오가 없습니다"),
+
     /* 500 */
     INTERNAL_SERVER_ERROR(500,"서버 에러")
     ;
