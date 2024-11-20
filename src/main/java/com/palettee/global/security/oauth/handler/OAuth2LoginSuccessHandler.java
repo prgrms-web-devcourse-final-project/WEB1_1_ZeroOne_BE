@@ -1,6 +1,6 @@
 package com.palettee.global.security.oauth.handler;
 
-import com.palettee.global.security.jwt.*;
+import com.palettee.global.security.jwt.utils.*;
 import com.palettee.global.security.oauth.*;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;

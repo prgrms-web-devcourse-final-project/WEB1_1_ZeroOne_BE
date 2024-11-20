@@ -1,4 +1,4 @@
-package com.palettee.global.security.jwt;
+package com.palettee.global.security.jwt.utils;
 
 import com.palettee.user.domain.*;
 import io.jsonwebtoken.*;
