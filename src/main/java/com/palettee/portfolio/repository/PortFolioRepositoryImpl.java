@@ -54,10 +54,8 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         // 페이지 존재 여부를 나타내기 위해 하나 더 가져온걸 삭제
         boolean hasNext = false;
 
-        System.out.println(result.size());
 
         if (result.size() > pageable.getPageSize()) {
-            System.out.println("더 큼 !! ");
             hasNext = true;
             result.remove(pageable.getPageSize());
         }
@@ -78,7 +76,6 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         PathBuilder<?> entityPath = new PathBuilder<>(PortFolio.class, "portFolio");
 
         if (type.equals("latest")) { // 최신순 정렬
-            System.out.println(type);
             return new OrderSpecifier<>(Order.DESC, entityPath.get("createAt", LocalDateTime.class));  // 수정된 필드명
         } else if (type.equals("popularlity")) { // 인기순은 조회수를 기준으로
             return new OrderSpecifier<>(Order.DESC, entityPath.get("hits", Long.class));  // 수정된 필드
