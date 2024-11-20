@@ -18,4 +18,12 @@ public class ChatRoomController {
     public ChatRoomResponse createChatRoom(@Valid @RequestBody ChatRoomCreateRequest chatRoomCreateRequest) {
         return chatRoomService.saveChatRoom(chatRoomCreateRequest);
     }
+
+    // userId는 추후에 삭제할 예정
+    // 채팅방 참여
+    @PostMapping("/participation/{chatRoomId}/{userId}")
+    public void participateChatRoom(@PathVariable Long chatRoomId, @PathVariable Long userId) {
+        chatRoomService.participation(chatRoomId, userId);
+    }
+
 }
