@@ -69,4 +69,8 @@ public enum MinorJobGroup {
 
 
     private final String minorJobGroup;
+
+    public String getMinorJobGroup() {
+        return minorJobGroup;
+    }
 }

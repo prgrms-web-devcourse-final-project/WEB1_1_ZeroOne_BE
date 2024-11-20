@@ -1,5 +1,6 @@
 package com.palettee.portfolio.domain;
 
+import com.palettee.global.entity.BaseEntity;
 import com.palettee.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PortFolio {
+public class PortFolio extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,11 +29,14 @@ public class PortFolio {
     private User user;
 
     @Builder
-    public PortFolio(Long portfolioId,User user, String url) {
-        this.portfolioId = portfolioId;
+    public PortFolio(User user, String url) {
         this.hits = 0;
         this.user = user;
         this.url = url;
         user.addPortfolio(this);
+    }
+
+    public void incrementHits(){
+        this.hits++;
     }
 }

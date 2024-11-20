@@ -1,36 +1,36 @@
 package com.palettee.portfolio.controller.dto;
 
-import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
 import com.querydsl.core.annotations.QueryProjection;
 
-public record PortFolioResponseDTO (
+public record PortFolioResponseDTO(
         Long portFolioId,
+        String portFolioUrl,
         String username,
-//        int likeCounts,
-//        int hints,
         String introduction,
-//        String mainJobGroup,
+        String majorJobGroup,
+        String minorJobGroup,
         String memberImageUrl
-){
+) {
     @QueryProjection
     public PortFolioResponseDTO(
             Long portFolioId,
+            String portFolioUrl,  // 추가
             String username,
             String introduction,
+            MajorJobGroup majorJobGroup,
+            MinorJobGroup minorJobGroup,
             String memberImageUrl
     ) {
-        this.portFolioId = portFolioId;
-        this.username = username;
-        this.introduction = introduction;
-        this.memberImageUrl = memberImageUrl;
-    }
-
-
-    public static PortFolioResponseDTO toDTO(PortFolio portFolio){
-        return new PortFolioResponseDTO(
-                portFolio.getPortfolioId(),
-                portFolio.getUser().getName(),
-                portFolio.getUser().getBriefIntro(),
-                portFolio.getUrl());
+        this(
+                portFolioId,
+                portFolioUrl,  // 추가
+                username,
+                introduction,
+                majorJobGroup != null ? majorJobGroup.getMajorGroup() : null, // Enum 값 변환
+                minorJobGroup != null ? minorJobGroup.getMinorJobGroup() : null,
+                memberImageUrl
+        );
     }
 }

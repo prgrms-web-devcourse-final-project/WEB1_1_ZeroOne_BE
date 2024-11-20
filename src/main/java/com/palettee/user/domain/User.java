@@ -36,6 +36,15 @@ public class User {
     @Enumerated(EnumType.STRING)
     private MinorJobGroup minorJobGroup;
 
+    @Builder
+    public User(String email, String imageUrl, String name, String briefIntro, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {
+        this.email = email;
+        this.imageUrl = imageUrl;
+        this.name = name;
+        this.briefIntro = briefIntro;
+        this.majorJobGroup = majorJobGroup;
+        this.minorJobGroup = minorJobGroup;
+    }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Gathering> gatherings = new ArrayList<>();

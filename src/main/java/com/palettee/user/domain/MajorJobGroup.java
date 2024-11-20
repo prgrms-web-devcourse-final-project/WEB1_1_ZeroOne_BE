@@ -11,4 +11,8 @@ public enum MajorJobGroup {
     ETC("기타");
 
     private final String majorGroup;
+
+    public String getMajorGroup() {
+        return majorGroup;
+    }
 }

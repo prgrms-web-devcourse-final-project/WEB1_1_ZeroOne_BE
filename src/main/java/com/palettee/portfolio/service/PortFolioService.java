@@ -2,6 +2,8 @@ package com.palettee.portfolio.service;
 
 import com.palettee.portfolio.controller.dto.PortFolioResponseDTO;
 import com.palettee.portfolio.repository.PortFolioRepository;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -20,12 +22,11 @@ public class PortFolioService {
 
     public Slice<PortFolioResponseDTO>  findAllPortFolio(
             Pageable pageable,
-            String sort,
-            String jobGroup,
-            String job) {
+            MajorJobGroup majorJobGroup,
+            MinorJobGroup minorJobGroup,
+            String sort) {
 
-
-    return null;
+        return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
     }
 
 }
