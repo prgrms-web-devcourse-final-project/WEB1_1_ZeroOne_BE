@@ -3,7 +3,6 @@ package com.palettee.global.security.jwt;
 import com.palettee.user.domain.*;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.*;
-import io.jsonwebtoken.security.SecurityException;
 import io.jsonwebtoken.security.*;
 import java.util.*;
 import javax.crypto.*;
@@ -29,13 +28,26 @@ final class CustomJwtUtil {
 
     public boolean isValid(String token) {
         try {
-            Jwts.parser().verifyWith(secretKey).build()
-                    .parse(token);
+            Claims claims = Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            String email = claims.get("email", String.class);
+            Date expiration = claims.getExpiration();
+
+            if (email == null || email.isEmpty()) {
+                logDebug("Cannot find userEmail claims in jwt {}", new NullPointerException());
+                return false;
+            }
+
+            if (expiration.before(new Date(System.currentTimeMillis()))) {
+                logDebug("Token were expired", new IllegalStateException());
+                return false;
+            }
 
             return true;
 
-        } catch (MalformedJwtException | SecurityException |
-                 ExpiredJwtException | IllegalArgumentException e) {
+        } catch (UnsupportedJwtException | IllegalArgumentException e) {
             logDebug("Invalid jwt given : {}", e);
 
             return false;
@@ -91,7 +103,6 @@ final class CustomJwtUtil {
             NullPointerException {
 
         try {
-
             String email = Jwts.parser().verifyWith(secretKey).build()
                     .parseSignedClaims(token)
                     .getPayload()
