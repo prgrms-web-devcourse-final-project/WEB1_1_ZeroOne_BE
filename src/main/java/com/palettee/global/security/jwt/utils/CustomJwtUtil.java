@@ -23,7 +23,8 @@ final class CustomJwtUtil {
     }
 
     private static void logDebug(String s, Exception e) {
-        log.debug(s, e);
+        log.debug(s, e.getMessage());
+        log.trace("Caused by: ", e);
     }
 
     public boolean isValid(String token) {
@@ -32,10 +33,10 @@ final class CustomJwtUtil {
                     .parseSignedClaims(token)
                     .getPayload();
 
-            String email = claims.get("email", String.class);
+            String userEmail = claims.get("userEmail", String.class);
             Date expiration = claims.getExpiration();
 
-            if (email == null || email.isEmpty()) {
+            if (userEmail == null || userEmail.isEmpty()) {
                 logDebug("Cannot find userEmail claims in jwt {}", new NullPointerException());
                 return false;
             }
