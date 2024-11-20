@@ -1,6 +1,6 @@
 package com.palettee.global.security.oauth;
 
-import com.palettee.global.security.dto.*;
+import com.palettee.global.security.dto.oauth.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
 import java.util.*;

@@ -1,4 +1,4 @@
-package com.palettee.global.security.dto;
+package com.palettee.global.security.dto.oauth;
 
 /*
 참고 : https://developers.google.com/identity/openid-connect/openid-connect?hl=ko

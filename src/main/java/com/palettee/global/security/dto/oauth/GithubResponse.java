@@ -1,4 +1,4 @@
-package com.palettee.global.security.dto;
+package com.palettee.global.security.dto.oauth;
 
 
 import java.util.*;
