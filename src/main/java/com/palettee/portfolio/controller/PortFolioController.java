@@ -26,11 +26,10 @@ public class PortFolioController
     @GetMapping()
     public Slice<PortFolioResponseDTO>  findAll(
             Pageable pageable,
-            @RequestParam String sort,
+            @RequestParam(defaultValue = "latest") String sort,
             @RequestParam MajorJobGroup majorJobGroup,
             @RequestParam MinorJobGroup minorJobGroup
             ){
-        log.info("findAll");
 
         return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort);
     }
