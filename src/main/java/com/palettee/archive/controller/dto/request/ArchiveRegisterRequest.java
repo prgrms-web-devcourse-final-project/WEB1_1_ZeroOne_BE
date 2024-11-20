@@ -1,20 +1,20 @@
 package com.palettee.archive.controller.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 import org.hibernate.validator.constraints.Length;
 
 public record ArchiveRegisterRequest(
 
-        @NotNull
-        @Length(min = 1, max = 30)
+        @NotBlank(message = "제목을 입력해 주세요.")
+        @Length(min = 1, max = 30, message = "최대 30자까지 가능합니다.")
         String title,
 
-        @NotNull
-        @Length(min = 1, max = 2500)
+        @NotBlank(message = "내용을 입력해 주세요.")
+        @Length(min = 1, max = 2500, message = "최대 2500자까지 가능합니다.")
         String description,
 
-        @NotNull
+        @NotBlank(message = "타입을 입력해 주세요.")
         String colorType,
 
         boolean canComment,
