@@ -7,6 +7,8 @@ import com.palettee.archive.controller.dto.request.TagDto;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
 import com.palettee.archive.controller.dto.response.ArchiveListResponse;
 import com.palettee.archive.controller.dto.response.ArchiveResponse;
+import com.palettee.archive.controller.dto.response.ArchiveSimpleResponse;
+import com.palettee.archive.controller.dto.response.SliceInfo;
 import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.ArchiveImage;
 import com.palettee.archive.domain.ArchiveType;
@@ -20,9 +22,8 @@ import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,19 +58,25 @@ public class ArchiveService {
         return new ArchiveResponse(savedArchive.getId());
     }
 
-//    public ArchiveListResponse getAllArchive(String sortCondition, String category, String email) {
-//
-//        User user = getUser(email);
-//
-//        PageRequest recentCondition = PageRequest.of(0, 10, Sort.by("createdAt").descending());
-//        PageRequest recommendCondition = PageRequest.of(0, 10, Sort.by("hits").descending());
-//
-//        if (category.equals("all")) {
-//            Page<Archive> all = archiveRepository.findAll(recentCondition);
-//        } else {
-//
-//        }
-//    }
+    public ArchiveListResponse getAllArchive(String category, Pageable pageable) {
+        Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(category, pageable);
+
+        List<ArchiveSimpleResponse> list = archives
+                .map(it -> new ArchiveSimpleResponse(
+                        it.getId(),
+                        it.getTitle(),
+                        it.getDescription(),
+                        it.getUser().getName(),
+                        it.getType().name(),
+                        it.isCanComment(),
+                        likeRepository.countArchiveLike(it.getId()),
+                        it.getArchiveImages().get(0).getImageUrl(),
+                        it.getCreateAt().toLocalDate().toString()
+                ))
+                .toList();
+
+        return new ArchiveListResponse(list, SliceInfo.of(archives));
+    }
 
     public ArchiveDetailResponse getArchiveDetail(Long archiveId) {
         Archive archive = getArchive(archiveId);
@@ -86,7 +93,7 @@ public class ArchiveService {
                 archive.getUser().getName(),
                 archive.getType().name(),
                 archive.isCanComment(),
-                archive.getUser().getEmail(), //수정 필요
+                archive.getUser().getMinorJobGroup().name(),
                 likeCount,
                 count,
                 archive.getHits(),

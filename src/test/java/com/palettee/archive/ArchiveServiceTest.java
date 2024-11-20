@@ -16,6 +16,8 @@ import com.palettee.archive.repository.ArchiveImageRepository;
 import com.palettee.archive.repository.ArchiveRepository;
 import com.palettee.archive.repository.TagRepository;
 import com.palettee.archive.service.ArchiveService;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
 import java.util.List;
@@ -41,7 +43,7 @@ public class ArchiveServiceTest {
 
     @BeforeEach
     void beforeEach() {
-        savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro"));
+        savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro", MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND));
     }
 
     @AfterEach
@@ -115,7 +117,7 @@ public class ArchiveServiceTest {
         assertThat(archiveDetail.description()).isEqualTo(request.description());
         assertThat(archiveDetail.type()).isEqualTo("RED");
         assertThat(archiveDetail.username()).isEqualTo(savedUser.getName());
-        assertThat(archiveDetail.job()).isEqualTo(savedUser.getEmail());
+        assertThat(archiveDetail.job()).isEqualTo(savedUser.getMinorJobGroup().name());
         assertThat(archiveDetail.likeCount()).isEqualTo(0L);
         assertThat(archiveDetail.commentCount()).isEqualTo(0L);
     }
@@ -158,7 +160,7 @@ public class ArchiveServiceTest {
         assertThat(archiveDetail.description()).isEqualTo(archiveUpdateRequest.description());
         assertThat(archiveDetail.type()).isEqualTo("YELLOW");
         assertThat(archiveDetail.username()).isEqualTo(savedUser.getName());
-        assertThat(archiveDetail.job()).isEqualTo(savedUser.getEmail());
+        assertThat(archiveDetail.job()).isEqualTo(savedUser.getMinorJobGroup().name());
         assertThat(archiveDetail.likeCount()).isEqualTo(0L);
         assertThat(archiveDetail.commentCount()).isEqualTo(0L);
     }

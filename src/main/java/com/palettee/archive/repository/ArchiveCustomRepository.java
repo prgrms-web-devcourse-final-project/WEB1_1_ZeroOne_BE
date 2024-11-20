@@ -1,10 +1,11 @@
 package com.palettee.archive.repository;
 
 import com.palettee.archive.domain.Archive;
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 public interface ArchiveCustomRepository {
 
-    List<Archive> findAllArchiveWithCondition();
+    Slice<Archive> findAllArchiveWithCondition(String category, Pageable pageable);
 
 }
