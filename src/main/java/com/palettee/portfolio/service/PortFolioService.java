@@ -29,4 +29,8 @@ public class PortFolioService {
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
     }
 
+    public void clickPortFolio(Long portPolioId){
+
+    }
+
 }

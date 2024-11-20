@@ -76,12 +76,12 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         PathBuilder<?> entityPath = new PathBuilder<>(PortFolio.class, "portFolio");
 
         if (type.equals("latest")) { // 최신순 정렬
-            return new OrderSpecifier<>(Order.DESC, entityPath.get("createAt", LocalDateTime.class));  // 수정된 필드명
+            return new OrderSpecifier<>(Order.DESC, entityPath.get("createAt", LocalDateTime.class));
         } else if (type.equals("popularlity")) { // 인기순은 조회수를 기준으로
-            return new OrderSpecifier<>(Order.DESC, entityPath.get("hits", Long.class));  // 수정된 필드
+            return new OrderSpecifier<>(Order.DESC, entityPath.get("hits", Long.class));
         }
 
-        return null;
+        return new OrderSpecifier<>(Order.ASC,  entityPath.get("createAt", LocalDateTime.class)); // 기본 시간 오름차순 전체 조회
     }
 }
 
