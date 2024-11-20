@@ -55,6 +55,20 @@ jobs:
         run: chmod +x ./gradlew
 
 
+      # Secret 들 test-resources 에 추가
+      - name: Set up secret yml file
+        env:
+          YAML_SECRET: ${{ secrets.SECRET_YAML }}
+          YAML_DIR: src/main/resources
+          YAML_TEST_DIR: src/test/resources
+          YAML_FILE_NAME: application-secret.yml
+        run: |
+          echo $YAML_SECRET | base64 --decode > $YAML_DIR/$YAML_FILE_NAME
+          echo $YAML_SECRET | base64 --decode > $YAML_TEST_DIR/$YAML_FILE_NAME
+          echo "YAML_SECRET has been decoded and saved to $YAML_DIR/$YAML_FILE_NAME"
+          echo "YAML_SECRET has been decoded and saved to $YAML_TEST_DIR/$YAML_FILE_NAME"
+
+
       # test 없이 그냥 build
       - name: Build with Gradle
         run: ./gradlew build -x test --build-cache
