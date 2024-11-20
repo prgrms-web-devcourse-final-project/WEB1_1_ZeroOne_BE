@@ -8,19 +8,19 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: an902318
-    url: jdbc:mysql://localhost:3306/palette
+    password: 1952
+    url: jdbc:mysql://localhost:3306/final_project?createDatabaseIfNotExists
 
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: update
     properties:
       hibernate:
-        use_sql_comments: true
-        format_sql: true
-    hibernate:
-      ddl-auto: create
+        jdbc:
+          time_zone: UTC
 
 redis:
   host: localhost
   port: 6379
-  password:
+  password: abcdefg
