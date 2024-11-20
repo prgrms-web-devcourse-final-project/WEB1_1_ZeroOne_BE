@@ -62,60 +62,33 @@ public class ArchiveService {
         Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(category, pageable);
 
         List<ArchiveSimpleResponse> list = archives
-                .map(it -> new ArchiveSimpleResponse(
-                        it.getId(),
-                        it.getTitle(),
-                        it.getDescription(),
-                        it.getUser().getName(),
-                        it.getType().name(),
-                        it.isCanComment(),
-                        likeRepository.countArchiveLike(it.getId()),
-                        it.getArchiveImages().get(0).getImageUrl(),
-                        it.getCreateAt().toLocalDate().toString()
-                ))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
                 .toList();
 
         return new ArchiveListResponse(list, SliceInfo.of(archives));
     }
 
+    @Transactional
     public ArchiveDetailResponse getArchiveDetail(Long archiveId) {
         Archive archive = getArchive(archiveId);
         archive.hit();
-        List<ImageUrlDto> urlDtoList = archiveImageRepository.findByArchiveId(archiveId)
-                .stream().map(ImageUrlDto::new).toList();
-        List<TagDto> tagDtoList = tagRepository.findByArchiveId(archiveId)
-                .stream().map(TagDto::new).toList();
-        long count = commentRepository.countArchiveComment(archiveId);
-        long likeCount = likeRepository.countArchiveLike(archiveId);
-        return new ArchiveDetailResponse(
-                archive.getTitle(),
-                archive.getDescription(),
-                archive.getUser().getName(),
-                archive.getType().name(),
-                archive.isCanComment(),
-                archive.getUser().getMinorJobGroup().name(),
-                likeCount,
-                count,
-                archive.getHits(),
-                tagDtoList,
-                urlDtoList
+        return ArchiveDetailResponse.toResponse(
+                archive,
+                likeRepository.countArchiveLike(archiveId),
+                commentRepository.countArchiveComment(archiveId),
+                tagRepository.findByArchiveId(archiveId)
+                        .stream().map(TagDto::new).toList(),
+                archiveImageRepository.findByArchiveId(archiveId)
+                        .stream().map(ImageUrlDto::new).toList()
         );
     }
 
     public ArchiveListResponse getMyArchive(String email) {
         User user = getUser(email);
         List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(user.getUserId())
-                .stream().map(it -> new ArchiveSimpleResponse(
-                        it.getId(),
-                        it.getTitle(),
-                        it.getDescription(),
-                        it.getUser().getName(),
-                        it.getType().name(),
-                        it.isCanComment(),
-                        likeRepository.countArchiveLike(it.getId()),
-                        it.getArchiveImages().get(0).getImageUrl(),
-                        it.getCreateAt().toLocalDate().toString()
-                )).toList();
+                .stream()
+                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .toList();
         return new ArchiveListResponse(result, null);
     }
 
@@ -124,18 +97,21 @@ public class ArchiveService {
         List<Long> ids = likeRepository.findMyLikeList(user.getUserId());
 
         List<ArchiveSimpleResponse> result = archiveRepository.findAllInIds(ids)
-                .stream().map(it -> new ArchiveSimpleResponse(
-                        it.getId(),
-                        it.getTitle(),
-                        it.getDescription(),
-                        it.getUser().getName(),
-                        it.getType().name(),
-                        it.isCanComment(),
-                        likeRepository.countArchiveLike(it.getId()),
-                        it.getArchiveImages().get(0).getImageUrl(),
-                        it.getCreateAt().toLocalDate().toString()
-                )).toList();
+                .stream()
+                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .toList();
         return new ArchiveListResponse(result, null);
+    }
+
+    public ArchiveListResponse searchArchive(String searchKeyword, Pageable pageable) {
+        List<Long> ids = tagRepository.findAllArchiveIds(searchKeyword);
+        Slice<Archive> archives = archiveRepository.searchArchive(searchKeyword, ids, pageable);
+
+        List<ArchiveSimpleResponse> list = archives
+                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .toList();
+
+        return new ArchiveListResponse(list, SliceInfo.of(archives));
     }
 
     @Transactional

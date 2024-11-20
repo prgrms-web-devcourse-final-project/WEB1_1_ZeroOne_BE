@@ -51,6 +51,32 @@ public class ArchiveCustomRepositoryImpl implements ArchiveCustomRepository{
         return new SliceImpl<>(jpaQuery.fetch(), pageable, slice.hasNext());
     }
 
+    @Override
+    public Slice<Archive> searchArchive(String searchKeyword, List<Long> ids, Pageable pageable) {
+        JPAQuery<Long> query = queryFactory
+                .select(archive.id)
+                .from(archive)
+                .where(
+                        archive.title.like(searchKeyword)
+                        .or(archive.description.like(searchKeyword))
+                        .or(archive.id.in(ids))
+                )
+                .orderBy(makeOrderSpecifiers(archive, pageable))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize() + 1);
+
+        final Slice<Long> slice = toSlice(pageable, query.fetch());
+        if (slice.isEmpty()) {
+            return new SliceImpl<>(Collections.emptyList(), pageable, false);
+        }
+
+        final JPAQuery<Archive> jpaQuery = queryFactory.selectFrom(archive)
+                .where(archive.id.in(slice.getContent()))
+                .orderBy(makeOrderSpecifiers(archive, pageable));
+
+        return new SliceImpl<>(jpaQuery.fetch(), pageable, slice.hasNext());
+    }
+
     private <T> OrderSpecifier[] makeOrderSpecifiers(final EntityPathBase<T> qClass, final Pageable pageable) {
         return pageable.getSort()
                 .stream()

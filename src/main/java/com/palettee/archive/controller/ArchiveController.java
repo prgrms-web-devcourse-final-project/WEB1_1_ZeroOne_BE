@@ -49,6 +49,16 @@ public class ArchiveController {
         return archiveService.getAllArchive(category, pageRequest);
     }
 
+    @GetMapping("/search")
+    public ArchiveListResponse searchArchives(
+            @RequestParam String searchKeyword,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
+        return archiveService.searchArchive(searchKeyword, pageRequest);
+    }
+
     @GetMapping("/me")
     public ArchiveListResponse getMyArchives() {
         return archiveService.getMyArchive(getUserName());
