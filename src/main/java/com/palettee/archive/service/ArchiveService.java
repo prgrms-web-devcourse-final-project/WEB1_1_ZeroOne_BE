@@ -2,6 +2,7 @@ package com.palettee.archive.service;
 
 import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
 import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
+import com.palettee.archive.controller.dto.request.ChangeOrderRequest;
 import com.palettee.archive.controller.dto.request.ImageUrlDto;
 import com.palettee.archive.controller.dto.request.TagDto;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
@@ -21,6 +22,7 @@ import com.palettee.likes.repository.LikeRepository;
 import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -139,6 +141,15 @@ public class ArchiveService {
         archiveImageRepository.deleteAllByArchiveId(archiveId);
     }
 
+    @Transactional
+    public void changeArchiveOrder(ChangeOrderRequest changeOrderRequest) {
+        Map<Long, Integer> map = changeOrderRequest.orderRequest();
+
+        for (Long pk : map.keySet()) {
+            Archive archive = getArchive(pk);
+            archive.updateOrder(map.get(pk));
+        }
+    }
 
     private void processingTags(List<TagDto> tags, Archive archive) {
         for (TagDto dto : tags) {

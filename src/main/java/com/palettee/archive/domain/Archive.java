@@ -83,4 +83,8 @@ public class Archive extends BaseEntity {
     public void setOrder() {
         this.order = id;
     }
+
+    public void updateOrder(Integer order) {
+        this.order = Long.valueOf(order);
+    }
 }
