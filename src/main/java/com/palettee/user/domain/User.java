@@ -47,30 +47,25 @@ public class User {
 
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Gathering> gatherings = new ArrayList<>();
+    private final List<Gathering> gatherings = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<PortFolio> portfolios = new ArrayList<>();
+    private final List<PortFolio> portfolios = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Likes> likes = new ArrayList<>();
+    private final List<Likes> likes = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<RelatedLink> relatedLinks = new ArrayList<>();
+    private final List<RelatedLink> relatedLinks = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Archive> archives = new ArrayList<>();
+    private final List<Archive> archives = new ArrayList<>();
 
     @Builder
     public User(
             String oauthIdentity, UserRole userRole,
             String email, String imageUrl,
-            String name, String briefIntro,
-            List<Gathering> gatherings,
-            List<PortFolio> portfolios,
-            List<Likes> likes,
-            List<RelatedLink> relatedLinks,
-            List<Archive> archives
+            String name, String briefIntro
     ) {
         this.oauthIdentity = oauthIdentity;
         this.userRole = userRole;
@@ -78,11 +73,6 @@ public class User {
         this.imageUrl = imageUrl;
         this.name = name;
         this.briefIntro = briefIntro;
-        this.gatherings = gatherings;
-        this.portfolios = portfolios;
-        this.likes = likes;
-        this.relatedLinks = relatedLinks;
-        this.archives = archives;
     }
 
     public void addGathering(Gathering gathering) {
