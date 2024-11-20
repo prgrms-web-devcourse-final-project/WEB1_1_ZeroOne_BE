@@ -49,6 +49,11 @@ public class ArchiveController {
         return archiveService.getAllArchive(category, pageRequest);
     }
 
+    @GetMapping("/me")
+    public ArchiveListResponse getMyArchives() {
+        return archiveService.getMyArchive(getUserName());
+    }
+
     @PutMapping("/{archiveId}")
     public ArchiveResponse updateArchive(@PathVariable("archiveId") long archiveId, @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
         return archiveService.updateArchive(archiveId, archiveUpdateRequest);

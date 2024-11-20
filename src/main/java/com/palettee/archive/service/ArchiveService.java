@@ -51,7 +51,7 @@ public class ArchiveService {
                 .build();
 
         Archive savedArchive = archiveRepository.save(archive);
-
+        archive.setOrder();
         processingTags(archiveRegisterRequest.tags(), archive);
         processingImage(archiveRegisterRequest.imageUrls(), archive);
 
@@ -100,6 +100,23 @@ public class ArchiveService {
                 tagDtoList,
                 urlDtoList
         );
+    }
+
+    public ArchiveListResponse getMyArchive(String email) {
+        User user = getUser(email);
+        List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(user.getUserId())
+                .stream().map(it -> new ArchiveSimpleResponse(
+                        it.getId(),
+                        it.getTitle(),
+                        it.getDescription(),
+                        it.getUser().getName(),
+                        it.getType().name(),
+                        it.isCanComment(),
+                        likeRepository.countArchiveLike(it.getId()),
+                        it.getArchiveImages().get(0).getImageUrl(),
+                        it.getCreateAt().toLocalDate().toString()
+                )).toList();
+        return new ArchiveListResponse(result, null);
     }
 
     @Transactional
