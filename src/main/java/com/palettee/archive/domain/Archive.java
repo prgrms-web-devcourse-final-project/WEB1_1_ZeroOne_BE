@@ -73,4 +73,8 @@ public class Archive extends BaseEntity {
         this.canComment = req.canComment();
         return this;
     }
+
+    public void hit() {
+        this.hits++;
+    }
 }

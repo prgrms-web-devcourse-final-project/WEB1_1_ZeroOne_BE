@@ -110,7 +110,7 @@ public class ArchiveServiceTest {
         assertThat(allImages.get(0).url()).isEqualTo("url1");
         assertThat(allImages.get(1).url()).isEqualTo("url2");
 
-        assertThat(archiveDetail.hits()).isEqualTo(0);
+        assertThat(archiveDetail.hits()).isEqualTo(1);
         assertThat(archiveDetail.title()).isEqualTo(request.title());
         assertThat(archiveDetail.description()).isEqualTo(request.description());
         assertThat(archiveDetail.type()).isEqualTo("RED");
@@ -153,7 +153,7 @@ public class ArchiveServiceTest {
         assertThat(allImages.get(0).url()).isEqualTo("url11");
         assertThat(allImages.get(1).url()).isEqualTo("url12");
 
-        assertThat(archiveDetail.hits()).isEqualTo(0);
+        assertThat(archiveDetail.hits()).isEqualTo(1);
         assertThat(archiveDetail.title()).isEqualTo(archiveUpdateRequest.title());
         assertThat(archiveDetail.description()).isEqualTo(archiveUpdateRequest.description());
         assertThat(archiveDetail.type()).isEqualTo("YELLOW");
@@ -161,6 +161,30 @@ public class ArchiveServiceTest {
         assertThat(archiveDetail.job()).isEqualTo(savedUser.getEmail());
         assertThat(archiveDetail.likeCount()).isEqualTo(0L);
         assertThat(archiveDetail.commentCount()).isEqualTo(0L);
+    }
+
+    @Test
+    @DisplayName("정상적인 아카이브 삭제 성공")
+    void deleteArchiveTest() {
+        // given
+        ArchiveRegisterRequest request = new ArchiveRegisterRequest(
+                "title", "description", "RED", true,
+                List.of(new TagDto("tag1"), new TagDto("tag2")),
+                List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
+
+        //when
+        ArchiveResponse archiveResponse1 = archiveService.deleteArchive(archiveResponse.archiveId());
+
+        //then
+        assertThat(archiveResponse1.archiveId()).isNotNull();
+
+        List<Tag> allTags = tagRepository.findAll();
+        assertThat(allTags.size()).isEqualTo(0);
+
+        List<ArchiveImage> allImages = archiveImageRepository.findAll();
+        assertThat(allImages.size()).isEqualTo(0);
+
     }
 
 }

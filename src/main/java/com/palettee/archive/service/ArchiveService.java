@@ -73,6 +73,7 @@ public class ArchiveService {
 
     public ArchiveDetailResponse getArchiveDetail(Long archiveId) {
         Archive archive = getArchive(archiveId);
+        archive.hit();
         List<ImageUrlDto> urlDtoList = archiveImageRepository.findByArchiveId(archiveId)
                 .stream().map(ImageUrlDto::new).toList();
         List<TagDto> tagDtoList = tagRepository.findByArchiveId(archiveId)
@@ -109,6 +110,8 @@ public class ArchiveService {
     @Transactional
     public ArchiveResponse deleteArchive(Long archiveId) {
         archiveRepository.deleteById(archiveId);
+        tagRepository.deleteAllByArchiveId(archiveId);
+        archiveImageRepository.deleteAllByArchiveId(archiveId);
         return new ArchiveResponse(archiveId);
     }
 
