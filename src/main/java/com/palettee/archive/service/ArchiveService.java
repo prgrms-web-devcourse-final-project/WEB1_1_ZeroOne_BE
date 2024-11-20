@@ -106,6 +106,12 @@ public class ArchiveService {
         return new ArchiveResponse(updatedArchive.getId());
     }
 
+    @Transactional
+    public ArchiveResponse deleteArchive(Long archiveId) {
+        archiveRepository.deleteById(archiveId);
+        return new ArchiveResponse(archiveId);
+    }
+
     private void deleteAllInfo(Long archiveId) {
         tagRepository.deleteAllByArchiveId(archiveId);
         archiveImageRepository.deleteAllByArchiveId(archiveId);

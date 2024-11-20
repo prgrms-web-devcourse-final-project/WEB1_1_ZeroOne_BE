@@ -7,6 +7,7 @@ import com.palettee.archive.controller.dto.response.ArchiveResponse;
 import com.palettee.archive.service.ArchiveService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +36,11 @@ public class ArchiveController {
     @PutMapping("/{archiveId}")
     public ArchiveResponse updateArchive(@PathVariable("archiveId") long archiveId, @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
         return archiveService.updateArchive(archiveId, archiveUpdateRequest);
+    }
+
+    @DeleteMapping("/{archiveId}")
+    public ArchiveResponse deleteArchive(@PathVariable("archiveId") long archiveId) {
+        return archiveService.deleteArchive(archiveId);
     }
 
     private String getUserName() {
