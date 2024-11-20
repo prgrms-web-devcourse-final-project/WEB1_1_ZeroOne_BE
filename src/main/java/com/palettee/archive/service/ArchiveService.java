@@ -119,6 +119,25 @@ public class ArchiveService {
         return new ArchiveListResponse(result, null);
     }
 
+    public ArchiveListResponse getLikeArchive(String email) {
+        User user = getUser(email);
+        List<Long> ids = likeRepository.findMyLikeList(user.getUserId());
+
+        List<ArchiveSimpleResponse> result = archiveRepository.findAllInIds(ids)
+                .stream().map(it -> new ArchiveSimpleResponse(
+                        it.getId(),
+                        it.getTitle(),
+                        it.getDescription(),
+                        it.getUser().getName(),
+                        it.getType().name(),
+                        it.isCanComment(),
+                        likeRepository.countArchiveLike(it.getId()),
+                        it.getArchiveImages().get(0).getImageUrl(),
+                        it.getCreateAt().toLocalDate().toString()
+                )).toList();
+        return new ArchiveListResponse(result, null);
+    }
+
     @Transactional
     public ArchiveResponse updateArchive(Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
         Archive archive = getArchive(archiveId);

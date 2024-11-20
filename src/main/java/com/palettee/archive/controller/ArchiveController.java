@@ -54,6 +54,11 @@ public class ArchiveController {
         return archiveService.getMyArchive(getUserName());
     }
 
+    @GetMapping("/me/like")
+    public ArchiveListResponse getMyLikeArchives() {
+        return archiveService.getLikeArchive(getUserName());
+    }
+
     @PutMapping("/{archiveId}")
     public ArchiveResponse updateArchive(@PathVariable("archiveId") long archiveId, @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
         return archiveService.updateArchive(archiveId, archiveUpdateRequest);
