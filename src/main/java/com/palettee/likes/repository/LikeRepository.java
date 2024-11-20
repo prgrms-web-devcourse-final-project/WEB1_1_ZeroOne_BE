@@ -10,6 +10,6 @@ public interface LikeRepository extends JpaRepository<Likes, Long> {
     @Query("select count(l.likeId) from Likes l where l.likeType = 'ARCHIVE' and l.targetId = :archiveId")
     long countArchiveLike(@Param("archiveId") Long archiveId);
 
-    @Query("select l.targetId from Likes l where l.user.userId = :userId and l.likeType = 'ARCHIVE'")
+    @Query("select l.targetId from Likes l where l.user.id = :userId and l.likeType = 'ARCHIVE'")
     List<Long> findMyLikeList(@Param("userId") Long userId);
 }

@@ -88,7 +88,7 @@ public class ArchiveService {
 
     public ArchiveListResponse getMyArchive(String email) {
         User user = getUser(email);
-        List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(user.getUserId())
+        List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(user.getId())
                 .stream()
                 .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
                 .toList();
@@ -97,7 +97,7 @@ public class ArchiveService {
 
     public ArchiveListResponse getLikeArchive(String email) {
         User user = getUser(email);
-        List<Long> ids = likeRepository.findMyLikeList(user.getUserId());
+        List<Long> ids = likeRepository.findMyLikeList(user.getId());
 
         List<ArchiveSimpleResponse> result = archiveRepository.findAllInIds(ids)
                 .stream()

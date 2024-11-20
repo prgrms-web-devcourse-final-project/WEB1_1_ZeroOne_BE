@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface ArchiveRepository extends JpaRepository<Archive, Long>, ArchiveCustomRepository {
 
-    @Query("select a from Archive a where a.user.userId = :userId order by a.archiveOrder desc")
+    @Query("select a from Archive a where a.user.id = :userId order by a.archiveOrder desc")
     List<Archive> getAllMyArchive(@Param("userId") Long userId);
 
     @Query("select a from Archive a where a.id in :ids order by a.archiveOrder desc")
