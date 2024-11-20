@@ -49,6 +49,18 @@ jobs:
           restore-keys:
             ${{ runner.os }}-gradle-
 
+      # Secret 들 test-resources 에 추가
+      - name: Set up secret yml file
+        env:
+          YAML_SECRET: ${{ secrets.SECRET_YAML }}
+          YAML_DIR: src/main/resources
+          YAML_TEST_DIR: src/test/resources
+          YAML_FILE_NAME: application-secret.yml
+        run: |
+          echo $YAML_SECRET | base64 --decode > $YAML_DIR/$YAML_FILE_NAME
+          echo $YAML_SECRET | base64 --decode > $YAML_TEST_DIR/$YAML_FILE_NAME
+          echo "YAML_SECRET has been decoded and saved to $YAML_DIR/$YAML_FILE_NAME"
+          echo "YAML_SECRET has been decoded and saved to $YAML_TEST_DIR/$YAML_FILE_NAME"
 
       # gradlew 실행 권한 부여
       - name: Grant Execute Permission For Gradlew
