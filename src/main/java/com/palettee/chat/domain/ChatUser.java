@@ -24,8 +24,7 @@ public class ChatUser {
     private User user;
 
     @Builder
-    public ChatUser(Long id, ChatRoom chatRoom, User user) {
-        this.id = id;
+    public ChatUser(ChatRoom chatRoom, User user) {
         this.chatRoom = chatRoom;
         this.user = user;
     }
