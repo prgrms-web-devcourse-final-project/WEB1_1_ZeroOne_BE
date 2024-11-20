@@ -9,6 +9,10 @@ import java.util.*;
 import lombok.*;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_email", columnList = "user_email"),
+        @Index(name = "idx_oauth_identity", columnList = "oauth_identity")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
@@ -16,9 +20,20 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long userId;
+    private Long id;
 
-    @Column(name = "user_email", nullable = false)
+    /**
+     * 사용자의 소셜 로그인 정보를 담는 column
+     * <p>
+     * > {@code google 12221}, {@code github 443312} 이런 형식
+     */
+    @Column(name = "oauth_identity", length = 50, unique = true)
+    private String oauthIdentity;
+
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole;
+
+    @Column(name = "user_email", unique = true, nullable = false)
     private String email;
 
     @Column(name = "user_image_url")
@@ -47,20 +62,33 @@ public class User {
     }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Gathering> gatherings = new ArrayList<>();
+    private final List<Gathering> gatherings = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<PortFolio> portfolios = new ArrayList<>();
+    private final List<PortFolio> portfolios = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Likes> likes = new ArrayList<>();
+    private final List<Likes> likes = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<RelatedLink> relatedLinks = new ArrayList<>();
+    private final List<RelatedLink> relatedLinks = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Archive> archives = new ArrayList<>();
+    private final List<Archive> archives = new ArrayList<>();
 
+    @Builder
+    public User(
+            String oauthIdentity, UserRole userRole,
+            String email, String imageUrl,
+            String name, String briefIntro
+    ) {
+        this.oauthIdentity = oauthIdentity;
+        this.userRole = userRole;
+        this.email = email;
+        this.imageUrl = imageUrl;
+        this.name = name;
+        this.briefIntro = briefIntro;
+    }
 
     public void addGathering(Gathering gathering) {
         this.gatherings.add(gathering);
