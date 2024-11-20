@@ -113,6 +113,21 @@ public class SecurityConfig {
                                 .successHandler(oauth2LoginsuccessHandler)
                                 .failureHandler(oAuth2LoginFailureHandler));
 
+        // JwtFilter 추가
+        // 토큰 만료로 재로그인 시 JwtFilter 로 무한루프(?) 빠질 수 있음.
+        // 그래서 OAuth2 로그인 필터 뒤에 위치
+        http
+                .addFilterAfter(    // JwtFilter 넣기
+                        new JwtFilter(jwtUtils, userRepo, byPassableUris(), conditionalAuthUris()),
+                        OAuth2LoginAuthenticationFilter.class)
+
+                // JwtFilter 에서 에러가 터지진 않았지만, 인증되지 않았을 때 행동 지침
+                .exceptionHandling(exception ->
+                        // 더 높은 권한이 필요
+                        exception.accessDeniedHandler(jwtAccessDeniedHandler))
+                // JwtFilter 에서 에러 터졌을 때 행동 지침
+                .addFilterBefore(new JwtExceptionHandlingFilter(), JwtFilter.class);
+
         // API 별 authenticate 설정
         http
                 .authorizeHttpRequests(auth -> auth
