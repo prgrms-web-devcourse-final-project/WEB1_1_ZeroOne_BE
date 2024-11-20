@@ -26,4 +26,10 @@ public class ChatRoomController {
         chatRoomService.participation(chatRoomId, userId);
     }
 
+    // userId는 추후에 삭제할 예정
+    // 채팅방 나가기
+    @DeleteMapping("/leave/{chatRoomId}/{userId}")
+    public void leaveChatRoom(@PathVariable Long chatRoomId, @PathVariable Long userId) {
+        chatRoomService.leave(chatRoomId, userId);
+    }
 }

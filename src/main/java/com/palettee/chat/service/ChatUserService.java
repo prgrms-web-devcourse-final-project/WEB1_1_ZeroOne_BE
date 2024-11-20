@@ -1,6 +1,7 @@
 package com.palettee.chat.service;
 
 import com.palettee.chat.domain.ChatUser;
+import com.palettee.chat.exception.ChatUserNotFoundException;
 import com.palettee.chat.repository.ChatUserRepository;
 import com.palettee.chat_room.domain.ChatRoom;
 import com.palettee.user.domain.User;
@@ -19,10 +20,21 @@ public class ChatUserService {
         chatUserRepository.save(chatUser);
     }
 
+    public void deleteChatUser(ChatRoom chatRoom, User user) {
+        ChatUser chatUser = getChatUser(chatRoom, user);
+        chatUserRepository.delete(chatUser);
+    }
+
     private ChatUser makeChatUser(ChatRoom chatRoom, User user) {
         return ChatUser.builder()
                 .chatRoom(chatRoom)
                 .user(user)
                 .build();
+    }
+
+    private ChatUser getChatUser(ChatRoom chatRoom, User user) {
+        return chatUserRepository
+                .findByChatRoomAndUser(chatRoom, user)
+                .orElseThrow(() -> ChatUserNotFoundException.EXCEPTION);
     }
 }

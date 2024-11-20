@@ -35,6 +35,13 @@ public class ChatRoomService {
         chatUserService.saveChatUser(chatRoom, user);
     }
 
+    @Transactional
+    public void leave(Long chatRoomId, Long userId) {
+        ChatRoom chatRoom = getChatRoom(chatRoomId);
+        User user = getUser(userId);
+        chatUserService.deleteChatUser(chatRoom, user);
+    }
+
     private ChatRoom getChatRoom(Long chatRoomId) {
         return chatRoomRepository
                 .findById(chatRoomId)
