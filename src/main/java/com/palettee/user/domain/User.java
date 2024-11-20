@@ -30,6 +30,12 @@ public class User {
     @Column(name = "brief_intro", length = 500)
     private String briefIntro;
 
+    @Enumerated(EnumType.STRING)
+    private MajorJobGroup majorJobGroup;
+
+    @Enumerated(EnumType.STRING)
+    private MinorJobGroup minorJobGroup;
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Gathering> gatherings = new ArrayList<>();
