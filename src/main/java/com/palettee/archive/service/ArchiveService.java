@@ -98,7 +98,17 @@ public class ArchiveService {
     public ArchiveResponse updateArchive(Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
         Archive archive = getArchive(archiveId);
         Archive updatedArchive = archive.update(archiveUpdateRequest);
+
+        deleteAllInfo(archiveId);
+        processingTags(archiveUpdateRequest.tags(), archive);
+        processingImage(archiveUpdateRequest.imageUrls(), archive);
+
         return new ArchiveResponse(updatedArchive.getId());
+    }
+
+    private void deleteAllInfo(Long archiveId) {
+        tagRepository.deleteAllByArchiveId(archiveId);
+        archiveImageRepository.deleteAllByArchiveId(archiveId);
     }
 
 

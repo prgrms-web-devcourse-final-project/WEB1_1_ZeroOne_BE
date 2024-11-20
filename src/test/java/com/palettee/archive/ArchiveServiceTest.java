@@ -143,15 +143,15 @@ public class ArchiveServiceTest {
         //then
         assertThat(archiveResponse.archiveId()).isNotNull();
 
-//        List<TagDto> allTags = archiveDetail.tags();
-//        assertThat(allTags.size()).isEqualTo(2);
-//        assertThat(allTags.get(0).tag()).isEqualTo("tag11");
-//        assertThat(allTags.get(1).tag()).isEqualTo("tag12");
-//
-//        List<ImageUrlDto> allImages = archiveDetail.imageUrls();
-//        assertThat(allImages.size()).isEqualTo(2);
-//        assertThat(allImages.get(0).url()).isEqualTo("url11");
-//        assertThat(allImages.get(1).url()).isEqualTo("url12");
+        List<TagDto> allTags = archiveDetail.tags();
+        assertThat(allTags.size()).isEqualTo(2);
+        assertThat(allTags.get(0).tag()).isEqualTo("tag11");
+        assertThat(allTags.get(1).tag()).isEqualTo("tag12");
+
+        List<ImageUrlDto> allImages = archiveDetail.imageUrls();
+        assertThat(allImages.size()).isEqualTo(2);
+        assertThat(allImages.get(0).url()).isEqualTo("url11");
+        assertThat(allImages.get(1).url()).isEqualTo("url12");
 
         assertThat(archiveDetail.hits()).isEqualTo(0);
         assertThat(archiveDetail.title()).isEqualTo(archiveUpdateRequest.title());

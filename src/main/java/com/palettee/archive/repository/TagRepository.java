@@ -9,4 +9,9 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
 
     @Query("select t.content from Tag t where t.archive.id = :archiveId")
     List<String> findByArchiveId(@Param("archiveId") Long archiveId);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("delete from Tag t where t.archive.id = :archiveId")
+    void deleteAllByArchiveId(@Param("archiveId") Long archiveId);
+
 }
