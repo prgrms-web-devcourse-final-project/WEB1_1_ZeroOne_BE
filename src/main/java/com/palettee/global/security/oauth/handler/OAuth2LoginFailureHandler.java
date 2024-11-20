@@ -1,10 +1,12 @@
 package com.palettee.global.security.oauth.handler;
 
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.datatype.jsr310.*;
+import com.palettee.global.security.dto.oauth.*;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.*;
 import java.time.*;
-import java.util.*;
 import lombok.extern.slf4j.*;
 import org.springframework.http.*;
 import org.springframework.security.core.*;
@@ -30,22 +32,22 @@ public class OAuth2LoginFailureHandler
         OAuth2Error error = oAuth2AuthenticationException.getError();
 
         // throws 된 exception 에서 코드, 원인 뽑아내기
-        int errorCode = Integer.parseInt(error.getErrorCode());
+        int status = Integer.parseInt(error.getErrorCode());
         String reason = oAuth2AuthenticationException.getMessage();
+
+        OAuth2FailureResponse body = new OAuth2FailureResponse(status, reason, LocalDateTime.now());
 
         // 응답
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
-        response.setStatus(errorCode);
+        response.setStatus(status);
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("reason", reason);
-        body.put("timestamp", Instant.now());
-
-        response.getWriter().write(body.toString());
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        response.getWriter().write(objectMapper.writeValueAsString(body));
 
         log.warn("Handled OAuth2 login failure.");
-        log.warn("Error status : {}", errorCode);
+        log.warn("Error status : {}", status);
         log.warn("Error msg : {}", reason);
     }
 }

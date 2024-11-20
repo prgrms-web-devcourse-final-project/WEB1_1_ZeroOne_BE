@@ -27,8 +27,15 @@ final class CustomJwtUtil {
         log.trace("Caused by: ", e);
     }
 
+    private String removeBearer(String token) {
+        return token != null && token.startsWith("Bearer ") ?
+                token.substring(7) : token;
+    }
+
     public boolean isValid(String token) {
         try {
+            token = removeBearer(token);
+
             Claims claims = Jwts.parser().verifyWith(secretKey).build()
                     .parseSignedClaims(token)
                     .getPayload();
@@ -52,6 +59,11 @@ final class CustomJwtUtil {
             logDebug("Invalid jwt given : {}", e);
 
             return false;
+
+        } catch (ExpiredJwtException e) {
+            logDebug("Token is expired : {}", e);
+
+            return false;
         } catch (Exception e) {
             logDebug("Unexpected exception occurred while validating JWT : {}", e);
 
@@ -60,11 +72,19 @@ final class CustomJwtUtil {
     }
 
     public boolean isExpired(String token) {
-        return Jwts.parser().verifyWith(secretKey).build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration()
-                .before(new Date());
+        token = removeBearer(token);
+
+        try {
+            return Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getExpiration()
+                    .before(new Date(System.currentTimeMillis()));
+        } catch (ExpiredJwtException e) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -104,6 +124,8 @@ final class CustomJwtUtil {
             NullPointerException {
 
         try {
+            token = removeBearer(token);
+
             String email = Jwts.parser().verifyWith(secretKey).build()
                     .parseSignedClaims(token)
                     .getPayload()
