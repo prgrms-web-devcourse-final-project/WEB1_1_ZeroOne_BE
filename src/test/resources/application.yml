@@ -12,28 +12,6 @@ spring:
   profiles:
     include: secret
 
-  # OAuth2 settings
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-name: google
-            client-id: ${oauth2.google.client-id}
-            client-secret: ${oauth2.google.client-secret}
-            redirect-uri: http://localhost:8080/login/oauth2/code/google
-            scope:
-              - profile
-              - email
-
-          github:
-            client-name: github
-            client-id: ${oauth2.github.client-id}
-            client-secret: ${oauth2.github.client-secret}
-            redirect-uri: http://localhost:8080/login/oauth2/code/github
-            # no scope
-
-
 redis:
   host: localhost
   port: 6379
