@@ -14,6 +14,7 @@ import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.ArchiveImage;
 import com.palettee.archive.domain.ArchiveType;
 import com.palettee.archive.domain.Tag;
+import com.palettee.archive.exception.ArchiveNotFound;
 import com.palettee.archive.repository.ArchiveImageRepository;
 import com.palettee.archive.repository.ArchiveRepository;
 import com.palettee.archive.repository.CommentRepository;
@@ -164,7 +165,7 @@ public class ArchiveService {
     }
 
     private Archive getArchive(Long archiveId) {
-        return archiveRepository.findById(archiveId).orElseThrow(() -> new IllegalArgumentException(""));
+        return archiveRepository.findById(archiveId).orElseThrow(() -> ArchiveNotFound.EXCEPTION);
     }
 
     private User getUser(String email) {
