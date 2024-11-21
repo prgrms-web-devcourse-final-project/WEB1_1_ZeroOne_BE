@@ -100,4 +100,13 @@ public class User {
     public void addArchive(Archive archive) {
         this.archives.add(archive);
     }
+
+    public User(String email, String imageUrl, String name, String briefIntro, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {
+        this.email = email;
+        this.imageUrl = imageUrl;
+        this.name = name;
+        this.briefIntro = briefIntro;
+        this.majorJobGroup = majorJobGroup;
+        this.minorJobGroup = minorJobGroup;
+    }
 }
