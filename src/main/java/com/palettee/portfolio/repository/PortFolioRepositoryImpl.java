@@ -40,7 +40,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
      *
      */
     @Override
-    public Slice<PortFolioResponseDTO> PageFindAllPortfolio(Pageable pageable, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup, String sort) {
+    public Slice<PortFolioResponseDTO> PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
 
         List<PortFolioResponseDTO> result = queryFactory
                 .select(new QPortFolioResponseDTO(
@@ -120,12 +120,25 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         return new CustomSliceResponse(result, hasNext, nextId);
     }
 
-    private BooleanExpression majorJobGroupEquals(MajorJobGroup majorJobGroup) {
-        return majorJobGroup != null ? user.majorJobGroup.eq(majorJobGroup) : null;
+    private BooleanExpression majorJobGroupEquals(String majorJobGroup) {
+
+        MajorJobGroup majorGroup = MajorJobGroup.findMajorGroup(majorJobGroup);
+
+        if(majorGroup != null){
+            return user.majorJobGroup.eq(majorGroup);
+        }
+
+        return null;
     }
 
-    private BooleanExpression minorJobEquals(MinorJobGroup minorJobGroup) {
-        return minorJobGroup != null ? user.minorJobGroup.eq(minorJobGroup) : null;
+    private BooleanExpression minorJobEquals(String minorJobGroup) {
+
+        MinorJobGroup findMinorJobGroup = MinorJobGroup.findMinorJobGroup(minorJobGroup);
+
+        if(findMinorJobGroup != null){
+            return user.minorJobGroup.eq(findMinorJobGroup);
+        }
+        return null;
     }
 
     private OrderSpecifier<?> sortType(String type) {

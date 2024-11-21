@@ -25,8 +25,8 @@ public class PortFolioController
     public Slice<PortFolioResponseDTO>  findAll(
             Pageable pageable,
             @RequestParam(defaultValue = "latest") String sort,
-            @RequestParam MajorJobGroup majorJobGroup,
-            @RequestParam MinorJobGroup minorJobGroup
+            @RequestParam String majorJobGroup,
+            @RequestParam String minorJobGroup
             ){
 
         return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort);
@@ -43,4 +43,6 @@ public class PortFolioController
         return portFolioService.findListPortFolio(pageable,"k12002@nate.com", likeId);
 
     }
+
+
 }

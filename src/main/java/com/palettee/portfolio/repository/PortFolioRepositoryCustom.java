@@ -9,7 +9,7 @@ import org.springframework.data.domain.Slice;
 
 public interface PortFolioRepositoryCustom {
 
-    Slice<PortFolioResponseDTO> PageFindAllPortfolio(Pageable pageable, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup, String sort);
+    Slice<PortFolioResponseDTO> PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort);
 
     CustomSliceResponse PageFindLikePortfolio(Pageable pageable, Long userId , Long likeId);
 }

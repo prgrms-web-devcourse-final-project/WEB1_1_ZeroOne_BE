@@ -29,8 +29,8 @@ public class PortFolioService {
 
     public Slice<PortFolioResponseDTO> findAllPortFolio(
             Pageable pageable,
-            MajorJobGroup majorJobGroup,
-            MinorJobGroup minorJobGroup,
+            String majorJobGroup,
+            String minorJobGroup,
             String sort) {
 
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
