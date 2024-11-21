@@ -7,7 +7,6 @@ import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
 
 @Slf4j
 @Service
@@ -24,7 +23,6 @@ public class RedisService {
      * @param user      {@code Refresh} 토큰을 발급한 유저
      * @param expireMin {@code Refresh} 토큰 만료 시간 (분)
      */
-    @Transactional
     public void storeRefreshToken(final User user, final String refreshToken, long expireMin) {
         String key = getRefreshTokenKey(user);
         redisTemplate.opsForValue().set(key, refreshToken, expireMin, TimeUnit.MINUTES);
@@ -35,13 +33,11 @@ public class RedisService {
     /**
      * 유저가 발급했던 {@code Refresh} 토큰 가져오는 메서드
      */
-    @Transactional(readOnly = true)
     public Optional<String> getRefreshToken(final User user) {
         String key = getRefreshTokenKey(user);
         return Optional.ofNullable((String) redisTemplate.opsForValue().get(key));
     }
 
-    @Transactional
     public void deleteRefreshToken(final User user) {
         String key = getRefreshTokenKey(user);
         redisTemplate.delete(key);
