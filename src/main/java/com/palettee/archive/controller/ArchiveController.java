@@ -81,7 +81,7 @@ public class ArchiveController {
         return archiveService.deleteArchive(archiveId);
     }
 
-    @PatchMapping("/archive")
+    @PatchMapping
     public void updateOrder(@Valid @RequestBody ChangeOrderRequest changeOrderRequest) {
         archiveService.changeArchiveOrder(changeOrderRequest);
     }
