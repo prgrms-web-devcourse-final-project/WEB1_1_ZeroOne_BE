@@ -1,7 +1,10 @@
 package com.palettee.archive.service;
 
 import com.palettee.archive.controller.dto.request.CommentWriteRequest;
+import com.palettee.archive.controller.dto.response.CommentDetail;
+import com.palettee.archive.controller.dto.response.CommentListResponse;
 import com.palettee.archive.controller.dto.response.CommentResponse;
+import com.palettee.archive.controller.dto.response.SliceInfo;
 import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.Comment;
 import com.palettee.archive.exception.ArchiveNotFound;
@@ -10,7 +13,11 @@ import com.palettee.archive.repository.ArchiveRepository;
 import com.palettee.archive.repository.CommentRepository;
 import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +49,17 @@ public class CommentService {
     public CommentResponse deleteComment(Long commentId) {
         commentRepository.deleteById(commentId);
         return new CommentResponse(commentId);
+    }
+
+    public CommentListResponse getComment(String email, Long archiveId, Pageable pageable) {
+        Archive archive = getArchive(archiveId);
+        User user = userRepository.findByEmail(email).orElse(null);
+        Slice<Comment> comments = commentRepository.findCommentWithArchiveId(archive, pageable);
+
+        List<CommentDetail> result = comments.getContent().stream()
+                .map(it -> CommentDetail.toResponse(it, user))
+                .toList();
+        return new CommentListResponse(result, SliceInfo.of(comments));
     }
 
     private Archive getArchive(Long archiveId) {

@@ -7,6 +7,7 @@ import com.palettee.archive.controller.dto.request.CommentWriteRequest;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
 import com.palettee.archive.controller.dto.response.ArchiveListResponse;
 import com.palettee.archive.controller.dto.response.ArchiveResponse;
+import com.palettee.archive.controller.dto.response.CommentListResponse;
 import com.palettee.archive.controller.dto.response.CommentResponse;
 import com.palettee.archive.service.ArchiveService;
 import com.palettee.archive.service.CommentService;
@@ -93,6 +94,16 @@ public class ArchiveController {
     @PostMapping("/{archiveId}/comment")
     public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
         return commentService.writeComment(getUserName(), archiveId, commentWriteRequest);
+    }
+
+    @GetMapping("/{archiveId}/comment")
+    public CommentListResponse getComments(
+            @PathVariable("archiveId") long archiveId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
+        return commentService.getComment(getUserName(), archiveId, pageRequest);
     }
 
     @DeleteMapping("/comment/{commentId}")
