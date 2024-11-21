@@ -1,4 +1,4 @@
-package com.palettee.portfolio.controller.dto;
+package com.palettee.portfolio.controller.dto.response;
 
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;

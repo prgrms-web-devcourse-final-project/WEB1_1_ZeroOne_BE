@@ -28,9 +28,11 @@ public class Likes {
     private User user;
 
     @Builder
-    public Likes(Long targetId, User user) {
+    public Likes(Long targetId, User user, LikeType likeType) {
         this.targetId = targetId;
         this.user = user;
+        this.likeType = likeType;
         user.addLike(this);
     }
+
 }

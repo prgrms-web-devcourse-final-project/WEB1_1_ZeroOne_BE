@@ -1,6 +1,7 @@
 package com.palettee.portfolio.controller;
 
-import com.palettee.portfolio.controller.dto.PortFolioResponseDTO;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponseDTO;
 import com.palettee.portfolio.service.PortFolioService;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
@@ -35,5 +36,11 @@ public class PortFolioController
     @GetMapping("/{portFolioId}")
     public void clickPortFolio(@PathVariable Long portFolioId){
         portFolioService.clickPortFolio(portFolioId);
+    }
+
+    @GetMapping("/my-page")
+    public CustomSliceResponse findLike(Pageable pageable ,@RequestParam(required = false) Long likeId){
+        return portFolioService.findListPortFolio(pageable,"k12002@nate.com", likeId);
+
     }
 }

@@ -1,8 +1,11 @@
 package com.palettee.portfolio.service;
 
-import com.palettee.portfolio.controller.dto.PortFolioResponseDTO;
+import com.palettee.likes.domain.LikeType;
+import com.palettee.likes.domain.Likes;
+import com.palettee.likes.repository.LikeRepository;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponseDTO;
 import com.palettee.portfolio.domain.PortFolio;
-import com.palettee.portfolio.domain.QPortFolio;
 import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
@@ -31,6 +34,9 @@ class PortFolioServiceTest {
 
     @Autowired
     private PortFolioRepository portFolioRepository;
+
+    @Autowired
+    private LikeRepository likeRepository;
 
     User user;
 
@@ -114,5 +120,40 @@ class PortFolioServiceTest {
         //then
         Assertions.assertThat(findPortFolio.getHits()).isEqualTo(3);
     }
+
+    @Test
+    @DisplayName("좋아요한 포트폴리오 목록 조회 NoOffSet")
+    public void UserLike_portFolio() throws Exception {
+       //given
+
+        for(int i = 0; i < 20; i++){
+
+            PortFolio portFolio = PortFolio.builder()
+                    .user(user)
+                    .url("테스트테스트1")
+                    .build();
+
+            portFolioRepository.save(portFolio);
+
+
+            Likes likes = Likes.builder()
+                    .targetId(portFolio.getPortfolioId())
+                    .user(user)
+                    .likeType(LikeType.PORTFOLIO)
+                    .build();
+            likeRepository.save(likes);
+        }
+
+       //when
+        PageRequest pageRequest = PageRequest.of(0, 10);
+
+        CustomSliceResponse customSliceResponse= portFolioService.findListPortFolio(pageRequest, user.getEmail(), null);
+
+        //then
+        Assertions.assertThat(customSliceResponse.content().size()).isEqualTo(10);
+        Assertions.assertThat(customSliceResponse.hasNext()).isEqualTo(true);
+    }
+
+
 
 }
