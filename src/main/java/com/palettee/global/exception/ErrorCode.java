@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum ErrorCode {
     /* 400 BAD_REQUEST : 잘못된 요청 */
+    COMMENT_NOT_OPEN(400, "댓글이 허용되지 않은 아카이브 입니다."),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     INVALID_TOKEN(401, "토큰이 유효하지 않습니다."), // 예시

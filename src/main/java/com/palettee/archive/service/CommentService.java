@@ -5,6 +5,7 @@ import com.palettee.archive.controller.dto.response.CommentResponse;
 import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.Comment;
 import com.palettee.archive.exception.ArchiveNotFound;
+import com.palettee.archive.exception.CanNotCommentArchive;
 import com.palettee.archive.repository.ArchiveRepository;
 import com.palettee.archive.repository.CommentRepository;
 import com.palettee.user.domain.User;
@@ -26,9 +27,15 @@ public class CommentService {
     public CommentResponse writeComment(String email, Long archiveId, CommentWriteRequest commentWriteRequest) {
         User user = getUser(email);
         Archive archive = getArchive(archiveId);
-
+        checkCommentOpen(archive);
         Comment savedComment = commentRepository.save(new Comment(commentWriteRequest.content(), user.getName(), user.getId(), archive));
         return new CommentResponse(savedComment.getId());
+    }
+
+    private void checkCommentOpen(Archive archive) {
+        if (archive.isNotOpenComment()) {
+            throw CanNotCommentArchive.EXCEPTION;
+        }
     }
 
     private Archive getArchive(Long archiveId) {
