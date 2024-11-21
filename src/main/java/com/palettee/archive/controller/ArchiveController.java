@@ -95,6 +95,11 @@ public class ArchiveController {
         return commentService.writeComment(getUserName(), archiveId, commentWriteRequest);
     }
 
+    @DeleteMapping("/comment/{commentId}")
+    public CommentResponse deleteComment(@PathVariable("commentId") long commentId) {
+        return commentService.deleteComment(commentId);
+    }
+
     private String getUserName() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }

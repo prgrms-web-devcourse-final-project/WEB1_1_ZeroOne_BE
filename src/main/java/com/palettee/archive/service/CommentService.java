@@ -38,6 +38,12 @@ public class CommentService {
         }
     }
 
+    @Transactional
+    public CommentResponse deleteComment(Long commentId) {
+        commentRepository.deleteById(commentId);
+        return new CommentResponse(commentId);
+    }
+
     private Archive getArchive(Long archiveId) {
         return archiveRepository.findById(archiveId).orElseThrow(() -> ArchiveNotFound.EXCEPTION);
     }
