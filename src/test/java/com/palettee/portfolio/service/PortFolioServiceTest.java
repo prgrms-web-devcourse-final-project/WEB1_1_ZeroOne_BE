@@ -4,7 +4,7 @@ import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioResponseDTO;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.MajorJobGroup;
@@ -96,7 +96,7 @@ class PortFolioServiceTest {
 
         PageRequest pageRequest = PageRequest.of(0, 10);
 
-        Slice<PortFolioResponseDTO> results = portFolioService.findAllPortFolio(pageRequest, MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND, "popularlity");
+        Slice<PortFolioResponse> results = portFolioService.findAllPortFolio(pageRequest, MajorJobGroup.DEVELOPER.getMajorGroup(), MinorJobGroup.BACKEND.getMinorJobGroup(), "popularlity");
 
         //then
         Assertions.assertThat(results.getSize()).isEqualTo(10);

@@ -4,7 +4,7 @@ import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
 import com.querydsl.core.annotations.QueryProjection;
 
-public record PortFolioResponseDTO(
+public record PortFolioResponse(
         Long portFolioId,
         String portFolioUrl,
         String username,
@@ -14,7 +14,7 @@ public record PortFolioResponseDTO(
         String memberImageUrl
 ) {
     @QueryProjection
-    public PortFolioResponseDTO(
+    public PortFolioResponse(
             Long portFolioId,
             String portFolioUrl,  // 추가
             String username,

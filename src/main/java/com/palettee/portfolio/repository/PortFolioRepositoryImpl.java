@@ -2,8 +2,8 @@ package com.palettee.portfolio.repository;
 
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioResponseDTO;
-import com.palettee.portfolio.controller.dto.response.QPortFolioResponseDTO;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
+import com.palettee.portfolio.controller.dto.response.QPortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
@@ -40,10 +40,10 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
      *
      */
     @Override
-    public Slice<PortFolioResponseDTO> PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
+    public Slice<PortFolioResponse> PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
 
-        List<PortFolioResponseDTO> result = queryFactory
-                .select(new QPortFolioResponseDTO(
+        List<PortFolioResponse> result = queryFactory
+                .select(new QPortFolioResponse(
                         portFolio.portfolioId,
                         portFolio.url,
                         user.name,
@@ -101,8 +101,8 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         Long nextId = hasNext ? longs.get(longs.size() - 1) : null;  // 다음 likeId를 조회하기 위해 NoOffSet 방식
 
 
-        List<PortFolioResponseDTO> result = queryFactory
-                .select(new QPortFolioResponseDTO(
+        List<PortFolioResponse> result = queryFactory
+                .select(new QPortFolioResponse(
                         portFolio.portfolioId,
                         portFolio.url,
                         user.name,
