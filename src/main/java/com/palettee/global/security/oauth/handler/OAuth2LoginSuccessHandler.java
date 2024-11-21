@@ -1,6 +1,6 @@
 package com.palettee.global.security.oauth.handler;
 
-import com.palettee.global.security.jwt.*;
+import com.palettee.global.security.jwt.utils.*;
 import com.palettee.global.security.oauth.*;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -27,7 +27,7 @@ public class OAuth2LoginSuccessHandler
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-            Authentication authentication)
+                                        Authentication authentication)
             throws IOException, ServletException {
 
         CustomOAuth2User customUserDetail = (CustomOAuth2User) authentication.getPrincipal();
@@ -39,3 +39,4 @@ public class OAuth2LoginSuccessHandler
         response.sendRedirect("/token/issue?token=" + temporaryToken);
     }
 }
+

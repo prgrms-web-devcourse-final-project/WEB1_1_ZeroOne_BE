@@ -16,3 +16,9 @@ redis:
   host: localhost
   port: 6379
   password: abcdefg
+
+server:
+  servlet:
+    encoding:
+      charset: utf-8
+      force: true

@@ -2,6 +2,8 @@ package com.palettee.user.domain;
 
 import lombok.*;
 
+import java.util.Arrays;
+
 @RequiredArgsConstructor
 public enum MinorJobGroup {
     FRONTEND("프론트엔드 개발자"),
@@ -69,6 +71,14 @@ public enum MinorJobGroup {
 
 
     private final String minorJobGroup;
+
+
+    public static MinorJobGroup findMinorJobGroup(String input) {
+        return Arrays.stream(MinorJobGroup.values())
+                .filter(it -> it.minorJobGroup.equals(input))
+                .findFirst()
+                .orElse(null);
+    }
 
     public String getMinorJobGroup() {
         return minorJobGroup;
