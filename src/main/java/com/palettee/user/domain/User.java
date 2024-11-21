@@ -52,14 +52,27 @@ public class User {
     private MinorJobGroup minorJobGroup;
 
     @Builder
-    public User(String email, String imageUrl, String name, String briefIntro, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {
+    public User(String name, String oauthIdentity, UserRole userRole, String email, String imageUrl, MajorJobGroup majorJobGroup, String briefIntro, MinorJobGroup minorJobGroup) {
+        this.name = name;
+        this.oauthIdentity = oauthIdentity;
+        this.userRole = userRole;
         this.email = email;
         this.imageUrl = imageUrl;
-        this.name = name;
-        this.briefIntro = briefIntro;
         this.majorJobGroup = majorJobGroup;
+        this.briefIntro = briefIntro;
         this.minorJobGroup = minorJobGroup;
     }
+
+//    @Builder
+//    public User(String email, String imageUrl, String name, String briefIntro, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {
+//        this.email = email;
+//        this.imageUrl = imageUrl;
+//        this.name = name;
+//        this.briefIntro = briefIntro;
+//        this.majorJobGroup = majorJobGroup;
+//        this.minorJobGroup = minorJobGroup;
+//
+//    }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private final List<Gathering> gatherings = new ArrayList<>();

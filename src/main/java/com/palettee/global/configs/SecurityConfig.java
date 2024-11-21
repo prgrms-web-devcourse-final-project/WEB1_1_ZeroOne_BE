@@ -57,7 +57,11 @@ public class SecurityConfig {
         uris.put("/token/test-issue", List.of(HttpMethod.POST));
 
         // 포트폴리오 전체 조회
-        uris.put("/portfolio", List.of(HttpMethod.GET));
+        uris.put("/portFolio", List.of(HttpMethod.GET));
+
+        // 좋아요한 포트폴리오 조회
+        uris.put("/portFolio/my-page", List.of(HttpMethod.GET));
+
 
         // 메인 인기 포트폴리오 페이지
         uris.put("/main/portfolio", List.of(HttpMethod.GET));
@@ -161,7 +165,11 @@ public class SecurityConfig {
 
                         /* <-------------- Portfolio API --------------> */
                         // 포폴 전체 조회
-                        .requestMatchers(HttpMethod.GET, "/portfolio")
+                        .requestMatchers(HttpMethod.GET, "/portFolio")
+                        .permitAll()
+
+                        //좋아요한 포트폴리오 조회
+                        .requestMatchers(HttpMethod.GET,"/portFolio/my-page")
                         .permitAll()
 
                         // 메인 인기 포트폴리오 페이지
