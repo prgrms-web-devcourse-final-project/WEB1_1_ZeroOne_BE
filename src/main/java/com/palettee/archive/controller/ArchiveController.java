@@ -3,10 +3,13 @@ package com.palettee.archive.controller;
 import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
 import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
 import com.palettee.archive.controller.dto.request.ChangeOrderRequest;
+import com.palettee.archive.controller.dto.request.CommentWriteRequest;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
 import com.palettee.archive.controller.dto.response.ArchiveListResponse;
 import com.palettee.archive.controller.dto.response.ArchiveResponse;
+import com.palettee.archive.controller.dto.response.CommentResponse;
 import com.palettee.archive.service.ArchiveService;
+import com.palettee.archive.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ArchiveController {
 
     private final ArchiveService archiveService;
+    private final CommentService commentService;
 
     @PostMapping
     public ArchiveResponse registerArchive(@Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
@@ -84,6 +88,11 @@ public class ArchiveController {
     @PatchMapping
     public void updateOrder(@Valid @RequestBody ChangeOrderRequest changeOrderRequest) {
         archiveService.changeArchiveOrder(changeOrderRequest);
+    }
+
+    @PostMapping("/{archiveId}/comment")
+    public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
+        return commentService.writeComment(getUserName(), archiveId, commentWriteRequest);
     }
 
     private String getUserName() {
