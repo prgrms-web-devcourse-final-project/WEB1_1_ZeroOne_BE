@@ -1,4 +1,4 @@
-package com.palettee.global.security.dto;
+package com.palettee.global.security.dto.oauth;
 
 /**
  * 소셜 미디어별 OAuth2 정보 변환해줄 추상 {@code DTO} 클래스

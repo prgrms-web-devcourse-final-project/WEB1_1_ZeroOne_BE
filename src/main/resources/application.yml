@@ -6,3 +6,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+# Swagger -> localhost:8080/api-test
+springdoc:
+  swagger-ui:
+    path: /api-test
+    groups-order: desc
+    tags-sorter: alpha
+    operations-sorter: method

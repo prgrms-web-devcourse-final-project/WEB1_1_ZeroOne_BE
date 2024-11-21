@@ -1,8 +1,9 @@
-package com.palettee.global.security.jwt;
+package com.palettee.global.security.jwt.utils;
 
 import com.palettee.user.domain.*;
+import lombok.*;
 import lombok.extern.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.*;
 
 /**
@@ -18,9 +19,9 @@ public class JwtUtils {
     private final CustomJwtUtil accessJwtUtil;
     private final CustomJwtUtil refreshJwtUtil;
 
-    private final long tempoExpireMin;
-    private final long accessExpireMin;
-    private final long refreshExpireMin;
+    private final @Getter long tempoExpireMin;
+    private final @Getter long accessExpireMin;
+    private final @Getter long refreshExpireMin;
 
     public JwtUtils(
             @Value("${jwt.temporary.secret}") String tempoSecret,

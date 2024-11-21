@@ -1,9 +1,8 @@
-package com.palettee.global.security.jwt;
+package com.palettee.global.security.jwt.utils;
 
 import com.palettee.user.domain.*;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.*;
-import io.jsonwebtoken.security.SecurityException;
 import io.jsonwebtoken.security.*;
 import java.util.*;
 import javax.crypto.*;
@@ -24,19 +23,45 @@ final class CustomJwtUtil {
     }
 
     private static void logDebug(String s, Exception e) {
-        log.debug(s, e);
+        log.debug(s, e.getMessage());
+        log.trace("Caused by: ", e);
+    }
+
+    private String removeBearer(String token) {
+        return token != null && token.startsWith("Bearer ") ?
+                token.substring(7) : token;
     }
 
     public boolean isValid(String token) {
         try {
-            Jwts.parser().verifyWith(secretKey).build()
-                    .parse(token);
+            token = removeBearer(token);
+
+            Claims claims = Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            String userEmail = claims.get("userEmail", String.class);
+            Date expiration = claims.getExpiration();
+
+            if (userEmail == null || userEmail.isEmpty()) {
+                logDebug("Cannot find userEmail claims in jwt {}", new NullPointerException());
+                return false;
+            }
+
+            if (expiration.before(new Date(System.currentTimeMillis()))) {
+                logDebug("Token were expired", new IllegalStateException());
+                return false;
+            }
 
             return true;
 
-        } catch (MalformedJwtException | SecurityException |
-                 ExpiredJwtException | IllegalArgumentException e) {
+        } catch (UnsupportedJwtException | IllegalArgumentException e) {
             logDebug("Invalid jwt given : {}", e);
+
+            return false;
+
+        } catch (ExpiredJwtException e) {
+            logDebug("Token is expired : {}", e);
 
             return false;
         } catch (Exception e) {
@@ -47,11 +72,19 @@ final class CustomJwtUtil {
     }
 
     public boolean isExpired(String token) {
-        return Jwts.parser().verifyWith(secretKey).build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getExpiration()
-                .before(new Date());
+        token = removeBearer(token);
+
+        try {
+            return Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .getExpiration()
+                    .before(new Date(System.currentTimeMillis()));
+        } catch (ExpiredJwtException e) {
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -91,6 +124,7 @@ final class CustomJwtUtil {
             NullPointerException {
 
         try {
+            token = removeBearer(token);
 
             String email = Jwts.parser().verifyWith(secretKey).build()
                     .parseSignedClaims(token)
