@@ -14,6 +14,7 @@ import com.palettee.user.repository.*;
 import jakarta.servlet.http.*;
 import jakarta.transaction.*;
 import java.util.function.*;
+import lombok.extern.slf4j.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
 import org.springframework.beans.factory.annotation.*;
@@ -23,6 +24,7 @@ import org.springframework.security.test.context.support.*;
 import org.springframework.test.context.junit.jupiter.*;
 import org.springframework.test.web.servlet.*;
 
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
@@ -70,6 +72,7 @@ class TokenControllerTest {
     void issueToken() throws Exception {
 
         String temporaryToken = jwtUtils.createTemporaryToken(testUser);
+        log.info("Created temporary token: {}", temporaryToken);
 
         // status ok 하고 토큰 응답 잘 됐는지 확인
         MvcResult mvcResult = mvc.perform(get("/token/issue?token=" + temporaryToken))
@@ -94,10 +97,20 @@ class TokenControllerTest {
     void reissueToken() throws Exception {
 
         String refreshToken = jwtUtils.createRefreshToken(testUser);
-        Cookie cookie = new Cookie("refresh_token", refreshToken);
-        redisService.storeRefreshToken(testUser, refreshToken, 10L);
+        log.info("Created refresh token: {}", refreshToken);
 
-        MvcResult mvcResult = mockMvc.perform(post("/token/reissue").cookie(cookie))
+        redisService.storeRefreshToken(testUser, refreshToken, 10L);
+        log.info("Saved token to redis: {}", refreshToken);
+
+        // jwt 발급 시간 정밀도는 초단위라 1 초 기다림
+        try {
+            Thread.sleep(1000);
+        } catch (Exception ignore) {
+        }
+
+        MvcResult mvcResult = mockMvc.perform(post("/token/reissue").cookie(
+                        new Cookie("refresh_token", refreshToken)
+                ))
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Authorization"))
                 .andExpect(cookie().exists("refresh_token"))
@@ -109,6 +122,7 @@ class TokenControllerTest {
         // 새로운 refresh 토큰이 redis 에 저장됐는지 확인
         assertThat(redisService.getRefreshToken(testUser).orElseThrow())
                 .isNotEqualTo(refreshToken);
+        log.info("Checked published refresh tokens are differ.");
 
         // 에러 발생 확인
         this.checkException(
@@ -133,6 +147,8 @@ class TokenControllerTest {
         assertThat(redisService.getRefreshToken(testUser))
                 .isNotEmpty()
                 .hasValue(refreshToken);
+
+        log.info("Tokens in response are valid.");
     }
 
     private void checkException(
@@ -163,5 +179,10 @@ class TokenControllerTest {
         mvc.perform(requestFunction.apply(url, newToken))
                 .andExpect(status().is(err.getStatus()))
                 .andExpect(content().string(containsString(err.getReason())));
+
+        // 삭제 했었으면 복구해야지 뭐하니...
+        testUser = userRepo.save(testUser);
+
+        log.info("All exceptions are covered");
     }
 }
