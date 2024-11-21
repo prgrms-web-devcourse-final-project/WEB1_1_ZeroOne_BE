@@ -7,6 +7,7 @@ import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
 import com.palettee.archive.controller.dto.response.ArchiveListResponse;
 import com.palettee.archive.controller.dto.response.ArchiveResponse;
 import com.palettee.archive.service.ArchiveService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -30,7 +31,7 @@ public class ArchiveController {
     private final ArchiveService archiveService;
 
     @PostMapping
-    public ArchiveResponse registerArchive(@RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
+    public ArchiveResponse registerArchive(@Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
         return archiveService.registerArchive(archiveRegisterRequest, getUserName());
     }
 
@@ -71,7 +72,7 @@ public class ArchiveController {
     }
 
     @PutMapping("/{archiveId}")
-    public ArchiveResponse updateArchive(@PathVariable("archiveId") long archiveId, @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
+    public ArchiveResponse updateArchive(@PathVariable("archiveId") long archiveId, @Valid @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
         return archiveService.updateArchive(archiveId, archiveUpdateRequest);
     }
 
@@ -81,7 +82,7 @@ public class ArchiveController {
     }
 
     @PatchMapping("/archive")
-    public void updateOrder(@RequestBody ChangeOrderRequest changeOrderRequest) {
+    public void updateOrder(@Valid @RequestBody ChangeOrderRequest changeOrderRequest) {
         archiveService.changeArchiveOrder(changeOrderRequest);
     }
 
