@@ -136,30 +136,29 @@ public class TokenService {
 
         // jwt 가 존재하지 않음
         if (token == null || token.isEmpty()) {
+            log.error("Token is empty.");
             throw NoTokenExistsException.EXCEPTION;
         }
 
         // 유효기간이 지남
         if (checkTokenExpiration.apply(token)) {
+            log.error("Token is expired.");
             throw ExpiredTokenException.EXCEPTION;
         }
 
         // jwt 가 유효하지 않음
         if (!checkTokenValidation.apply(token)) {
+            log.error("Token is invalid.");
             throw InvalidTokenException.EXCEPTION;
         }
 
-        User user = userRepo.findByEmail(
-                getEmailFromPayload.apply(token)
-        ).orElse(null);
-        // jwt 는 유효하나 연관된 유저를 찾을 수 없음
-        if (user == null) {
-            throw NoUserFoundViaTokenException.Exception;
-        }
+        String userEmail = getEmailFromPayload.apply(token);
 
-        log.info("Token were valid & available to find user via email");
-
-        return user;
+        return userRepo.findByEmail(userEmail).orElseThrow(() -> {
+            // jwt 는 유효하나 연관된 유저를 찾을 수 없음
+            log.error("Cannot find user with email: {}", userEmail);
+            return NoUserFoundViaTokenException.Exception;
+        });
     }
 
 

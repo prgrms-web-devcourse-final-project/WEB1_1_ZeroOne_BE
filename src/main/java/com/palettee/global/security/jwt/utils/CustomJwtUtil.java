@@ -99,12 +99,15 @@ final class CustomJwtUtil {
         Claims claims = Jwts.claims()
                 .add("userEmail", user.getEmail())
                 .add("role", user.getUserRole())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 60 * 1_000 * expireTimeMin))
                 .build();
+
+        log.warn("Issued token at : {}", claims.getIssuedAt());
+        log.warn("Token will be expired at : {}", claims.getExpiration());
 
         return Jwts.builder()
                 .claims(claims)
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 60 * 1_000 * expireTimeMin))
                 .signWith(this.secretKey, Jwts.SIG.HS256)
                 .compact();
     }
