@@ -47,17 +47,21 @@ class TokenControllerTest {
 
     @BeforeEach
     void setUp() {
-        testUser = userRepo.save(
-                User.builder()
-                        .email("test@test.com")
-                        .build()
-        );
+        try {
+            testUser = userRepo.save(
+                    User.builder()
+                            .email("test@test.com")
+                            .build()
+            );
+        } catch (Exception e) {
+            testUser = userRepo.findByEmail(testUser.getEmail()).orElseThrow();
+        }
     }
 
     @AfterEach
     void remove() {
         redisService.deleteRefreshToken(testUser);
-        userRepo.delete(testUser);
+        userRepo.deleteAll();
     }
 
     @Test
