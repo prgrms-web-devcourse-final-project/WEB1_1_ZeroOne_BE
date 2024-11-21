@@ -25,6 +25,11 @@ public class RedisService {
      */
     public void storeRefreshToken(final User user, final String refreshToken, long expireMin) {
         String key = getRefreshTokenKey(user);
+
+        if (this.getRefreshToken(user).isPresent()) {
+            deleteRefreshToken(user);
+        }
+
         redisTemplate.opsForValue().set(key, refreshToken, expireMin, TimeUnit.MINUTES);
 
         log.info("Refresh token has been stored to redis : {}", key);
@@ -41,6 +46,8 @@ public class RedisService {
     public void deleteRefreshToken(final User user) {
         String key = getRefreshTokenKey(user);
         redisTemplate.delete(key);
+
+        log.info("Deleted user {} refresh token.", user.getEmail());
     }
 
     private String getRefreshTokenKey(final User user) {
