@@ -6,8 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.palettee.global.exception.*;
-import com.palettee.global.redis.*;
 import com.palettee.global.security.jwt.exceptions.*;
+import com.palettee.global.security.jwt.services.*;
 import com.palettee.global.security.jwt.utils.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
@@ -38,7 +38,7 @@ class TokenControllerTest {
     JwtUtils jwtUtils;
 
     @Autowired
-    RedisService redisService;
+    RefreshTokenRedisService refreshTokenRedisService;
 
     @Autowired
     UserRepository userRepo;
@@ -62,7 +62,7 @@ class TokenControllerTest {
 
     @AfterEach
     void remove() {
-        redisService.deleteRefreshToken(testUser);
+        refreshTokenRedisService.deleteRefreshToken(testUser);
         userRepo.deleteAll();
     }
 
@@ -99,7 +99,7 @@ class TokenControllerTest {
         String refreshToken = jwtUtils.createRefreshToken(testUser);
         log.info("Created refresh token: {}", refreshToken);
 
-        redisService.storeRefreshToken(testUser, refreshToken, 10L);
+        refreshTokenRedisService.storeRefreshToken(testUser, refreshToken, 10L);
         log.info("Saved token to redis: {}", refreshToken);
 
         // jwt 발급 시간 정밀도는 초단위라 1 초 기다림
@@ -120,7 +120,7 @@ class TokenControllerTest {
         this.checkTokens(mvcResult);
 
         // 새로운 refresh 토큰이 redis 에 저장됐는지 확인
-        assertThat(redisService.getRefreshToken(testUser).orElseThrow())
+        assertThat(refreshTokenRedisService.getRefreshToken(testUser).orElseThrow())
                 .isNotEqualTo(refreshToken);
         log.info("Checked published refresh tokens are differ.");
 
@@ -144,7 +144,7 @@ class TokenControllerTest {
 
         // redis 에 저장된 값과 동일한지 확인
         String refreshToken = cookie.getValue();
-        assertThat(redisService.getRefreshToken(testUser))
+        assertThat(refreshTokenRedisService.getRefreshToken(testUser))
                 .isNotEmpty()
                 .hasValue(refreshToken);
 

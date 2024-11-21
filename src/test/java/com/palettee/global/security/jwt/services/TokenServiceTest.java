@@ -2,7 +2,6 @@ package com.palettee.global.security.jwt.services;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.palettee.global.redis.*;
 import com.palettee.global.security.dto.token.*;
 import com.palettee.global.security.jwt.exceptions.*;
 import com.palettee.global.security.jwt.utils.*;
@@ -28,7 +27,7 @@ class TokenServiceTest {
     JwtUtils jwtUtils;
 
     @Autowired
-    RedisService redisService;
+    RefreshTokenRedisService refreshTokenRedisService;
 
     static User testUser;
 
@@ -48,7 +47,7 @@ class TokenServiceTest {
 
     @AfterEach
     void remove() {
-        redisService.deleteRefreshToken(testUser);
+        refreshTokenRedisService.deleteRefreshToken(testUser);
         userRepo.deleteAll();
     }
 
@@ -75,7 +74,7 @@ class TokenServiceTest {
         String refreshToken = jwtUtils.createRefreshToken(testUser);
         log.info("Created refresh token: {}", refreshToken);
 
-        redisService.storeRefreshToken(testUser, refreshToken, 10L);
+        refreshTokenRedisService.storeRefreshToken(testUser, refreshToken, 10L);
         log.info("Saved token to redis: {}", refreshToken);
 
         // jwt 발급 시간 정밀도는 초단위라 1 초 기다림
@@ -90,7 +89,7 @@ class TokenServiceTest {
         this.checkResult(result);
 
         // 새로운 refresh 토큰이 redis 에 저장됐는지 확인
-        assertThat(redisService.getRefreshToken(testUser).orElseThrow())
+        assertThat(refreshTokenRedisService.getRefreshToken(testUser).orElseThrow())
                 .isNotEqualTo(refreshToken);
 
         // 예외 확인
@@ -113,7 +112,7 @@ class TokenServiceTest {
                 .isEqualTo(60 * jwtUtils.getAccessExpireMin());
 
         // refresh redis 에 저장된 값이랑 동일한지 확인
-        String redisToken = redisService.getRefreshToken(testUser).orElse(null);
+        String redisToken = refreshTokenRedisService.getRefreshToken(testUser).orElse(null);
         assertThat(redisToken).isNotNull().isEqualTo(refresh);
 
         log.info("Dto result is valid.");

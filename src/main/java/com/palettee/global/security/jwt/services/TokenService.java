@@ -1,6 +1,5 @@
 package com.palettee.global.security.jwt.services;
 
-import com.palettee.global.redis.*;
 import com.palettee.global.security.dto.token.*;
 import com.palettee.global.security.jwt.exceptions.*;
 import com.palettee.global.security.jwt.utils.*;
@@ -19,7 +18,7 @@ public class TokenService {
 
     private final JwtUtils jwtUtils;
     private final UserRepository userRepo;
-    private final RedisService redisService;
+    private final RefreshTokenRedisService refreshTokenRedisService;
 
     /**
      * 임시 토큰으로 필수 토큰들을 발급
@@ -46,7 +45,8 @@ public class TokenService {
         String refreshToken = jwtUtils.createRefreshToken(user);
 
         // 새로 발급된 refresh 를 redis 에 저장
-        redisService.storeRefreshToken(user, refreshToken, jwtUtils.getRefreshExpireMin());
+        refreshTokenRedisService.storeRefreshToken(user, refreshToken,
+                jwtUtils.getRefreshExpireMin());
 
         return new TokenContainer(accessToken, refreshToken,
                 60 * jwtUtils.getAccessExpireMin());
@@ -73,7 +73,7 @@ public class TokenService {
                 jwtUtils::getEmailFromRefreshToken
         );
 
-        String redisRefreshToken = redisService.getRefreshToken(user).orElse(null);
+        String redisRefreshToken = refreshTokenRedisService.getRefreshToken(user).orElse(null);
 
         if (redisRefreshToken != null && !redisRefreshToken.equals(refreshToken)) {
             log.warn("Refresh token were valid, but fail to verifying with redis-stored token.");
@@ -84,7 +84,8 @@ public class TokenService {
         String newRefreshToken = jwtUtils.createRefreshToken(user);
 
         // 새로 발급된 refresh 를 redis 에 저장
-        redisService.storeRefreshToken(user, newRefreshToken, jwtUtils.getRefreshExpireMin());
+        refreshTokenRedisService.storeRefreshToken(user, newRefreshToken,
+                jwtUtils.getRefreshExpireMin());
 
         return new TokenContainer(accessToken, newRefreshToken,
                 60 * jwtUtils.getAccessExpireMin());
@@ -106,7 +107,8 @@ public class TokenService {
         String accessToken = jwtUtils.createAccessToken(user);
         String refreshToken = jwtUtils.createRefreshToken(user);
 
-        redisService.storeRefreshToken(user, refreshToken, jwtUtils.getRefreshExpireMin());
+        refreshTokenRedisService.storeRefreshToken(user, refreshToken,
+                jwtUtils.getRefreshExpireMin());
 
         return new TokenContainer(accessToken, refreshToken,
                 60 * jwtUtils.getRefreshExpireMin());

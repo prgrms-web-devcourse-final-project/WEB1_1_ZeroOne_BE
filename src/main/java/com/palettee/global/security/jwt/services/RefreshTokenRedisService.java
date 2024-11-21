@@ -1,4 +1,4 @@
-package com.palettee.global.redis;
+package com.palettee.global.security.jwt.services;
 
 import com.palettee.user.domain.*;
 import java.util.*;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RedisService {
+public class RefreshTokenRedisService {
 
     public final RedisTemplate<String, Object> redisTemplate;
 
