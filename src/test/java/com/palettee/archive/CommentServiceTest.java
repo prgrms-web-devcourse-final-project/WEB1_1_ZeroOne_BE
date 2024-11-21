@@ -15,7 +15,7 @@ import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
-import org.assertj.core.api.Assertions;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,6 +51,7 @@ public class CommentServiceTest {
     @AfterEach
     void afterEach() {
         userRepository.deleteAll();
+        archiveRepository.deleteAll();
         commentRepository.deleteAll();
     }
 
@@ -61,7 +62,7 @@ public class CommentServiceTest {
         CommentWriteRequest request = new CommentWriteRequest("content");
 
         // when
-        CommentResponse response = commentService.writeComment("email", savedArchiveCanComment.getId(), request);
+        CommentResponse response = commentService.writeComment(savedUser.getEmail(), savedArchiveCanComment.getId(), request);
 
         // then
         Comment comment = commentRepository.findById(response.commentId()).orElseThrow();
@@ -78,6 +79,21 @@ public class CommentServiceTest {
         assertThatThrownBy(() -> commentService.writeComment("email", savedArchiveNotComment.getId(), request))
                 .isInstanceOf(CanNotCommentArchive.class);
 
+    }
+
+    @Test
+    @DisplayName("정상적인 댓글 삭제 성공")
+    void deleteCommentTest() {
+        // given
+        CommentWriteRequest request = new CommentWriteRequest("content");
+
+        // when
+        CommentResponse response = commentService.writeComment(savedUser.getEmail(), savedArchiveCanComment.getId(), request);
+        CommentResponse commentResponse = commentService.deleteComment(response.commentId());
+
+        // then
+        Optional<Comment> comment = commentRepository.findById(commentResponse.commentId());
+        assertThat(comment.isEmpty()).isTrue();
     }
 
 }
