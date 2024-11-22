@@ -64,7 +64,7 @@ public class CommentServiceTest {
         CommentWriteRequest request = new CommentWriteRequest("content");
 
         // when
-        CommentResponse response = commentService.writeComment(savedUser.getEmail(), savedArchiveCanComment.getId(), request);
+        CommentResponse response = commentService.writeComment(savedUser, savedArchiveCanComment.getId(), request);
 
         // then
         Comment comment = commentRepository.findById(response.commentId()).orElseThrow();
@@ -78,7 +78,7 @@ public class CommentServiceTest {
         CommentWriteRequest request = new CommentWriteRequest("content");
 
         // when & then
-        assertThatThrownBy(() -> commentService.writeComment("email", savedArchiveNotComment.getId(), request))
+        assertThatThrownBy(() -> commentService.writeComment(savedUser, savedArchiveNotComment.getId(), request))
                 .isInstanceOf(CanNotCommentArchive.class);
 
     }
@@ -90,8 +90,8 @@ public class CommentServiceTest {
         CommentWriteRequest request = new CommentWriteRequest("content");
 
         // when
-        CommentResponse response = commentService.writeComment(savedUser.getEmail(), savedArchiveCanComment.getId(), request);
-        CommentResponse commentResponse = commentService.deleteComment(response.commentId());
+        CommentResponse response = commentService.writeComment(savedUser, savedArchiveCanComment.getId(), request);
+        CommentResponse commentResponse = commentService.deleteComment(response.commentId(), savedUser.getId());
 
         // then
         Optional<Comment> comment = commentRepository.findById(commentResponse.commentId());
@@ -104,11 +104,11 @@ public class CommentServiceTest {
         // given
         CommentWriteRequest request = new CommentWriteRequest("content");
         for (int i = 0; i < 5; i++) {
-            commentService.writeComment(savedUser.getEmail(), savedArchiveCanComment.getId(), request);
+            commentService.writeComment(savedUser, savedArchiveCanComment.getId(), request);
         }
 
         // when
-        CommentListResponse comment = commentService.getComment(savedUser.getEmail(), savedArchiveCanComment.getId(),
+        CommentListResponse comment = commentService.getComment(savedUser, savedArchiveCanComment.getId(),
                 PageRequest.of(0, 10));
 
         // then

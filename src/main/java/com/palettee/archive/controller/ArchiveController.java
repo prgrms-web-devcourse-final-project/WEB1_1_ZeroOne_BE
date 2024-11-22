@@ -112,7 +112,8 @@ public class ArchiveController {
 
     @DeleteMapping("/comment/{commentId}")
     public CommentResponse deleteComment(@PathVariable("commentId") long commentId) {
-        return commentService.deleteComment(commentId);
+        User user = UserUtils.getContextUser();
+        return commentService.deleteComment(commentId, user.getId());
     }
 
 }

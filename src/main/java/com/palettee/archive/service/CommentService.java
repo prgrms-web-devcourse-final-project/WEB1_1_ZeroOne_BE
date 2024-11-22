@@ -10,6 +10,7 @@ import com.palettee.archive.domain.Comment;
 import com.palettee.archive.exception.ArchiveNotFound;
 import com.palettee.archive.exception.CanNotCommentArchive;
 import com.palettee.archive.exception.CommentNotFound;
+import com.palettee.archive.exception.NotCommentOwner;
 import com.palettee.archive.repository.ArchiveRepository;
 import com.palettee.archive.repository.CommentRepository;
 import com.palettee.user.domain.User;
@@ -43,10 +44,17 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentResponse deleteComment(Long commentId) {
+    public CommentResponse deleteComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId).orElseThrow(() -> CommentNotFound.EXCEPTION);
+        checkCommentOwner(comment, userId);
         commentRepository.delete(comment);
         return new CommentResponse(commentId);
+    }
+
+    private void checkCommentOwner(Comment comment, Long userId) {
+        if (!comment.getUserId().equals(userId)) {
+            throw NotCommentOwner.EXCEPTION;
+        }
     }
 
     public CommentListResponse getComment(User user, Long archiveId, Pageable pageable) {
