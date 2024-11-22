@@ -1,4 +1,4 @@
-package com.palettee.global.redis;
+package com.palettee.global.security.jwt.services;
 
 import com.palettee.user.domain.*;
 import java.util.*;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RedisService {
+public class RefreshTokenRedisService {
 
     public final RedisTemplate<String, Object> redisTemplate;
 
@@ -27,6 +27,8 @@ public class RedisService {
         String key = getRefreshTokenKey(user);
 
         if (this.getRefreshToken(user).isPresent()) {
+            log.debug("Prev refresh token : {}", this.getRefreshToken(user).get());
+            log.debug("Current refresh token : {}", refreshToken);
             deleteRefreshToken(user);
         }
 
@@ -45,9 +47,13 @@ public class RedisService {
 
     public void deleteRefreshToken(final User user) {
         String key = getRefreshTokenKey(user);
-        redisTemplate.delete(key);
 
-        log.info("Deleted user {} refresh token.", user.getEmail());
+        if (Boolean.TRUE.equals(redisTemplate.delete(key))) {
+            log.warn("Deleted {}'s refresh token on Redis", user.getEmail());
+        } else {
+            log.warn("Failed to delete {}'s refresh token. : no token exists on Redis",
+                    user.getEmail());
+        }
     }
 
     private String getRefreshTokenKey(final User user) {
