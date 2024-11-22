@@ -1,6 +1,5 @@
 package com.palettee.global.security.jwt.services;
 
-import com.palettee.global.redis.*;
 import com.palettee.global.security.dto.token.*;
 import com.palettee.global.security.jwt.exceptions.*;
 import com.palettee.global.security.jwt.utils.*;
@@ -19,7 +18,7 @@ public class TokenService {
 
     private final JwtUtils jwtUtils;
     private final UserRepository userRepo;
-    private final RedisService redisService;
+    private final RefreshTokenRedisService refreshTokenRedisService;
 
     /**
      * 임시 토큰으로 필수 토큰들을 발급
@@ -46,7 +45,8 @@ public class TokenService {
         String refreshToken = jwtUtils.createRefreshToken(user);
 
         // 새로 발급된 refresh 를 redis 에 저장
-        redisService.storeRefreshToken(user, refreshToken, jwtUtils.getRefreshExpireMin());
+        refreshTokenRedisService.storeRefreshToken(user, refreshToken,
+                jwtUtils.getRefreshExpireMin());
 
         return new TokenContainer(accessToken, refreshToken,
                 60 * jwtUtils.getAccessExpireMin());
@@ -73,7 +73,7 @@ public class TokenService {
                 jwtUtils::getEmailFromRefreshToken
         );
 
-        String redisRefreshToken = redisService.getRefreshToken(user).orElse(null);
+        String redisRefreshToken = refreshTokenRedisService.getRefreshToken(user).orElse(null);
 
         if (redisRefreshToken != null && !redisRefreshToken.equals(refreshToken)) {
             log.warn("Refresh token were valid, but fail to verifying with redis-stored token.");
@@ -84,7 +84,8 @@ public class TokenService {
         String newRefreshToken = jwtUtils.createRefreshToken(user);
 
         // 새로 발급된 refresh 를 redis 에 저장
-        redisService.storeRefreshToken(user, newRefreshToken, jwtUtils.getRefreshExpireMin());
+        refreshTokenRedisService.storeRefreshToken(user, newRefreshToken,
+                jwtUtils.getRefreshExpireMin());
 
         return new TokenContainer(accessToken, newRefreshToken,
                 60 * jwtUtils.getAccessExpireMin());
@@ -106,7 +107,8 @@ public class TokenService {
         String accessToken = jwtUtils.createAccessToken(user);
         String refreshToken = jwtUtils.createRefreshToken(user);
 
-        redisService.storeRefreshToken(user, refreshToken, jwtUtils.getRefreshExpireMin());
+        refreshTokenRedisService.storeRefreshToken(user, refreshToken,
+                jwtUtils.getRefreshExpireMin());
 
         return new TokenContainer(accessToken, refreshToken,
                 60 * jwtUtils.getRefreshExpireMin());
@@ -136,30 +138,29 @@ public class TokenService {
 
         // jwt 가 존재하지 않음
         if (token == null || token.isEmpty()) {
+            log.error("Token is empty.");
             throw NoTokenExistsException.EXCEPTION;
         }
 
         // 유효기간이 지남
         if (checkTokenExpiration.apply(token)) {
+            log.error("Token is expired.");
             throw ExpiredTokenException.EXCEPTION;
         }
 
         // jwt 가 유효하지 않음
         if (!checkTokenValidation.apply(token)) {
+            log.error("Token is invalid.");
             throw InvalidTokenException.EXCEPTION;
         }
 
-        User user = userRepo.findByEmail(
-                getEmailFromPayload.apply(token)
-        ).orElse(null);
-        // jwt 는 유효하나 연관된 유저를 찾을 수 없음
-        if (user == null) {
-            throw NoUserFoundViaTokenException.Exception;
-        }
+        String userEmail = getEmailFromPayload.apply(token);
 
-        log.info("Token were valid & available to find user via email");
-
-        return user;
+        return userRepo.findByEmail(userEmail).orElseThrow(() -> {
+            // jwt 는 유효하나 연관된 유저를 찾을 수 없음
+            log.error("Cannot find user with email: {}", userEmail);
+            return NoUserFoundViaTokenException.Exception;
+        });
     }
 
 
