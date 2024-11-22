@@ -102,7 +102,7 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser.getEmail());
         ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser.getEmail());
 
-        ArchiveListResponse all = archiveService.getAllArchive("all", PageRequest.of(0, 10));
+        ArchiveListResponse all = archiveService.getAllArchive("DEVELOPER", "BACKEND", "latest", PageRequest.of(0, 10));
 
         //then
         assertThat(all.archives().size()).isEqualTo(3);

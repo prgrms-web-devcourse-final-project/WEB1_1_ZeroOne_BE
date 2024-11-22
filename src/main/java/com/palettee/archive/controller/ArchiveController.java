@@ -14,6 +14,7 @@ import com.palettee.archive.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -47,13 +48,12 @@ public class ArchiveController {
 
     @GetMapping
     public ArchiveListResponse getArchives(
-            @RequestParam String category,
+            @RequestParam String majorJobGroup,
+            @RequestParam String minorJobGroup,
             @RequestParam String sort,
-            @RequestParam int page,
-            @RequestParam int size
+            Pageable pageable
     ) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sort).descending());
-        return archiveService.getAllArchive(category, pageRequest);
+        return archiveService.getAllArchive(majorJobGroup, minorJobGroup, sort, pageable);
     }
 
     @GetMapping("/search")

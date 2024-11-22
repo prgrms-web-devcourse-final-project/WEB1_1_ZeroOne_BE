@@ -61,8 +61,8 @@ public class ArchiveService {
         return new ArchiveResponse(savedArchive.getId());
     }
 
-    public ArchiveListResponse getAllArchive(String category, Pageable pageable) {
-        Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(category, pageable);
+    public ArchiveListResponse getAllArchive(String majorJobGroup, String minorJobGroup, String sort, Pageable pageable) {
+        Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(majorJobGroup, minorJobGroup, sort, pageable);
 
         List<ArchiveSimpleResponse> list = archives
                 .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
