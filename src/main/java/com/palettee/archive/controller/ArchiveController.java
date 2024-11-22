@@ -59,11 +59,9 @@ public class ArchiveController {
     @GetMapping("/search")
     public ArchiveListResponse searchArchives(
             @RequestParam String searchKeyword,
-            @RequestParam int page,
-            @RequestParam int size
+            Pageable pageable
     ) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
-        return archiveService.searchArchive(searchKeyword, pageRequest);
+        return archiveService.searchArchive(searchKeyword, pageable);
     }
 
     @GetMapping("/me")

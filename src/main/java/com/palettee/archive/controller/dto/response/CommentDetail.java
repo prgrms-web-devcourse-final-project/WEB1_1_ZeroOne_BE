@@ -10,10 +10,7 @@ public record CommentDetail(
         boolean isMine
 ) {
     public static CommentDetail toResponse(Comment comment, User user) {
-        Long userId = 0L;
-        if(user != null) {
-            userId = user.getId();
-        }
+        Long userId = user == null ? 0L : user.getId();
         return new CommentDetail(
                 comment.getId(),
                 comment.getContent(),
