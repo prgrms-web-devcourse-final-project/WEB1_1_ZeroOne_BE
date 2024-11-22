@@ -3,15 +3,21 @@ package com.palettee.archive.controller;
 import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
 import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
 import com.palettee.archive.controller.dto.request.ChangeOrderRequest;
+import com.palettee.archive.controller.dto.request.CommentWriteRequest;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
 import com.palettee.archive.controller.dto.response.ArchiveListResponse;
 import com.palettee.archive.controller.dto.response.ArchiveResponse;
+import com.palettee.archive.controller.dto.response.CommentListResponse;
+import com.palettee.archive.controller.dto.response.CommentResponse;
 import com.palettee.archive.service.ArchiveService;
+import com.palettee.archive.service.CommentService;
+import com.palettee.global.security.validation.UserUtils;
+import com.palettee.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,10 +35,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ArchiveController {
 
     private final ArchiveService archiveService;
+    private final CommentService commentService;
 
     @PostMapping
     public ArchiveResponse registerArchive(@Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
-        return archiveService.registerArchive(archiveRegisterRequest, getUserName());
+        User user = UserUtils.getContextUser();
+        return archiveService.registerArchive(archiveRegisterRequest, user);
     }
 
     @GetMapping("/{archiveId}")
@@ -42,33 +50,32 @@ public class ArchiveController {
 
     @GetMapping
     public ArchiveListResponse getArchives(
-            @RequestParam String category,
+            @RequestParam String majorJobGroup,
+            @RequestParam String minorJobGroup,
             @RequestParam String sort,
-            @RequestParam int page,
-            @RequestParam int size
+            Pageable pageable
     ) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sort).descending());
-        return archiveService.getAllArchive(category, pageRequest);
+        return archiveService.getAllArchive(majorJobGroup, minorJobGroup, sort, pageable);
     }
 
     @GetMapping("/search")
     public ArchiveListResponse searchArchives(
             @RequestParam String searchKeyword,
-            @RequestParam int page,
-            @RequestParam int size
+            Pageable pageable
     ) {
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
-        return archiveService.searchArchive(searchKeyword, pageRequest);
+        return archiveService.searchArchive(searchKeyword, pageable);
     }
 
     @GetMapping("/me")
     public ArchiveListResponse getMyArchives() {
-        return archiveService.getMyArchive(getUserName());
+        User user = UserUtils.getContextUser();
+        return archiveService.getMyArchive(user);
     }
 
     @GetMapping("/me/like")
     public ArchiveListResponse getMyLikeArchives() {
-        return archiveService.getLikeArchive(getUserName());
+        User user = UserUtils.getContextUser();
+        return archiveService.getLikeArchive(user);
     }
 
     @PutMapping("/{archiveId}")
@@ -86,8 +93,27 @@ public class ArchiveController {
         archiveService.changeArchiveOrder(changeOrderRequest);
     }
 
-    private String getUserName() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+    @PostMapping("/{archiveId}/comment")
+    public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
+        User user = UserUtils.getContextUser();
+        return commentService.writeComment(user, archiveId, commentWriteRequest);
+    }
+
+    @GetMapping("/{archiveId}/comment")
+    public CommentListResponse getComments(
+            @PathVariable("archiveId") long archiveId,
+            @RequestParam int page,
+            @RequestParam int size
+    ) {
+        User user = UserUtils.getContextUser();
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
+        return commentService.getComment(user, archiveId, pageRequest);
+    }
+
+    @DeleteMapping("/comment/{commentId}")
+    public CommentResponse deleteComment(@PathVariable("commentId") long commentId) {
+        User user = UserUtils.getContextUser();
+        return commentService.deleteComment(commentId, user.getId());
     }
 
 }

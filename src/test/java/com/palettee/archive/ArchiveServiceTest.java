@@ -66,7 +66,7 @@ public class ArchiveServiceTest {
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
         //when
-        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //then
         assertThat(archiveResponse.archiveId()).isNotNull();
@@ -98,11 +98,11 @@ public class ArchiveServiceTest {
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
         //when
-        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
-        ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser.getEmail());
-        ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser.getEmail());
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
+        ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser);
+        ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser);
 
-        ArchiveListResponse all = archiveService.getAllArchive("all", PageRequest.of(0, 10));
+        ArchiveListResponse all = archiveService.getAllArchive("DEVELOPER", "BACKEND", "latest", PageRequest.of(0, 10));
 
         //then
         assertThat(all.archives().size()).isEqualTo(3);
@@ -118,11 +118,11 @@ public class ArchiveServiceTest {
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
         //when
-        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
-        ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser.getEmail());
-        ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser.getEmail());
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
+        ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser);
+        ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser);
 
-        ArchiveListResponse all = archiveService.getMyArchive(savedUser.getEmail());
+        ArchiveListResponse all = archiveService.getMyArchive(savedUser);
 
         //then
         assertThat(all.archives().size()).isEqualTo(3);
@@ -137,9 +137,9 @@ public class ArchiveServiceTest {
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
         //when
-        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
-        ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser.getEmail());
-        ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser.getEmail());
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
+        ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser);
+        ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser);
 
         ArchiveListResponse tag = archiveService.searchArchive("tag1", PageRequest.of(0, 10));
         ArchiveListResponse title = archiveService.searchArchive("title", PageRequest.of(0, 10));
@@ -159,7 +159,7 @@ public class ArchiveServiceTest {
                 "title", "description", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
-        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //when
         ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse.archiveId());
@@ -195,7 +195,7 @@ public class ArchiveServiceTest {
                 "title", "description", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
-        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //when
         ArchiveUpdateRequest archiveUpdateRequest = new ArchiveUpdateRequest("new _title", "new_description", "YELLOW",
@@ -238,7 +238,7 @@ public class ArchiveServiceTest {
                 "title", "description", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
-        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser.getEmail());
+        ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //when
         ArchiveResponse archiveResponse1 = archiveService.deleteArchive(archiveResponse.archiveId());

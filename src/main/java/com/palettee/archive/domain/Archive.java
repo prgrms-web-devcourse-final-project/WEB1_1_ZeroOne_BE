@@ -87,4 +87,8 @@ public class Archive extends BaseEntity {
     public void updateOrder(Integer order) {
         this.archiveOrder = order;
     }
+
+    public boolean isNotOpenComment() {
+        return !this.canComment;
+    }
 }

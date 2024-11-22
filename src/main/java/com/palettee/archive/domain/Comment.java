@@ -22,9 +22,8 @@ public class Comment {
     private Archive archive;
 
     @Builder
-    public Comment(Long id, String content,
+    public Comment(String content,
             String username, Long userId, Archive archive) {
-        this.id = id;
         this.content = content;
         this.username = username;
         this.userId = userId;

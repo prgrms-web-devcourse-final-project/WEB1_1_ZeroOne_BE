@@ -21,7 +21,6 @@ import com.palettee.archive.repository.CommentRepository;
 import com.palettee.archive.repository.TagRepository;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.user.domain.User;
-import com.palettee.user.repository.UserRepository;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -36,15 +35,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArchiveService {
 
     private final ArchiveRepository archiveRepository;
-    private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final ArchiveImageRepository archiveImageRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
 
     @Transactional
-    public ArchiveResponse registerArchive(ArchiveRegisterRequest archiveRegisterRequest, String email) {
-        User user = getUser(email);
+    public ArchiveResponse registerArchive(ArchiveRegisterRequest archiveRegisterRequest, User user) {
         Archive archive = Archive.builder()
                 .title(archiveRegisterRequest.title())
                 .description(archiveRegisterRequest.description())
@@ -61,8 +58,8 @@ public class ArchiveService {
         return new ArchiveResponse(savedArchive.getId());
     }
 
-    public ArchiveListResponse getAllArchive(String category, Pageable pageable) {
-        Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(category, pageable);
+    public ArchiveListResponse getAllArchive(String majorJobGroup, String minorJobGroup, String sort, Pageable pageable) {
+        Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(majorJobGroup, minorJobGroup, sort, pageable);
 
         List<ArchiveSimpleResponse> list = archives
                 .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
@@ -86,8 +83,7 @@ public class ArchiveService {
         );
     }
 
-    public ArchiveListResponse getMyArchive(String email) {
-        User user = getUser(email);
+    public ArchiveListResponse getMyArchive(User user) {
         List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(user.getId())
                 .stream()
                 .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
@@ -95,8 +91,7 @@ public class ArchiveService {
         return new ArchiveListResponse(result, null);
     }
 
-    public ArchiveListResponse getLikeArchive(String email) {
-        User user = getUser(email);
+    public ArchiveListResponse getLikeArchive(User user) {
         List<Long> ids = likeRepository.findMyLikeList(user.getId());
 
         List<ArchiveSimpleResponse> result = archiveRepository.findAllInIds(ids)
@@ -131,9 +126,10 @@ public class ArchiveService {
 
     @Transactional
     public ArchiveResponse deleteArchive(Long archiveId) {
-        archiveRepository.deleteById(archiveId);
         tagRepository.deleteAllByArchiveId(archiveId);
         archiveImageRepository.deleteAllByArchiveId(archiveId);
+        Archive archive = getArchive(archiveId);
+        archiveRepository.delete(archive);
         return new ArchiveResponse(archiveId);
     }
 
@@ -166,11 +162,6 @@ public class ArchiveService {
 
     private Archive getArchive(Long archiveId) {
         return archiveRepository.findById(archiveId).orElseThrow(() -> ArchiveNotFound.EXCEPTION);
-    }
-
-    private User getUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
     }
 
 }
