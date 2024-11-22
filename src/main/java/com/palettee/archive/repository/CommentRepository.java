@@ -12,5 +12,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     long countArchiveComment(@Param("archiveId") Long archiveId);
 
     @Query("select c from Comment c where c.archive.id = :archiveId")
-    Slice<Comment> findCommentWithArchiveId(@Param("archiveId") Archive archive, Pageable pageable);
+    Slice<Comment> findCommentWithArchiveId(@Param("archiveId") Long archiveId, Pageable pageable);
 }

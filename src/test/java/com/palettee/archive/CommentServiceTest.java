@@ -3,6 +3,7 @@ package com.palettee.archive;
 import static org.assertj.core.api.Assertions.*;
 
 import com.palettee.archive.controller.dto.request.CommentWriteRequest;
+import com.palettee.archive.controller.dto.response.CommentListResponse;
 import com.palettee.archive.controller.dto.response.CommentResponse;
 import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.ArchiveType;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -94,6 +96,23 @@ public class CommentServiceTest {
         // then
         Optional<Comment> comment = commentRepository.findById(commentResponse.commentId());
         assertThat(comment.isEmpty()).isTrue();
+    }
+
+    @Test
+    @DisplayName("정상적인 댓글 전체 조회 성공")
+    void getCommentsTest() {
+        // given
+        CommentWriteRequest request = new CommentWriteRequest("content");
+        for (int i = 0; i < 5; i++) {
+            commentService.writeComment(savedUser.getEmail(), savedArchiveCanComment.getId(), request);
+        }
+
+        // when
+        CommentListResponse comment = commentService.getComment(savedUser.getEmail(), savedArchiveCanComment.getId(),
+                PageRequest.of(0, 10));
+
+        // then
+        assertThat(comment.comments().size()).isEqualTo(5);
     }
 
 }

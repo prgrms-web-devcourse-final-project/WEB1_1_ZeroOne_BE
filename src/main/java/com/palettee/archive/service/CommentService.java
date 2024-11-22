@@ -15,7 +15,6 @@ import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -54,7 +53,7 @@ public class CommentService {
     public CommentListResponse getComment(String email, Long archiveId, Pageable pageable) {
         Archive archive = getArchive(archiveId);
         User user = userRepository.findByEmail(email).orElse(null);
-        Slice<Comment> comments = commentRepository.findCommentWithArchiveId(archive, pageable);
+        Slice<Comment> comments = commentRepository.findCommentWithArchiveId(archive.getId(), pageable);
 
         List<CommentDetail> result = comments.getContent().stream()
                 .map(it -> CommentDetail.toResponse(it, user))
