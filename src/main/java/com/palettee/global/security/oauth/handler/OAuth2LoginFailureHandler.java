@@ -24,7 +24,7 @@ public class OAuth2LoginFailureHandler
      */
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationException exception)
+                                        AuthenticationException exception)
             throws IOException, ServletException {
 
         OAuth2AuthenticationException oAuth2AuthenticationException

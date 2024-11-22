@@ -2,13 +2,13 @@ logging:
   level:
     com.palettee: debug
     web: debug
-    sql: debug
+#    sql: debug
 
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: 1952
+    password: 8112
     url: jdbc:mysql://localhost:3306/final_project?createDatabaseIfNotExists
 
   jpa:
@@ -19,8 +19,8 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+        format_sql: true   # SQL 포맷팅을 활성화
 
 redis:
   host: localhost
   port: 6379
-  password: abcdefg

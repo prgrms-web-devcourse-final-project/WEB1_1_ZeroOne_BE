@@ -1,7 +1,8 @@
 package com.palettee.user.domain;
 
-import java.util.Arrays;
 import lombok.*;
+
+import java.util.Arrays;
 
 @RequiredArgsConstructor
 public enum MinorJobGroup {
@@ -71,10 +72,15 @@ public enum MinorJobGroup {
 
     private final String minorJobGroup;
 
+
     public static MinorJobGroup findMinorJobGroup(String input) {
         return Arrays.stream(MinorJobGroup.values())
                 .filter(it -> it.minorJobGroup.equals(input))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public String getMinorJobGroup() {
+        return minorJobGroup;
     }
 }

@@ -27,7 +27,7 @@ public class OAuth2LoginSuccessHandler
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-            Authentication authentication)
+                                        Authentication authentication)
             throws IOException, ServletException {
 
         CustomOAuth2User customUserDetail = (CustomOAuth2User) authentication.getPrincipal();
@@ -39,3 +39,4 @@ public class OAuth2LoginSuccessHandler
         response.sendRedirect("/token/issue?token=" + temporaryToken);
     }
 }
+
