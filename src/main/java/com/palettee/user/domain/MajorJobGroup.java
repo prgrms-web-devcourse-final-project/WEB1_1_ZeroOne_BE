@@ -1,7 +1,8 @@
 package com.palettee.user.domain;
 
-import java.util.Arrays;
 import lombok.*;
+
+import java.util.Arrays;
 
 @RequiredArgsConstructor
 public enum MajorJobGroup {
@@ -13,10 +14,15 @@ public enum MajorJobGroup {
 
     private final String majorGroup;
 
+
     public static MajorJobGroup findMajorGroup(String input) {
         return Arrays.stream(MajorJobGroup.values())
                 .filter(it -> it.majorGroup.equals(input))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public String getMajorGroup() {
+        return majorGroup;
     }
 }

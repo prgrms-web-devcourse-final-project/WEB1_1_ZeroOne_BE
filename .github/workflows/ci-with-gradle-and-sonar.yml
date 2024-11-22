@@ -72,7 +72,14 @@ jobs:
       # test 없이 그냥 build
       - name: Build with Gradle
         run: ./gradlew build -x test --build-cache
-      
+
+
+      # Redis 활성화
+      - name: Start Redis
+        uses: supercharge/redis-github-action@1.1.0
+        with:
+          redis-version: 6
+
 
       # 테스트 실행
       - name: Run Tests

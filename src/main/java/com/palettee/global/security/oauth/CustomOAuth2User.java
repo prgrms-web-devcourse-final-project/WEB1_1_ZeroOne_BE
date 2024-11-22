@@ -27,7 +27,7 @@ public class CustomOAuth2User implements OAuth2User {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(
                 new SimpleGrantedAuthority(
-                        user.getUserRole().toString())
+                        "ROLE_" + user.getUserRole().toString())
         );
 
         return authorities;
@@ -35,10 +35,12 @@ public class CustomOAuth2User implements OAuth2User {
 
     /**
      * {@link OAuth2LoginSuccessHandler} 에서 로그인 성공 시, 이 메서드로 로그인된 정보 가져올 수 있음.
+     *
+     * @return {@link User#getEmail()}
      */
     @Override
     public String getName() {
-        return user.getName();
+        return user.getEmail();
     }
 
     /**
