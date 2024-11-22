@@ -131,9 +131,10 @@ public class ArchiveService {
 
     @Transactional
     public ArchiveResponse deleteArchive(Long archiveId) {
-        archiveRepository.deleteById(archiveId);
         tagRepository.deleteAllByArchiveId(archiveId);
         archiveImageRepository.deleteAllByArchiveId(archiveId);
+        Archive archive = getArchive(archiveId);
+        archiveRepository.delete(archive);
         return new ArchiveResponse(archiveId);
     }
 

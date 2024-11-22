@@ -9,6 +9,7 @@ import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.Comment;
 import com.palettee.archive.exception.ArchiveNotFound;
 import com.palettee.archive.exception.CanNotCommentArchive;
+import com.palettee.archive.exception.CommentNotFound;
 import com.palettee.archive.repository.ArchiveRepository;
 import com.palettee.archive.repository.CommentRepository;
 import com.palettee.user.domain.User;
@@ -46,7 +47,8 @@ public class CommentService {
 
     @Transactional
     public CommentResponse deleteComment(Long commentId) {
-        commentRepository.deleteById(commentId);
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> CommentNotFound.EXCEPTION);
+        commentRepository.delete(comment);
         return new CommentResponse(commentId);
     }
 
