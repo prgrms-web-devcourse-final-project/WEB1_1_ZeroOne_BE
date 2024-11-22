@@ -61,6 +61,8 @@ public class PortFolioController
         return portFolioService.createPortFolioLike(portFolioId, customOAuth2User.getUser());
     }
 
+    
+
     private static void validationContexts(CustomOAuth2User customOAuth2User) {
         if(customOAuth2User.getUser() == null) {
             throw new NotFoundException("User not found");

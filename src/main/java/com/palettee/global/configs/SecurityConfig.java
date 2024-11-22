@@ -59,10 +59,6 @@ public class SecurityConfig {
         // 포트폴리오 전체 조회
         uris.put("/portFolio", List.of(HttpMethod.GET));
 
-        // 좋아요한 포트폴리오 조회
-        uris.put("/portFolio/my-page", List.of(HttpMethod.GET));
-
-
         // 메인 인기 포트폴리오 페이지
         uris.put("/main/portfolio", List.of(HttpMethod.GET));
 
