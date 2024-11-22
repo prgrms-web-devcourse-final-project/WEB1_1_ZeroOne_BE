@@ -13,7 +13,6 @@ import com.palettee.archive.exception.CommentNotFound;
 import com.palettee.archive.repository.ArchiveRepository;
 import com.palettee.archive.repository.CommentRepository;
 import com.palettee.user.domain.User;
-import com.palettee.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -28,11 +27,9 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final ArchiveRepository archiveRepository;
-    private final UserRepository userRepository;
 
     @Transactional
-    public CommentResponse writeComment(String email, Long archiveId, CommentWriteRequest commentWriteRequest) {
-        User user = getUser(email);
+    public CommentResponse writeComment(User user, Long archiveId, CommentWriteRequest commentWriteRequest) {
         Archive archive = getArchive(archiveId);
         checkCommentOpen(archive);
         Comment savedComment = commentRepository.save(new Comment(commentWriteRequest.content(), user.getName(), user.getId(), archive));
@@ -52,9 +49,8 @@ public class CommentService {
         return new CommentResponse(commentId);
     }
 
-    public CommentListResponse getComment(String email, Long archiveId, Pageable pageable) {
+    public CommentListResponse getComment(User user, Long archiveId, Pageable pageable) {
         Archive archive = getArchive(archiveId);
-        User user = userRepository.findByEmail(email).orElse(null);
         Slice<Comment> comments = commentRepository.findCommentWithArchiveId(archive.getId(), pageable);
 
         List<CommentDetail> result = comments.getContent().stream()
@@ -65,10 +61,5 @@ public class CommentService {
 
     private Archive getArchive(Long archiveId) {
         return archiveRepository.findById(archiveId).orElseThrow(() -> ArchiveNotFound.EXCEPTION);
-    }
-
-    private User getUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 회원을 찾을 수 없습니다."));
     }
 }

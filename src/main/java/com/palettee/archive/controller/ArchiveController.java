@@ -11,12 +11,13 @@ import com.palettee.archive.controller.dto.response.CommentListResponse;
 import com.palettee.archive.controller.dto.response.CommentResponse;
 import com.palettee.archive.service.ArchiveService;
 import com.palettee.archive.service.CommentService;
+import com.palettee.global.security.validation.UserUtils;
+import com.palettee.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -38,7 +39,8 @@ public class ArchiveController {
 
     @PostMapping
     public ArchiveResponse registerArchive(@Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
-        return archiveService.registerArchive(archiveRegisterRequest, getUserName());
+        User user = UserUtils.getContextUser();
+        return archiveService.registerArchive(archiveRegisterRequest, user);
     }
 
     @GetMapping("/{archiveId}")
@@ -66,12 +68,14 @@ public class ArchiveController {
 
     @GetMapping("/me")
     public ArchiveListResponse getMyArchives() {
-        return archiveService.getMyArchive(getUserName());
+        User user = UserUtils.getContextUser();
+        return archiveService.getMyArchive(user);
     }
 
     @GetMapping("/me/like")
     public ArchiveListResponse getMyLikeArchives() {
-        return archiveService.getLikeArchive(getUserName());
+        User user = UserUtils.getContextUser();
+        return archiveService.getLikeArchive(user);
     }
 
     @PutMapping("/{archiveId}")
@@ -91,7 +95,8 @@ public class ArchiveController {
 
     @PostMapping("/{archiveId}/comment")
     public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
-        return commentService.writeComment(getUserName(), archiveId, commentWriteRequest);
+        User user = UserUtils.getContextUser();
+        return commentService.writeComment(user, archiveId, commentWriteRequest);
     }
 
     @GetMapping("/{archiveId}/comment")
@@ -100,17 +105,14 @@ public class ArchiveController {
             @RequestParam int page,
             @RequestParam int size
     ) {
+        User user = UserUtils.getContextUser();
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
-        return commentService.getComment(getUserName(), archiveId, pageRequest);
+        return commentService.getComment(user, archiveId, pageRequest);
     }
 
     @DeleteMapping("/comment/{commentId}")
     public CommentResponse deleteComment(@PathVariable("commentId") long commentId) {
         return commentService.deleteComment(commentId);
-    }
-
-    private String getUserName() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
 }
