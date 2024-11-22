@@ -52,6 +52,11 @@ public class PortFolioService {
 
     @Transactional
     public PortFolioLikeResponse createPortFolioLike(Long portfolioId, User user) {
+
+        if(cancelLike(portfolioId, user)) {
+            return new PortFolioLikeResponse(null);
+        }
+
         Likes likes = Likes.builder()
                 .likeType(LikeType.PORTFOLIO)
                 .user(user)
@@ -59,5 +64,15 @@ public class PortFolioService {
                 .build();
 
         return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
+    }
+
+    private boolean cancelLike(Long portfolioId, User user) {
+        Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), portfolioId);
+
+        if(findByLikes != null) {
+            likeRepository.delete(findByLikes);
+            return true;
+        }
+        return false;
     }
 }

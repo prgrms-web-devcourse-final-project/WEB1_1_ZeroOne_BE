@@ -15,6 +15,7 @@ public enum ErrorCode {
     NO_TOKEN_EXISTS(401, "토큰이 존재하지 않습니다."),
     ROLE_MISMATCH(403, "권한이 부족합니다."),
     NO_USER_FOUND_VIA_TOKEN(404, "토큰으로 유저를 찾지 못했습니다."),
+    USER_NOT_FOUND(404, "해당 유저를 찾지 못했습니다"),
 
     /* 403 UNAUTHORIZED : 인증되지 않은 사용자 */
 

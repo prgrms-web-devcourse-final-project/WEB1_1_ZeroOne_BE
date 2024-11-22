@@ -1,16 +1,15 @@
 package com.palettee.portfolio.controller;
 
-import com.amazonaws.services.kms.model.NotFoundException;
-import com.palettee.global.security.oauth.CustomOAuth2User;
+import com.palettee.global.security.validation.UserUtils;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.service.PortFolioService;
+import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -42,32 +41,24 @@ public class PortFolioController
 
     @GetMapping("/my-page")
     public CustomSliceResponse findLike(
-            @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             Pageable pageable ,
             @RequestParam(required = false) Long likeId){
 
-        validationContexts(customOAuth2User);
-        return portFolioService.findListPortFolio(pageable,customOAuth2User.getUser().getId(), likeId);
+        User contextUser = UserUtils.getContextUser();
+
+        return portFolioService.findListPortFolio(pageable,contextUser.getId(), likeId);
 
     }
 
     @PostMapping("/likes")
     public PortFolioLikeResponse createLikes(
-            @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
             @RequestParam Long portFolioId
     ){
-        validationContexts(customOAuth2User);
+        User contextUser = UserUtils.getContextUser();
 
-        return portFolioService.createPortFolioLike(portFolioId, customOAuth2User.getUser());
+        return portFolioService.createPortFolioLike(portFolioId, contextUser);
     }
 
-    
-
-    private static void validationContexts(CustomOAuth2User customOAuth2User) {
-        if(customOAuth2User.getUser() == null) {
-            throw new NotFoundException("User not found");
-        }
-    }
 
 
 

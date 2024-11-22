@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 
 import java.util.List;
+import java.util.Optional;
 
 @SpringBootTest
 class PortFolioServiceTest {
@@ -150,5 +151,20 @@ class PortFolioServiceTest {
 
         // then
         Assertions.assertThat(likes.getLikeType()).isEqualTo(LikeType.PORTFOLIO);
+    }
+
+    @Test
+    @DisplayName("포트 폴리오 좋아요 취소")
+    public void portFolio_Like_Cancel() throws Exception {
+       //given
+        PortFolioLikeResponse portFolioLike = portFolioService.createPortFolioLike(portFolio.getPortfolioId(), user);
+
+       //when
+        PortFolioLikeResponse portFolioLik1 = portFolioService.createPortFolioLike(portFolio.getPortfolioId(), user);
+
+        Optional<Likes> findByLikes = likeRepository.findById(portFolioLike.portFolioId());
+
+        //then
+        Assertions.assertThat(findByLikes.isPresent()).isEqualTo(false);
     }
 }

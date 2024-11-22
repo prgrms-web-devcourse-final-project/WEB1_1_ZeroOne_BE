@@ -164,9 +164,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/portFolio")
                         .permitAll()
 
-                        //좋아요한 포트폴리오 조회
-                        .requestMatchers(HttpMethod.GET,"/portFolio/my-page")
-                        .permitAll()
 
                         // 메인 인기 포트폴리오 페이지
                         .requestMatchers("/main/portfolio")
