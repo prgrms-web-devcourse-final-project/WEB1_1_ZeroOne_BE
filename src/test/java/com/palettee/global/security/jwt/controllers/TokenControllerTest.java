@@ -12,7 +12,6 @@ import com.palettee.global.security.jwt.utils.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
 import jakarta.servlet.http.*;
-import jakarta.transaction.*;
 import java.util.function.*;
 import lombok.extern.slf4j.*;
 import org.junit.jupiter.api.*;
@@ -28,7 +27,6 @@ import org.springframework.test.web.servlet.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
-@Transactional
 class TokenControllerTest {
 
     @Autowired
