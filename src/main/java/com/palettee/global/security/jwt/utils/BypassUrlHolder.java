@@ -2,6 +2,7 @@ package com.palettee.global.security.jwt.utils;
 
 import com.palettee.global.security.jwt.filters.*;
 import java.util.*;
+import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.http.*;
 import org.springframework.security.config.annotation.web.builders.*;
@@ -84,7 +85,9 @@ public class BypassUrlHolder {
     private final AntPathMatcher pathMatcher;
 
     // 우회할 요청 정보들
+    @Getter
     private final List<RequestInfoHolder> byPassableRequests;
+    @Getter
     private final List<RequestInfoHolder> conditionalByPassableRequests;
 
 
@@ -94,7 +97,7 @@ public class BypassUrlHolder {
      * @param uriPatterns 우회할 {@code URI} 패턴
      * @param httpMethods 우회할 {@code URI} 들의 {@code HTTP Method}
      */
-    private record RequestInfoHolder(
+    public record RequestInfoHolder(
             List<String> uriPatterns, Set<HttpMethod> httpMethods
     ) {
 
