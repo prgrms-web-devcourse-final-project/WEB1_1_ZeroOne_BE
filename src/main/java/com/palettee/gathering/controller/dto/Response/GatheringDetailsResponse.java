@@ -24,7 +24,7 @@ public record GatheringDetailsResponse(
 ) {
 
     public static GatheringDetailsResponse toDto(Gathering gathering) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String createTime = gathering.getCreateAt().format(dateTimeFormatter);
 
         List<String> list = gathering.getGatheringTagList()
