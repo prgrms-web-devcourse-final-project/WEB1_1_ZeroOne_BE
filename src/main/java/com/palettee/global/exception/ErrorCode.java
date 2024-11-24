@@ -11,6 +11,7 @@ public enum ErrorCode {
     INVALID_TOKEN(400, "토큰이 유효하지 않습니다."), // 예시
     NOT_COMMENT_OWNER(400, "댓글 작성자가 아닙니다."),
     COMMENT_NOT_OPEN(400, "해당 아카이브는 댓글이 허용되지 않았습니다."),
+    CATEGORY_NOT_FOUND(400, "해당 카테고리는 잘못된 요청입니다"),
 
     /* token 관련 error code */
     EXPIRED_TOKEN(401, "토큰이 만료되었습니다."),
