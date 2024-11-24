@@ -2,6 +2,7 @@ package com.palettee.gathering.controller;
 
 import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCreateResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
@@ -36,6 +37,11 @@ public class GatheringController {
             Pageable pageable
     ) {
         return gatheringService.findAll(sort, period, position, status, gatheringId, pageable);
+    }
+
+    @GetMapping("/{gatheringId}")
+    public GatheringDetailsResponse findByGatheringId(@PathVariable Long gatheringId) {
+        return gatheringService.findByDetails(gatheringId);
     }
 
 }

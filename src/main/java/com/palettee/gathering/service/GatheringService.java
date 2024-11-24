@@ -2,6 +2,7 @@ package com.palettee.gathering.service;
 
 import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCreateResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.webjars.NotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +61,13 @@ public class GatheringService {
                 gatheringId,
                 pageable
         );
+    }
+
+
+    public GatheringDetailsResponse findByDetails(Long gatheringId) {
+        Gathering gathering = gatheringRepository.findByGatheringId(gatheringId).orElseThrow(() -> new NotFoundException("게더링을 찾을 수 없습니다"));
+
+        return GatheringDetailsResponse.toDto(gathering);
     }
 
 

@@ -2,6 +2,7 @@ package com.palettee.gathering.service;
 
 import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCreateResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.GatheringTag;
@@ -133,6 +134,27 @@ class GatheringServiceTest {
         Assertions.assertThat(list.getSize()).isEqualTo(10);
         Assertions.assertThat(list.hasNext()).isEqualTo(true);
 
+    }
+
+    @Test
+    @DisplayName("게더링 상세 조회")
+    public void gathering_details() throws Exception {
+        //given
+
+        List<String> tagList = new ArrayList<>();
+
+        tagList.add("tag1");
+        tagList.add("tag2");
+
+        GatheringCreateRequest gatheringCreateRequest = new GatheringCreateRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", "개발자", tagList, "testUrl", "제목", "content");
+        GatheringCreateResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
+
+        //when
+
+        GatheringDetailsResponse byDetails = gatheringService.findByDetails(gathering.gatheringId());
+
+        //then
+        Assertions.assertThat(byDetails.sort()).isEqualTo(Sort.PROJECT.name());
     }
 
 
