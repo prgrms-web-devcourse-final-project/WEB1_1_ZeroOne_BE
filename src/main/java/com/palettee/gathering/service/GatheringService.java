@@ -2,13 +2,14 @@ package com.palettee.gathering.service;
 
 import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCreateResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
-import com.palettee.user.domain.MajorJobGroup;
-import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,4 +41,25 @@ public class GatheringService {
 
        return GatheringCreateResponse.toDTO(gatheringRepository.save(gathering));
     }
+
+
+    public Slice<GatheringResponse> findAll(
+            String sort,
+            String period,
+            String position,
+            String status,
+            Long gatheringId,
+            Pageable pageable
+    ) {
+        return gatheringRepository.pageGathering(
+                sort,
+                period,
+                position,
+                status,
+                gatheringId,
+                pageable
+        );
+    }
+
+
 }

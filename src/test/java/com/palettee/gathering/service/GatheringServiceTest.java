@@ -2,6 +2,7 @@ package com.palettee.gathering.service;
 
 import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCreateResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.GatheringTag;
 import com.palettee.gathering.domain.Sort;
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,6 +106,34 @@ class GatheringServiceTest {
         });
     }
 
+
+    @Test
+    @DisplayName("게더링 전체 조회 페이징 NoOffSet을 활용한 조회")
+    public void gathering_paging() throws Exception {
+        List<String> tagList = new ArrayList<>();
+
+        tagList.add("tag1");
+        tagList.add("tag2");
+
+
+        for(int i = 0; i < 30; i++){
+            GatheringCreateRequest gatheringCreateRequest = new GatheringCreateRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", "개발자", tagList, "testUrl", "제목", "content");
+
+            gatheringService.createGathering(gatheringCreateRequest, savedUser);
+
+        }
+
+        //when
+
+        Slice<GatheringResponse> list = gatheringService.findAll("프로젝트", "3개월", "개발자", "모집중", null, PageRequest.of(0, 10));
+
+
+        //then
+
+        Assertions.assertThat(list.getSize()).isEqualTo(10);
+        Assertions.assertThat(list.hasNext()).isEqualTo(true);
+
+    }
 
 
 

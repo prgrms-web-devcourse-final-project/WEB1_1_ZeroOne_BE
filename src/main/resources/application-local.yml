@@ -17,6 +17,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
+        default_batch_fetch_size: 1000
         jdbc:
           time_zone: UTC
         format_sql: true   # SQL 포맷팅을 활성화
