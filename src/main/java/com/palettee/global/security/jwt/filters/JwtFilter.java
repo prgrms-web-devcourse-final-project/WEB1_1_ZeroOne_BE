@@ -69,7 +69,8 @@ public class JwtFilter extends OncePerRequestFilter {
                     throw NoUserFoundViaTokenException.Exception;
                 }
 
-                logConditionalBypass(NoUserFoundViaTokenException.Exception.getMessage());
+                logConditionalBypass(NoUserFoundViaTokenException.Exception
+                        .getErrorCode().getReason());
             }
 
             // user 찾았으니까
@@ -87,7 +88,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // jwt 유효하진 않은데 에러는 안 터트려도 됨?
         else if (conditionalAuthRequired) {
-            logConditionalBypass(InvalidTokenException.EXCEPTION.getMessage());
+            logConditionalBypass(InvalidTokenException.EXCEPTION
+                    .getErrorCode().getReason());
         }
 
         // jwt 필요한데 유효하지 않았음 --> 에러처리

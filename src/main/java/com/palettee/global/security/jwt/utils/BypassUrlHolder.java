@@ -163,7 +163,7 @@ public class BypassUrlHolder {
                 Set<HttpMethod> httpMethods) {
 
             log.info("Add {}-{} request to {}", httpMethods, uriPatterns,
-                    dst.equals(byPassableRequests) ? "Bypass" : "Conditional");
+                    dst == byPassableRequests ? "Bypass" : "Conditional");
 
             dst.add(new RequestInfoHolder(uriPatterns, httpMethods));
             return this;
