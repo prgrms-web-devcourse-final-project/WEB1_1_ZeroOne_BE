@@ -158,6 +158,45 @@ class GatheringServiceTest {
     }
 
 
+    @Test
+    @DisplayName("게더링 업데이트")
+    public void gathering_update() throws Exception {
+        //given
+
+        List<String> tagList = new ArrayList<>();
+
+        tagList.add("tag1");
+        tagList.add("tag2");
+
+        GatheringCreateRequest gatheringCreateRequest = new GatheringCreateRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", "개발자", tagList, "testUrl", "제목", "content");
+        GatheringCreateResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
+
+
+
+        List<String> updateList = new ArrayList<>();
+
+        updateList.add("tag3");
+        updateList.add("tag4");
+
+
+        GatheringCreateRequest gatheringCreateRequest1 = new GatheringCreateRequest("스터디", "취미", "오프라인", 3, "3개월", "2024-11-24", "개발자", updateList, "testUrl", "제목", "content");
+
+        GatheringCreateResponse gatheringCreateResponse = gatheringService.updateGathering(gathering.gatheringId(), gatheringCreateRequest1, savedUser);
+
+        Gathering gathering1 = gatheringRepository.findById(gatheringCreateResponse.gatheringId()).get();
+        List<GatheringTag> byGatheringId = gatheringTagRepository.findByGatheringId(gathering.gatheringId());
+
+
+        //then
+
+        Assertions.assertThat(gathering1.getSort()).isEqualTo(Sort.STUDY);
+        Assertions.assertThat(gathering1.getSubject()).isEqualTo(Subject.HOBBY);
+        Assertions.assertThat(byGatheringId.size()).isEqualTo(2);
+        Assertions.assertThat(byGatheringId.get(0).getContent()).isEqualTo("tag3");
+    }
+
+
+
 
 
 

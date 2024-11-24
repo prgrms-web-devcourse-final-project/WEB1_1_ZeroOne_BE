@@ -15,6 +15,7 @@ public enum ErrorCode {
 
     /* token 관련 error code */
     EXPIRED_TOKEN(401, "토큰이 만료되었습니다."),
+    NOT_ACCESS(401, "접근 할 수 없는 유저입니다"),
     NO_TOKEN_EXISTS(401, "토큰이 존재하지 않습니다."),
     ROLE_MISMATCH(403, "권한이 부족합니다."),
     NO_USER_FOUND_VIA_TOKEN(404, "토큰으로 유저를 찾지 못했습니다."),
@@ -28,6 +29,7 @@ public enum ErrorCode {
     CHAT_USER_NOT_FOUND(404, "해당하는 채팅방 참여자가 없습니다."),
     PORT_FOLIO_NOT_FOUND(404, "해당 포트폴리오는 없습니다"),
     COMMENT_NOT_FOUND(404, "해당 댓글은 없습니다."),
+    GATHERING_NOT_FOUND(404, "해당 게더링은 찾을 수 없습니다"),
 
     /* 500 */
     INTERNAL_SERVER_ERROR(500, "서버 에러");

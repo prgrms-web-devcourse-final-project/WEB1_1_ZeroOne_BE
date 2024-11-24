@@ -23,8 +23,7 @@ public class GatheringController {
 
     @PostMapping()
     public GatheringCreateResponse create(@RequestBody @Valid GatheringCreateRequest request) {
-
-        return gatheringService.createGathering(request,  UserUtils.getContextUser());
+        return gatheringService.createGathering(request, UserUtils.getContextUser());
     }
 
     @GetMapping()
@@ -44,4 +43,11 @@ public class GatheringController {
         return gatheringService.findByDetails(gatheringId);
     }
 
+    @PutMapping("/{gatheringId}")
+    public GatheringCreateResponse update(
+            @RequestBody @Valid GatheringCreateRequest request,
+            @PathVariable Long gatheringId
+    ) {
+        return gatheringService.updateGathering(gatheringId, request, UserUtils.getContextUser());
+    }
 }

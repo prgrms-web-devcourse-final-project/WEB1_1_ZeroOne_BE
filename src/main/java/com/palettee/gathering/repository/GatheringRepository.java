@@ -10,4 +10,9 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long>, Gat
     @Query("select distinct g from Gathering g join fetch g.user left join fetch g.gatheringTagList where g.id = :gatheringId")
     Optional<Gathering> findByGatheringId(Long gatheringId);
 
+    @Query("select distinct  g from Gathering g join fetch g.gatheringTagList where g.id = :gatheringId")
+    Optional<Gathering> findByFetchId(Long gatheringId);
+
+    boolean existsByUserId(Long userId);
+
 }

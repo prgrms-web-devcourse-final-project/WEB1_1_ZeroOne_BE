@@ -1,5 +1,6 @@
 package com.palettee.gathering.domain;
 
+import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
 import com.palettee.global.entity.BaseEntity;
 import com.palettee.user.domain.*;
 import jakarta.persistence.*;
@@ -54,7 +55,7 @@ public class Gathering extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GatheringTag> gatheringTagList;
 
 
@@ -93,6 +94,28 @@ public class Gathering extends BaseEntity {
             gatheringTag.setGathering(this);
         }
         this.gatheringTagList = gatheringTagList;
+    }
+
+
+    public void updateGathering(GatheringCreateRequest gathering){
+        this.sort = Sort.findSort(gathering.sort());
+        this.subject = Subject.finSubject(gathering.subject());
+        this.contact = Contact.findContact(gathering.contact());
+        this.period = gathering.period();
+        this.deadLine = GatheringCreateRequest.getDeadLineLocalDate(gathering.deadLine());
+        this.personnel = gathering.personnel();
+        this.position = Position.findPosition(gathering.position());
+        this.title = gathering.title();
+        this.content = gathering.content();
+        this.url = gathering.url();
+        if(!this.gatheringTagList.isEmpty()){
+            this.gatheringTagList.clear();
+        }
+        List<GatheringTag> gatheringTag = GatheringCreateRequest.getGatheringTag(gathering.gatheringTag());
+        this.gatheringTagList.addAll(gatheringTag );
+        for(GatheringTag tag : gatheringTag){
+            tag.setGathering(this);
+        }
     }
 
 }

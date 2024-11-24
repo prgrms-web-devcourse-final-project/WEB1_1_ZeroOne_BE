@@ -1,5 +1,6 @@
 package com.palettee.gathering.service;
 
+import com.palettee.gathering.GatheringNotFoundException;
 import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCreateResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
@@ -7,13 +8,13 @@ import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.user.domain.User;
+import com.palettee.user.exception.UserAccessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.webjars.NotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +24,9 @@ public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
 
+
     @Transactional
     public GatheringCreateResponse createGathering(GatheringCreateRequest request, User user) {
-
         Gathering gathering = Gathering.builder()
                 .user(user)
                 .period(request.period())
@@ -41,9 +42,8 @@ public class GatheringService {
                 .gatheringTagList(GatheringCreateRequest.getGatheringTag(request.gatheringTag()))
                 .build();
 
-       return GatheringCreateResponse.toDTO(gatheringRepository.save(gathering));
+        return GatheringCreateResponse.toDTO(gatheringRepository.save(gathering));
     }
-
 
     public Slice<GatheringResponse> findAll(
             String sort,
@@ -63,12 +63,28 @@ public class GatheringService {
         );
     }
 
-
     public GatheringDetailsResponse findByDetails(Long gatheringId) {
-        Gathering gathering = gatheringRepository.findByGatheringId(gatheringId).orElseThrow(() -> new NotFoundException("게더링을 찾을 수 없습니다"));
+        Gathering gathering = getGathering(gatheringId);
 
         return GatheringDetailsResponse.toDto(gathering);
     }
 
+    @Transactional
+    public GatheringCreateResponse updateGathering(Long gatheringId, GatheringCreateRequest request, User user) {
 
+        if(!gatheringRepository.existsByUserId(user.getId())) {
+           throw  UserAccessException.EXCEPTION;
+        }
+
+        Gathering gathering = gatheringRepository.findByFetchId(gatheringId).orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
+
+        gathering.updateGathering(request);
+
+        return GatheringCreateResponse.toDTO(gathering);
+    }
+
+    private Gathering getGathering(Long gatheringId) {
+        return gatheringRepository.findByGatheringId(gatheringId)
+                .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
+    }
 }
