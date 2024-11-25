@@ -20,8 +20,7 @@ public class RelatedLink {
     private User user;
 
     @Builder
-    public RelatedLink(Long relatedLinkId, String link, User user) {
-        this.relatedLinkId = relatedLinkId;
+    public RelatedLink(String link, User user) {
         this.link = link;
         this.user = user;
         user.addRelatedLink(this);

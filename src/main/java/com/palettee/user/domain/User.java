@@ -4,6 +4,8 @@ import com.palettee.archive.domain.*;
 import com.palettee.gathering.*;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.domain.*;
+import com.palettee.user.controller.dto.request.*;
+import com.palettee.user.exception.*;
 import jakarta.persistence.*;
 import java.util.*;
 import lombok.*;
@@ -39,11 +41,17 @@ public class User {
     @Column(name = "user_image_url")
     private String imageUrl;
 
-    @Column(name = "user_name")
+    @Column(name = "user_name", length = 50)
     private String name;
 
-    @Column(name = "brief_intro", length = 500)
+    @Column(name = "brief_intro", length = 100)
     private String briefIntro;
+
+    @Column(name = "job_title", length = 100)
+    private String jobTitle;
+
+    @Enumerated(EnumType.STRING)
+    private Division division;
 
     @Enumerated(EnumType.STRING)
     private MajorJobGroup majorJobGroup;
