@@ -8,7 +8,7 @@ import com.palettee.user.repository.*;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.*;
-import java.util.*;
+import java.util.function.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.http.*;
@@ -26,9 +26,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserRepository userRepo;
-
-    private final Map<String, List<HttpMethod>> byPassableUris;
-    private final Map<String, List<HttpMethod>> conditionalAuthUris;
+    private final BypassUrlHolder bypassHolder;
 
     private static final String ACCESS_TOKEN_HEADER = "Authorization";
 
@@ -119,12 +117,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * 현 요청을 filter 로직 수행 안해도 되는지 확인
      */
     private boolean isByPassable(HttpServletRequest request) {
-        String requestUri = request.getRequestURI();
-        String httpMethod = request.getMethod().toUpperCase();
-
-        log.info("Request uri: {} - {}", httpMethod, requestUri);
-
-        return hasMatch(byPassableUris, requestUri, httpMethod);
+        return passable(request, bypassHolder::isByPassable);
     }
 
     /**
@@ -133,34 +126,22 @@ public class JwtFilter extends OncePerRequestFilter {
      * @return {@code true} 면 에러 X
      */
     private boolean conditionalAuthRequired(HttpServletRequest request) {
-        String requestUri = request.getRequestURI();
-        String httpMethod = request.getMethod().toUpperCase();
-
-        return hasMatch(conditionalAuthUris, requestUri, httpMethod);
+        return passable(request, bypassHolder::isConditionalByPassable);
     }
 
-
     /**
-     * 현재 요청이 정의된 {@code uriRegexMap} 에 포함되는지 알려주는 메서드
+     * 우회 여부 판단 내부 메서드
      *
-     * @param uriRegexMap 확인할 {@code URI} 의 정규 표현식 + {@link  HttpMethod}
-     * @param uri         검사할 요청의 {@code URI}
-     * @param httpMethod  검사할 요청의 {@code HttpMethod} (대문자)
-     * @return 현재 요청이 {@code uriRegexMap} 에 속해 있다면 {@code true}
+     * @param isPassable {@code true} 면 우회 가능
      */
-    private boolean hasMatch(Map<String, List<HttpMethod>> uriRegexMap, String uri,
-            String httpMethod) {
-        // key 값 중 matches 인 url 뱉기
-        String matchingUrl = uriRegexMap.keySet().parallelStream()
-                .filter(uri::matches)
-                .findFirst().orElse(null);
+    private boolean passable(HttpServletRequest request,
+            BiFunction<String, HttpMethod, Boolean> isPassable) {
+        String requestUri = request.getRequestURI();
+        HttpMethod method = HttpMethod.valueOf(request.getMethod());
 
-        // match 하는 url 가 존재하고 httpMethod 도 동일하면 true
-        return matchingUrl != null &&
-                uriRegexMap.get(matchingUrl).stream()
-                        .map(HttpMethod::name)
-                        .map(String::toUpperCase)
-                        .anyMatch(httpMethod::equals);
+        log.info("Request uri: {} - {}", method, requestUri);
+
+        return isPassable.apply(requestUri, method);
     }
 
     private static void logBypass(HttpServletRequest request) {

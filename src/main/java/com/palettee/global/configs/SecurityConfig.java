@@ -7,7 +7,6 @@ import com.palettee.global.security.oauth.*;
 import com.palettee.global.security.oauth.handler.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
-import java.util.*;
 import lombok.*;
 import org.springframework.context.annotation.*;
 import org.springframework.http.*;
@@ -32,63 +31,57 @@ public class SecurityConfig {
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     /**
-     * {@link JwtFilter} 검증을 회피할 {@code URI} 들 {@code (HttpMethod 포함)}
+     * 특정 요청들이 {@link JwtFilter} 를 우회하고 {@link #securityFilterChain} 에 자동 등록도록 하는 {@code Bean}
+     * <p>
+     * 사용 방법은 {@link BypassUrlHolder} 주석 참고.
      *
-     * @return {@code Map} 의 {@code key} 값은 {@code URI} 와 {@code match} 할 수 있는 {@code regex}
+     * @author jbw9964
+     * @see BypassUrlHolder
      */
     @Bean
-    public Map<String, List<HttpMethod>> byPassableUris() {
-        final Map<String, List<HttpMethod>> uris = new HashMap<>();
+    public BypassUrlHolder bypassUrlHolder() {
+        return BypassUrlHolder.builder()
+                .byPassable("/error")
 
-        // /aaa/{path}      -> /aaa/[^/]+$
-        // /aaa/{path}/bbb  -> /aaa/[^/]+/bbb
-        // /aaa?query       -> /aaa
+                // swagger
+                .byPassable("/api-test")
+                .byPassable("/swagger-ui/**")
+                .byPassable("/favicon.ico")
+                .byPassable("/v3/api-docs/**")
 
-        // OAuth2
-        uris.put("/login", List.of(HttpMethod.GET));
-        uris.put("/login/oauth2/code/google", List.of(HttpMethod.GET));
-        uris.put("/login/oauth2/code/github", List.of(HttpMethod.GET));
+                /* <-------------- User API --------------> */
+                // OAuth2
+                .byPassable("/login", "/login/oauth2/code/*")
 
-        // 토큰 발급
-        uris.put("/token/issue", List.of(HttpMethod.GET));
-        uris.put("/token/reissue", List.of(HttpMethod.POST));
+                // 토큰 발급
+                .byPassable("/token/issue", HttpMethod.GET)
+                .byPassable("/token/reissue", HttpMethod.POST)
 
-        // TODO : 편의용 임시 발급. 나중에 개발 다 되면 없애야 됨.
-        uris.put("/token/test-issue", List.of(HttpMethod.POST));
+                // TODO : 편의용 임시 발급. 나중에 개발 다 되면 없애야 됨.
+                .byPassable("/token/test-issue", HttpMethod.POST)
 
-        // 포트폴리오 전체 조회
-        uris.put("/portFolio", List.of(HttpMethod.GET));
+                // 유저의 프로필 정보를 조회
+                .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
 
-        // 메인 인기 포트폴리오 페이지
-        uris.put("/main/portfolio", List.of(HttpMethod.GET));
+                /* <-------------- Portfolio API --------------> */
+                // 포트폴리오 전체 조회
+                .byPassable("/portFolio", HttpMethod.GET)
 
-        // 소모임 전체 조회
-        uris.put("/gathering", List.of(HttpMethod.GET));
+                // 메인 인기 포트폴리오 페이지
+                .byPassable("/main/portfolio", HttpMethod.GET)
 
-        // 아카이브 전체, 단건 조회
-        uris.put("/archive", List.of(HttpMethod.GET));
-        uris.put("^/archive/[^/]+$", List.of(HttpMethod.GET));
+                // 소모임 전체 조회
+                .byPassable("/gathering", HttpMethod.GET)
 
-        // 아카이브 검색, 댓글 조회
-        uris.put("/archive/search", List.of(HttpMethod.GET));
-        uris.put("/archive/[^/]+/comment", List.of(HttpMethod.GET));
+                /* <-------------- Archive API --------------> */
+                // 아카이브 전체 & 단건 조회
+                .byPassable(HttpMethod.GET, "/archive", "/archive/{archiveId}")
 
-        return uris;
-    }
-
-    /**
-     * {@link JwtFilter} 검증에 특수한 처리가 필요한 {@code URI} 들 {@code (HttpMethod 포함)}
-     *
-     * @return {@code Map} 의 {@code key} 값은 {@code URI} 와 {@code match} 할 수 있는 {@code regex}
-     */
-    @Bean
-    public Map<String, List<HttpMethod>> conditionalAuthUris() {
-        final Map<String, List<HttpMethod>> uris = new HashMap<>();
-
-        // 유저 프로필 정보 조회
-        uris.put("/user/[^/]+/profile", List.of(HttpMethod.GET));
-
-        return uris;
+                // 아카이브 검색 & 댓글 조회
+                .byPassable(HttpMethod.GET,
+                        "/archive/search",
+                        "/archive/{archiveId}/comment")
+                .build();
     }
 
     @Bean
@@ -104,8 +97,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            BypassUrlHolder bypassHolder
+    ) throws Exception {
 
         // 우리 토큰 쓰니까 아래 것들 꺼도 됨
         http
@@ -126,7 +121,7 @@ public class SecurityConfig {
         // 그래서 OAuth2 로그인 필터 뒤에 위치
         http
                 .addFilterAfter(    // JwtFilter 넣기
-                        new JwtFilter(jwtUtils, userRepo, byPassableUris(), conditionalAuthUris()),
+                        new JwtFilter(jwtUtils, userRepo, bypassHolder),
                         OAuth2LoginAuthenticationFilter.class)
 
                 // JwtFilter 에서 에러가 터지진 않았지만, 인증되지 않았을 때 행동 지침
@@ -140,86 +135,46 @@ public class SecurityConfig {
 
         // API 별 authenticate 설정
         http
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error")
-                        .permitAll()
+                .authorizeHttpRequests(auth -> {
+                    /* <<<--------- bypass 인 요청들 등록 --------->>> */
+                    // bypass 로 등록된 요청목록들 permitAll
+                    bypassHolder.registerByPasses(auth);
 
-                        /* <-------------- User API --------------> */
-                        // OAuth2
-                        .requestMatchers("/login")
-                        .permitAll()
-                        .requestMatchers("/login/oauth2/code/*")
-                        .permitAll()
+                    /* <<<--------- 나머지 인증 필요한 요청들 등록 --------->>> */
+                    auth
+                            /* <-------------- Portfolio API --------------> */
+                            // 포폴 등록한 사람부터 가능
+                            // 포폴 세부 조회
+                            .requestMatchers("/portfolio/{portfolioId}")
+                            .hasRole(oldNewbie)
 
-                        // 토큰 발급
-                        .requestMatchers("/token/issue", "/token/reissue")
-                        .permitAll()
+                            // 소모임 자기가 생성 - 포폴 등록한 사람부터 가능
+                            .requestMatchers(HttpMethod.POST, "/gathering")
+                            .hasRole(oldNewbie)
 
-                        // TODO : 편의용 임시 발급
-                        .requestMatchers("/token/test-issue")
-                        .permitAll()
+                            // 소모임 상세 정보 조회
+                            .requestMatchers("/gathering/{gatheringId}")
+                            .hasRole(oldNewbie)
 
-                        /* <-------------- Portfolio API --------------> */
-                        // 포폴 전체 조회
-                        .requestMatchers(HttpMethod.GET, "/portFolio")
-                        .permitAll()
+                            /* <-------------- Chat API --------------> */
+                            .requestMatchers("/chat-room")      // 채팅방 생성, 내 채팅방 목록 조회
+                            .hasRole(oldNewbie)
+                            .requestMatchers("/chat-room/**")   // 채팅방 참여, 나가기
+                            .hasRole(oldNewbie)
+                            .requestMatchers("/chat/**")        // 채팅 조회
+                            .hasRole(oldNewbie)
+                            .requestMatchers("/chat-img/**")    // 사진 업로드
+                            .hasRole(oldNewbie)
+                            .requestMatchers("/ws")             // 채팅 보내기, 채팅 목록 실시간 (웹소켓)
+                            .hasRole(oldNewbie)
 
+                            .requestMatchers(HttpMethod.POST, "/gathering")
+                            .hasRole(oldNewbie)
 
-                        // 메인 인기 포트폴리오 페이지
-                        .requestMatchers("/main/portfolio")
-                        .permitAll()
-
-                        // 소모임 전체 조회
-                        .requestMatchers(HttpMethod.GET, "/gathering")
-                        .permitAll()
-
-                        // 포폴 등록한 사람부터 가능
-                        // 포폴 세부 조회
-                        .requestMatchers("/portfolio/{portfolioId}")
-                        .hasRole(oldNewbie)
-
-                        // 소모임 자기가 생성 - 포폴 등록한 사람부터 가능
-                        .requestMatchers(HttpMethod.POST, "/gathering")
-                        .hasRole(oldNewbie)
-
-                        // 소모임 상세 정보 조회
-                        .requestMatchers("/gathering/{gatheringId}")
-                        .hasRole(oldNewbie)
-
-                        /* <-------------- Chat API --------------> */
-                        .requestMatchers("/chat-room")      // 채팅방 생성, 내 채팅방 목록 조회
-                        .hasRole(oldNewbie)
-                        .requestMatchers("/chat-room/**")   // 채팅방 참여, 나가기
-                        .hasRole(oldNewbie)
-                        .requestMatchers("/chat/**")        // 채팅 조회
-                        .hasRole(oldNewbie)
-                        .requestMatchers("/chat-img/**")    // 사진 업로드
-                        .hasRole(oldNewbie)
-                        .requestMatchers("/ws")             // 채팅 보내기, 채팅 목록 실시간 (웹소켓)
-                        .hasRole(oldNewbie)
-
-                        /* <-------------- Archive API --------------> */
-                        // 아카이브 전체 조회
-                        .requestMatchers(HttpMethod.GET, "/archive")
-                        .permitAll()
-
-                        // 아카이브 단건 조회
-                        .requestMatchers(HttpMethod.GET, "/archive/{archiveId}")
-                        .permitAll()
-
-                        // 아카이브 검색
-                        .requestMatchers(HttpMethod.GET, "/archive/search")
-                        .permitAll()
-
-                        // 아카이브 댓글 조회
-                        .requestMatchers(HttpMethod.GET, "/archive/{archiveId}/comment")
-                        .permitAll()
-
-
-                        /* <-------------- Other API --------------> */
-                        .anyRequest()
-                        .authenticated()
-                );
+                            /* <-------------- Other API --------------> */
+                            .anyRequest()
+                            .authenticated();
+                });
 
         // 토큰 이용하니까 stateless session (정확히 뭔지 모르겠음..)
         http

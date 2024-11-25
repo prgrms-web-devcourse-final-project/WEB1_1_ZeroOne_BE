@@ -37,7 +37,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(status);
 
         FilterExceptionResponse body = new FilterExceptionResponse(
-                status, reason, LocalDateTime.now()
+                status, reason, LocalDateTime.now().toString()
         );
 
         ObjectMapper objectMapper = new ObjectMapper();
