@@ -18,11 +18,17 @@ public class BasicRegisterController {
 
     private final BasicRegisterService basicRegisterService;
 
+    /**
+     * 유저 기본 정보 등록시 기초 정보 보여주기
+     */
     @GetMapping("/profile")
     public BasicInfoResponse showBasicInfo() {
         return basicRegisterService.showBasicInfo(getUserFromContext());
     }
 
+    /**
+     * 유저 기본 정보 등록하기
+     */
     @PostMapping("/profile")
     public UserResponse registerBasicInfo(
             @Valid @RequestBody
@@ -33,6 +39,9 @@ public class BasicRegisterController {
         );
     }
 
+    /**
+     * 유저 포폴 정보 등록하기
+     */
     @PostMapping("/portfolio")
     public UserResponse registerPortfolio(
             @Valid @RequestBody

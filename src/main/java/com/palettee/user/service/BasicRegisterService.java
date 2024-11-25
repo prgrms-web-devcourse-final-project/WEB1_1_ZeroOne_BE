@@ -7,6 +7,7 @@ import com.palettee.user.controller.dto.response.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;
+import java.util.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.stereotype.*;
@@ -54,8 +55,11 @@ public class BasicRegisterService {
         relatedLinkRepo.deleteAllByUserId(user.getId());
 
         // url (linkedin, 블로그 등) 정보 등록
-        for (String link : registerBasicInfoRequest.url()) {
-            relatedLinkRepo.save(new RelatedLink(link, user));
+        List<String> links = registerBasicInfoRequest.url();
+        if (links != null && !links.isEmpty()) {
+            for (String link : links) {
+                relatedLinkRepo.save(new RelatedLink(link, user));
+            }
         }
 
         // 기본 정보 등록했으니까 권한 상승
