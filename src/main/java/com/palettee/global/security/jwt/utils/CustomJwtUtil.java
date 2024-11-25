@@ -150,4 +150,36 @@ final class CustomJwtUtil {
             throw new RuntimeException(e);
         }
     }
+
+    public UserRole getUserRole(String token)
+            throws UnsupportedJwtException, ExpiredJwtException,
+            IllegalArgumentException, RequiredTypeException,
+            NullPointerException {
+
+        try {
+            token = removeBearer(token);
+
+            String role = Jwts.parser().verifyWith(secretKey).build()
+                    .parseSignedClaims(token)
+                    .getPayload()
+                    .get("role", String.class);
+
+            log.info("userRole = {}", role);
+
+            if (role == null || role.isEmpty()) {
+                throw new NullPointerException("No role exists on jwt payload");
+            }
+
+            return UserRole.valueOf(role);
+
+        } catch (UnsupportedJwtException | IllegalArgumentException e) {
+            logDebug("Invalid jwt given : {}", e);
+
+            throw e;
+        } catch (Exception e) {
+            logDebug("Unexpected exception occurred while validating JWT : {}", e);
+
+            throw new RuntimeException(e);
+        }
+    }
 }
