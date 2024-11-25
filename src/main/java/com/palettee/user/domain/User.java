@@ -84,7 +84,16 @@ public class User {
         this.minorJobGroup = minorJobGroup;
     }
 
-    public User update(RegisterBasicInfoRequest updateRequest) {
+    /**
+     * 정보 변경 요청에 따라 {@code User} 정보를 변경하는 메서드
+     *
+     * @throws InvalidDivisionException  요청의 소속 잘못 주어진 경우
+     * @throws InvalidJobGroupException  {@code updateRequest} 의 {@code jobGroup} 이 잘못된 경우
+     * @throws JobGroupMismatchException {@code 대직군} 과 {@code 소직군} 이 잘못 이어진 경우
+     */
+    public User update(RegisterBasicInfoRequest updateRequest)
+            throws InvalidJobGroupException, JobGroupMismatchException {
+
         Division division = Division.of(updateRequest.division());
         MajorJobGroup majorGroup = MajorJobGroup.of(updateRequest.majorJobGroup());
         MinorJobGroup minorGroup = MinorJobGroup.of(updateRequest.minorJobGroup());

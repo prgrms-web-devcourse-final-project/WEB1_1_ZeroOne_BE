@@ -1,7 +1,9 @@
 package com.palettee.user.controller;
 
+import com.palettee.global.security.validation.*;
 import com.palettee.user.controller.dto.request.*;
 import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.domain.*;
 import com.palettee.user.service.*;
 import jakarta.validation.*;
 import lombok.*;
@@ -18,7 +20,7 @@ public class BasicRegisterController {
 
     @GetMapping("/profile")
     public BasicInfoResponse showBasicInfo() {
-        return basicRegisterService.showBasicInfo();
+        return basicRegisterService.showBasicInfo(getUserFromContext());
     }
 
     @PostMapping("/profile")
@@ -26,7 +28,9 @@ public class BasicRegisterController {
             @Valid @RequestBody
             RegisterBasicInfoRequest registerBasicInfoRequest
     ) {
-        return basicRegisterService.registerBasicInfo(registerBasicInfoRequest);
+        return basicRegisterService.registerBasicInfo(
+                getUserFromContext(), registerBasicInfoRequest
+        );
     }
 
     @PostMapping("/portfolio")
@@ -34,6 +38,12 @@ public class BasicRegisterController {
             @Valid @RequestBody
             RegisterPortfolioRequest registerPortfolioRequest
     ) {
-        return basicRegisterService.registerPortfolio(registerPortfolioRequest);
+        return basicRegisterService.registerPortfolio(
+                getUserFromContext(), registerPortfolioRequest
+        );
+    }
+
+    private User getUserFromContext() {
+        return UserUtils.getContextUser();
     }
 }
