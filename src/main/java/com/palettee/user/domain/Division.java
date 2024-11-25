@@ -11,7 +11,7 @@ import lombok.*;
 public enum Division {
     STUDENT, WORKER, ETC;
 
-    public static Division of(String division) {
+    public static Division of(String division) throws InvalidDivisionException {
         return Arrays.stream(Division.values())
                 .filter(d -> d.toString().equals(division.toUpperCase()))
                 .findFirst()

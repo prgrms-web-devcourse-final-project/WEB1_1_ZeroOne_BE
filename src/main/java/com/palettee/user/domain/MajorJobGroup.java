@@ -23,9 +23,13 @@ public enum MajorJobGroup {
                 .orElse(null);
     }
 
-    public static MajorJobGroup of(String group) {
-        MajorJobGroup majorGroup
-                = findMajorGroup(group.toUpperCase());
+    public static MajorJobGroup of(String group) throws InvalidJobGroupException {
+        String upper = group.toUpperCase();
+
+        MajorJobGroup majorGroup = Arrays.stream(MajorJobGroup.values())
+                .filter(job -> job.toString().equals(upper))
+                .findFirst()
+                .orElse(null);
 
         if (majorGroup == null) {
             throw InvalidJobGroupException.EXCEPTION;
