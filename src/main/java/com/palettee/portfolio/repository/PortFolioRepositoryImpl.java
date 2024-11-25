@@ -93,6 +93,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                                 .and(likeIdEq(likeId))
                 )
                 .leftJoin(likes.user, user)
+                .orderBy(likes.likeId.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
@@ -160,7 +161,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
     }
 
     private BooleanExpression likeIdEq(Long likeId) {
-        return likeId != null ? likes.likeId.gt(likeId) : null;
+        return likeId != null ? likes.likeId.lt(likeId) : null;
     }
 
     private static boolean hasNextPage(Pageable pageable, List<?> result) {

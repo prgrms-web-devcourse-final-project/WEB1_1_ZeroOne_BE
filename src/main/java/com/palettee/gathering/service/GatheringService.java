@@ -11,6 +11,7 @@ import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
@@ -134,6 +135,14 @@ public class GatheringService {
                 .build();
 
         return GatheringLikeResponse.toDto(likeRepository.save(likes));
+    }
+
+    public CustomSliceResponse findLikeList(
+            Pageable pageable,
+            Long userId,
+            Long likeId
+    ){
+        return gatheringRepository.PageFindLikeGathering(pageable, userId, likeId);
     }
 
     private Gathering getFetchGathering(Long gatheringId) {

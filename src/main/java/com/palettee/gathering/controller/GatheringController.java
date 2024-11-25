@@ -7,6 +7,8 @@ import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,5 +67,15 @@ public class GatheringController {
     @PostMapping("/{gatheringId}/like")
     public GatheringLikeResponse createLike(@PathVariable Long gatheringId){
         return gatheringService.createGatheringLike(gatheringId, UserUtils.getContextUser());
+    }
+
+    @GetMapping("/my-page")
+    public CustomSliceResponse findLike(
+            Pageable pageable ,
+            @RequestParam(required = false) Long likeId
+    ){
+        User contextUser = UserUtils.getContextUser();
+
+        return gatheringService.findLikeList(pageable, contextUser.getId(), likeId);
     }
 }
