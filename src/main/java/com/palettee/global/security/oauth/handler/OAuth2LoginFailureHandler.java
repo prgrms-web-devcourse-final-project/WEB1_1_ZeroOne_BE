@@ -35,7 +35,8 @@ public class OAuth2LoginFailureHandler
         int status = Integer.parseInt(error.getErrorCode());
         String reason = oAuth2AuthenticationException.getMessage();
 
-        OAuth2FailureResponse body = new OAuth2FailureResponse(status, reason, LocalDateTime.now());
+        OAuth2FailureResponse body = new OAuth2FailureResponse(status, reason,
+                LocalDateTime.now().toString());
 
         // 응답
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

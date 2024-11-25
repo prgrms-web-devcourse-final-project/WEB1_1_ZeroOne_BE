@@ -45,7 +45,7 @@ public class JwtExceptionHandlingFilter extends OncePerRequestFilter {
         resp.setStatus(status);
 
         FilterExceptionResponse response = new FilterExceptionResponse(
-                status, reason, LocalDateTime.now()
+                status, reason, LocalDateTime.now().toString()
         );
 
         ObjectMapper objectMapper = new ObjectMapper();
