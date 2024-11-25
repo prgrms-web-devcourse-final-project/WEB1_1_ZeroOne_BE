@@ -118,4 +118,8 @@ public class Gathering extends BaseEntity {
         }
     }
 
+    public void updateStatusComplete(){
+       this.status = Status.COMPLETE;
+    }
+
 }

@@ -101,6 +101,16 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gathering);
     }
 
+    @Transactional
+    public GatheringCommonResponse updateStatusGathering(Long gatheringId, User user){
+        accessUser(user);
+        Gathering gathering = getGathering(gatheringId);
+
+        gathering.updateStatusComplete();
+
+        return GatheringCommonResponse.toDTO(gathering);
+    }
+
     private Gathering getFetchGathering(Long gatheringId) {
         return gatheringRepository.findByGatheringId(gatheringId)
                 .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
@@ -117,8 +127,6 @@ public class GatheringService {
                 .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
     }
-
-
 
 
 }

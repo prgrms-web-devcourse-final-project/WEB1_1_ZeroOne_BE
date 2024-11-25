@@ -55,4 +55,9 @@ public class GatheringController {
     public GatheringCommonResponse delete(@PathVariable Long gatheringId){
         return gatheringService.deleteGathering(gatheringId, UserUtils.getContextUser());
     }
+
+    @PatchMapping("/{gatheringId}")
+    public GatheringCommonResponse updateStatus(@PathVariable Long gatheringId){
+        return gatheringService.updateStatusGathering(gatheringId, UserUtils.getContextUser());
+    }
 }
