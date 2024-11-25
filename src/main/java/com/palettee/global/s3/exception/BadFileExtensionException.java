@@ -6,7 +6,6 @@ import com.palettee.global.exception.PaletteException;
 public class BadFileExtensionException extends PaletteException {
     public static final PaletteException EXCEPTION = new BadFileExtensionException();
 
-
     public BadFileExtensionException() {
         super(ErrorCode.BAD_FILE_EXTENSION);
     }

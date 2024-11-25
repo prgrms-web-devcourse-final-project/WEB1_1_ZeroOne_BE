@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.IOUtils;
+import com.palettee.global.s3.domain.FileExtension;
 import com.palettee.global.s3.exception.BadFileExtensionException;
 import com.palettee.global.s3.exception.FileEmptyException;
 import com.palettee.global.s3.exception.FileUploadFailException;
@@ -53,17 +54,8 @@ public class ImageService {
     }
 
     public String separateExt(String originalFileName) {
-        Set<String> exts = new HashSet<>(){{
-            add("jpg");
-            add("HEIC");
-            add("jpeg");
-            add("png");
-            add("PNG");
-            add("heic");
-        }};
-
         String ext = originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
-        if (!exts.contains(ext)) {
+        if (!FileExtension.isValidExtension(ext)) {
             throw BadFileExtensionException.EXCEPTION;
         }
         return ext;
