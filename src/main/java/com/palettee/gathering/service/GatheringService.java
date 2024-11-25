@@ -9,6 +9,8 @@ import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
+import com.palettee.user.exception.UserNotFoundException;
+import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -24,11 +26,16 @@ public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
 
+    private final UserRepository userRepository;
+
 
     @Transactional
     public GatheringCreateResponse createGathering(GatheringCreateRequest request, User user) {
+
+        User findByUser = userRepository.findById(user.getId()).orElseThrow(() -> UserNotFoundException.EXCEPTION);
+
         Gathering gathering = Gathering.builder()
-                .user(user)
+                .user(findByUser)
                 .period(request.period())
                 .sort(Sort.findSort(request.sort()))
                 .subject(Subject.finSubject(request.subject()))

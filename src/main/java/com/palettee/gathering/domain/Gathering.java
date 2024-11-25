@@ -33,7 +33,7 @@ public class Gathering extends BaseEntity {
 
     private String period; // 개발 기간
 
-    private LocalDate deadLine; //마감일
+    private LocalDateTime deadLine; //마감일
 
     private int personnel; // 모집 인원
 
@@ -65,7 +65,7 @@ public class Gathering extends BaseEntity {
             Subject subject,
             String period,
             Contact contact,
-            LocalDate deadLine,
+            LocalDateTime deadLine,
             int personnel,
             Position position,
             String title,
@@ -86,6 +86,7 @@ public class Gathering extends BaseEntity {
         this.title = title;
         this.content = content;
         this.user = user;
+        user.addGathering(this);
        setGatheringTagList(gatheringTagList);
     }
 

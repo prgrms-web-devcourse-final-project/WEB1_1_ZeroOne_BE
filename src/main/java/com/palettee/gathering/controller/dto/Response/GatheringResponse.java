@@ -3,13 +3,14 @@ package com.palettee.gathering.controller.dto.Response;
 import com.palettee.gathering.domain.Gathering;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public record GatheringResponse(
         Long gatheringId,
         String sort,
         String title,
-        LocalDate deadLine,
+        String deadLine,
         String username,
         List<String> tags
 
@@ -19,6 +20,9 @@ public record GatheringResponse(
         List<String> list = gathering.getGatheringTagList().stream()
                 .map(gatheringTag -> gathering.getContent()).toList();
 
-        return new GatheringResponse(gathering.getId(),gathering.getSort().name(), gathering.getTitle(), gathering.getDeadLine(), gathering.getUser().getName(), list);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
+        String deadLine = gathering.getDeadLine().format(formatter);
+
+        return new GatheringResponse(gathering.getId(),gathering.getSort().name(), gathering.getTitle(), deadLine, gathering.getUser().getName(), list);
     }
 }

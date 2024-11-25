@@ -15,7 +15,7 @@ public record GatheringDetailsResponse(
         String contact,
         int personnel,
         String period,
-        LocalDate deadLine,
+        String deadLine,
         String position,
         List<String> gatheringTag,
         String contactUrl,
@@ -32,6 +32,10 @@ public record GatheringDetailsResponse(
                 .map(GatheringTag::getContent)
                 .toList();
 
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
+        String deadLine = gathering.getDeadLine().format(formatter);
+
         return new GatheringDetailsResponse(
                 gathering.getSort().name(),
                 gathering.getUser().getName(),
@@ -40,7 +44,7 @@ public record GatheringDetailsResponse(
                 gathering.getContact().name(),
                 gathering.getPersonnel(),
                 gathering.getPeriod(),
-                gathering.getDeadLine(),
+                deadLine,
                 gathering.getPosition().name(),
                 list,
                 gathering.getUrl(),
