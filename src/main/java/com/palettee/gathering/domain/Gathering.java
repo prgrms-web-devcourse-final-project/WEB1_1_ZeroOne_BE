@@ -1,12 +1,11 @@
 package com.palettee.gathering.domain;
 
-import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
+import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.global.entity.BaseEntity;
 import com.palettee.user.domain.*;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -98,12 +97,12 @@ public class Gathering extends BaseEntity {
     }
 
 
-    public void updateGathering(GatheringCreateRequest gathering){
+    public void updateGathering(GatheringCommonRequest gathering){
         this.sort = Sort.findSort(gathering.sort());
         this.subject = Subject.finSubject(gathering.subject());
         this.contact = Contact.findContact(gathering.contact());
         this.period = gathering.period();
-        this.deadLine = GatheringCreateRequest.getDeadLineLocalDate(gathering.deadLine());
+        this.deadLine = GatheringCommonRequest.getDeadLineLocalDate(gathering.deadLine());
         this.personnel = gathering.personnel();
         this.position = Position.findPosition(gathering.position());
         this.title = gathering.title();
@@ -112,7 +111,7 @@ public class Gathering extends BaseEntity {
         if(!this.gatheringTagList.isEmpty()){
             this.gatheringTagList.clear();
         }
-        List<GatheringTag> gatheringTag = GatheringCreateRequest.getGatheringTag(gathering.gatheringTag());
+        List<GatheringTag> gatheringTag = GatheringCommonRequest.getGatheringTag(gathering.gatheringTag());
         this.gatheringTagList.addAll(gatheringTag );
         for(GatheringTag tag : gatheringTag){
             tag.setGathering(this);

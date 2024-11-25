@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public record GatheringCreateRequest(
+public record GatheringCommonRequest(
 
         @NotBlank(message = "모집구분은 필수 값 입니다.")
         String sort,

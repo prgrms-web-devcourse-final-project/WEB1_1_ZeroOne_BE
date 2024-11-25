@@ -1,7 +1,7 @@
 package com.palettee.gathering.controller;
 
-import com.palettee.gathering.controller.dto.Request.GatheringCreateRequest;
-import com.palettee.gathering.controller.dto.Response.GatheringCreateResponse;
+import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
+import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.service.GatheringService;
@@ -22,7 +22,7 @@ public class GatheringController {
     private final GatheringService gatheringService;
 
     @PostMapping()
-    public GatheringCreateResponse create(@RequestBody @Valid GatheringCreateRequest request) {
+    public GatheringCommonResponse create(@RequestBody @Valid GatheringCommonRequest request) {
         return gatheringService.createGathering(request, UserUtils.getContextUser());
     }
 
@@ -44,10 +44,15 @@ public class GatheringController {
     }
 
     @PutMapping("/{gatheringId}")
-    public GatheringCreateResponse update(
-            @RequestBody @Valid GatheringCreateRequest request,
+    public GatheringCommonResponse update(
+            @RequestBody @Valid GatheringCommonRequest request,
             @PathVariable Long gatheringId
     ) {
         return gatheringService.updateGathering(gatheringId, request, UserUtils.getContextUser());
+    }
+
+    @DeleteMapping("/{gatheringId}")
+    public GatheringCommonResponse delete(@PathVariable Long gatheringId){
+        return gatheringService.deleteGathering(gatheringId, UserUtils.getContextUser());
     }
 }
