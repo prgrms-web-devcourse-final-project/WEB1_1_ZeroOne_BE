@@ -59,6 +59,19 @@ public class User {
     @Enumerated(EnumType.STRING)
     private MinorJobGroup minorJobGroup;
 
+    /**
+     * 유저의 권한을 {@code target} 보다 높거나 같게 변경하는 메서드
+     *
+     * <li>만약 현재 유저의 권한이 이미 {@code target} 보다 높으면 권한 상승은 이뤄지지 않음</li>
+     * <li>또한 {@code ADMIN} 으로 권한 상승은 이뤄지지 않음</li>
+     *
+     * @param target 상승시킬 권한
+     * @see UserRole#upgrade
+     */
+    public void changeUserRole(UserRole target) {
+        this.userRole = UserRole.upgrade(this.userRole, target);
+    }
+
     @Builder
     public User(String name, String oauthIdentity, UserRole userRole, String email, String imageUrl, MajorJobGroup majorJobGroup, String briefIntro, MinorJobGroup minorJobGroup) {
         this.name = name;
@@ -71,16 +84,24 @@ public class User {
         this.minorJobGroup = minorJobGroup;
     }
 
-//    @Builder
-//    public User(String email, String imageUrl, String name, String briefIntro, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {
-//        this.email = email;
-//        this.imageUrl = imageUrl;
-//        this.name = name;
-//        this.briefIntro = briefIntro;
-//        this.majorJobGroup = majorJobGroup;
-//        this.minorJobGroup = minorJobGroup;
-//
-//    }
+    public User update(RegisterBasicInfoRequest updateRequest) {
+        Division division = Division.of(updateRequest.division());
+        MajorJobGroup majorGroup = MajorJobGroup.of(updateRequest.majorJobGroup());
+        MinorJobGroup minorGroup = MinorJobGroup.of(updateRequest.minorJobGroup());
+
+        if (!majorGroup.matches(minorGroup)) {
+            throw JobGroupMismatchException.EXCEPTION;
+        }
+
+        this.name = updateRequest.name();
+        this.briefIntro = updateRequest.briefIntro();
+        this.jobTitle = updateRequest.jobTitle();
+        this.division = division;
+        this.majorJobGroup = majorGroup;
+        this.minorJobGroup = minorGroup;
+
+        return this;
+    }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private final List<Gathering> gatherings = new ArrayList<>();
