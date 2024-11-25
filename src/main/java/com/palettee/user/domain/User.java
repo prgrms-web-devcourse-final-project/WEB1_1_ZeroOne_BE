@@ -73,15 +73,20 @@ public class User {
     }
 
     @Builder
-    public User(String name, String oauthIdentity, UserRole userRole, String email, String imageUrl, MajorJobGroup majorJobGroup, String briefIntro, MinorJobGroup minorJobGroup) {
-        this.name = name;
-        this.oauthIdentity = oauthIdentity;
-        this.userRole = userRole;
-        this.email = email;
-        this.imageUrl = imageUrl;
-        this.majorJobGroup = majorJobGroup;
-        this.briefIntro = briefIntro;
+    public User(MinorJobGroup minorJobGroup, MajorJobGroup majorJobGroup, Division division,
+            String jobTitle, String briefIntro, String name, String imageUrl, String email,
+            UserRole userRole, String oauthIdentity, Long id) {
         this.minorJobGroup = minorJobGroup;
+        this.majorJobGroup = majorJobGroup;
+        this.division = division;
+        this.jobTitle = jobTitle;
+        this.briefIntro = briefIntro;
+        this.name = name;
+        this.imageUrl = imageUrl;
+        this.email = email;
+        this.userRole = userRole;
+        this.oauthIdentity = oauthIdentity;
+        this.id = id;
     }
 
     /**
