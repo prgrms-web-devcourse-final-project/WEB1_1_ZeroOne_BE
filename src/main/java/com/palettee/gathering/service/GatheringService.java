@@ -4,9 +4,14 @@ import com.palettee.gathering.GatheringNotFoundException;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
+import com.palettee.likes.domain.LikeType;
+import com.palettee.likes.domain.Likes;
+import com.palettee.likes.repository.LikeRepository;
+import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
 import com.palettee.user.exception.UserNotFoundException;
@@ -28,11 +33,13 @@ public class GatheringService {
 
     private final UserRepository userRepository;
 
+    private final LikeRepository likeRepository;
+
 
     @Transactional
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
 
-        User findByUser = userRepository.findById(user.getId()).orElseThrow(() -> UserNotFoundException.EXCEPTION);
+        User findByUser = getUser(user.getId());
 
         Gathering gathering = Gathering.builder()
                 .user(findByUser)
@@ -111,6 +118,24 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gathering);
     }
 
+    @Transactional
+    public GatheringLikeResponse createGatheringLike(Long gatheringId, User user){
+
+        User findUser = getUser(user.getId());
+
+        if(cancelLike(gatheringId, findUser)) {
+            return GatheringLikeResponse.toDto(null);
+        }
+
+        Likes likes = Likes.builder()
+                .likeType(LikeType.GATHERING)
+                .user(findUser)
+                .targetId(gatheringId)
+                .build();
+
+        return GatheringLikeResponse.toDto(likeRepository.save(likes));
+    }
+
     private Gathering getFetchGathering(Long gatheringId) {
         return gatheringRepository.findByGatheringId(gatheringId)
                 .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
@@ -126,6 +151,18 @@ public class GatheringService {
         return gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
+    }
+    private boolean cancelLike(Long gatheringId, User user) {
+        Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), gatheringId, LikeType.GATHERING);
+        if(findByLikes != null) {
+            likeRepository.delete(findByLikes);
+            return true;
+        }
+        return false;
+    }
+
+    private User getUser(Long userId){
+        return  userRepository.findById(userId).orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
 
 

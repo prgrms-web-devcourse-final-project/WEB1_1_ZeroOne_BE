@@ -3,6 +3,7 @@ package com.palettee.gathering.controller;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
@@ -59,5 +60,10 @@ public class GatheringController {
     @PatchMapping("/{gatheringId}")
     public GatheringCommonResponse updateStatus(@PathVariable Long gatheringId){
         return gatheringService.updateStatusGathering(gatheringId, UserUtils.getContextUser());
+    }
+
+    @PostMapping("/{gatheringId}/like")
+    public GatheringLikeResponse createLike(@PathVariable Long gatheringId){
+        return gatheringService.createGatheringLike(gatheringId, UserUtils.getContextUser());
     }
 }

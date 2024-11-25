@@ -50,9 +50,9 @@ public class PortFolioController
 
     }
 
-    @PostMapping("/likes")
+    @PostMapping("/{portFolioId}/likes")
     public PortFolioLikeResponse createLikes(
-            @RequestParam Long portFolioId
+            @PathVariable Long portFolioId
     ){
         User contextUser = UserUtils.getContextUser();
 
