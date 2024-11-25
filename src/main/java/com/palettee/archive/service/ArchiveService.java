@@ -1,33 +1,17 @@
 package com.palettee.archive.service;
 
-import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
-import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
-import com.palettee.archive.controller.dto.request.ChangeOrderRequest;
-import com.palettee.archive.controller.dto.request.ImageUrlDto;
-import com.palettee.archive.controller.dto.request.TagDto;
-import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
-import com.palettee.archive.controller.dto.response.ArchiveListResponse;
-import com.palettee.archive.controller.dto.response.ArchiveResponse;
-import com.palettee.archive.controller.dto.response.ArchiveSimpleResponse;
-import com.palettee.archive.controller.dto.response.SliceInfo;
-import com.palettee.archive.domain.Archive;
-import com.palettee.archive.domain.ArchiveImage;
-import com.palettee.archive.domain.ArchiveType;
-import com.palettee.archive.domain.Tag;
-import com.palettee.archive.exception.ArchiveNotFound;
-import com.palettee.archive.repository.ArchiveImageRepository;
-import com.palettee.archive.repository.ArchiveRepository;
-import com.palettee.archive.repository.CommentRepository;
-import com.palettee.archive.repository.TagRepository;
-import com.palettee.likes.repository.LikeRepository;
-import com.palettee.user.domain.User;
-import java.util.List;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.palettee.archive.controller.dto.request.*;
+import com.palettee.archive.controller.dto.response.*;
+import com.palettee.archive.domain.*;
+import com.palettee.archive.exception.*;
+import com.palettee.archive.repository.*;
+import com.palettee.likes.repository.*;
+import com.palettee.user.domain.*;
+import java.util.*;
+import lombok.*;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.*;
+import org.springframework.transaction.annotation.*;
 
 @Service
 @Transactional(readOnly = true)
@@ -54,6 +38,9 @@ public class ArchiveService {
         archive.setOrder();
         processingTags(archiveRegisterRequest.tags(), archive);
         processingImage(archiveRegisterRequest.imageUrls(), archive);
+
+        // 아카이드 등록시 유저 권한 상승
+        user.changeUserRole(UserRole.USER);
 
         return new ArchiveResponse(savedArchive.getId());
     }
