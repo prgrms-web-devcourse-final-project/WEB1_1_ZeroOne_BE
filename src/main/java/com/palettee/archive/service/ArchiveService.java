@@ -39,7 +39,7 @@ public class ArchiveService {
         processingTags(archiveRegisterRequest.tags(), archive);
         processingImage(archiveRegisterRequest.imageUrls(), archive);
 
-        // 아카이드 등록시 유저 권한 상승
+        // 아카이브 등록시 유저 권한 상승
         user.changeUserRole(UserRole.USER);
 
         return new ArchiveResponse(savedArchive.getId());

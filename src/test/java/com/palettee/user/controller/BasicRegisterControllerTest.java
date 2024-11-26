@@ -12,6 +12,7 @@ import com.palettee.global.security.jwt.utils.*;
 import com.palettee.user.controller.dto.request.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
+import jakarta.transaction.*;
 import java.util.*;
 import java.util.function.*;
 import lombok.extern.slf4j.*;
@@ -29,6 +30,7 @@ import org.springframework.test.web.servlet.request.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
+@Transactional
 class BasicRegisterControllerTest {
 
     @Autowired
@@ -43,16 +45,8 @@ class BasicRegisterControllerTest {
     @Autowired
     ObjectMapper mapper;
 
-    static User testUser = User.builder()
-            .email("test@test.com")
-            .name("test")
-            .userRole(UserRole.REAL_NEWBIE)
-            .build();
-    static User otherUser = User.builder()
-            .email("test2@test.com")
-            .name("test2")
-            .userRole(UserRole.REAL_NEWBIE)
-            .build();
+    static User testUser;
+    static User otherUser;
     static String ACCESS_TOKEN;
 
     // httpMethod, url 로 MockHttpServletRequestBuilder 만드는 편의용 개체
@@ -65,10 +59,20 @@ class BasicRegisterControllerTest {
 
     @BeforeEach
     void setup() {
-        testUser = userRepo.findByEmail(testUser.getEmail())
-                .orElse(userRepo.save(testUser));
-        otherUser = userRepo.findByEmail(otherUser.getEmail())
-                .orElse(userRepo.save(otherUser));
+        testUser = userRepo.save(
+                User.builder()
+                        .email("test@test.com")
+                        .name("test")
+                        .userRole(UserRole.REAL_NEWBIE)
+                        .build()
+        );
+        otherUser = userRepo.save(
+                User.builder()
+                        .email("test2@test.com")
+                        .name("test2")
+                        .userRole(UserRole.REAL_NEWBIE)
+                        .build()
+        );
         ACCESS_TOKEN = jwtUtils.createAccessToken(testUser);
     }
 
@@ -96,7 +100,7 @@ class BasicRegisterControllerTest {
                 .andExpect(content().string(containsString(testUser.getName())))
                 .andDo(print());
 
-        log.info("Happy flow covered");
+        logHappyFlow();
 
         // jwt 관련 에러 확인
         this.checkJwtException(HttpMethod.GET, "/profile");
@@ -118,6 +122,8 @@ class BasicRegisterControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print());
+
+        logHappyFlow();
 
         // jwt 관련 에러 확인
         this.checkJwtException(HttpMethod.POST, "/profile");
@@ -161,6 +167,8 @@ class BasicRegisterControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print());
+
+        logHappyFlow();
 
         // jwt 관련 에러 확인
         this.checkJwtException(HttpMethod.POST, "/portfolio");
@@ -214,5 +222,9 @@ class BasicRegisterControllerTest {
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().is(400));
         }
+    }
+
+    private static void logHappyFlow() {
+        log.info("Happy flow covered");
     }
 }
