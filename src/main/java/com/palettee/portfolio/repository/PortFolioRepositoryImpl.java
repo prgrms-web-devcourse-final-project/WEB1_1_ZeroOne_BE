@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,12 +27,13 @@ import static com.palettee.portfolio.domain.QPortFolio.portFolio;
 import static com.palettee.user.domain.QUser.user;
 
 @Slf4j
+@Repository
 public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-    public PortFolioRepositoryImpl(EntityManager em) {
-        this.queryFactory = new JPAQueryFactory(em);
+    public PortFolioRepositoryImpl(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
     }
 
     /*
@@ -91,6 +93,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                                 .and(likeIdEq(likeId))
                 )
                 .leftJoin(likes.user, user)
+                .orderBy(likes.likeId.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
@@ -158,7 +161,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
     }
 
     private BooleanExpression likeIdEq(Long likeId) {
-        return likeId != null ? likes.likeId.gt(likeId) : null;
+        return likeId != null ? likes.likeId.lt(likeId) : null;
     }
 
     private static boolean hasNextPage(Pageable pageable, List<?> result) {

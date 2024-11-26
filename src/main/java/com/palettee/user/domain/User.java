@@ -1,7 +1,7 @@
 package com.palettee.user.domain;
 
 import com.palettee.archive.domain.*;
-import com.palettee.gathering.*;
+import com.palettee.gathering.domain.Gathering;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.user.controller.dto.request.*;

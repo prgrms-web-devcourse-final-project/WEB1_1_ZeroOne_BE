@@ -12,12 +12,16 @@ public enum ErrorCode {
     FILE_UPLOAD_FAIL(400,  "파일 업로드를 실패하였습니다."),
     NOT_COMMENT_OWNER(400, "댓글 작성자가 아닙니다."),
     COMMENT_NOT_OPEN(400, "해당 아카이브는 댓글이 허용되지 않았습니다."),
+ 
     INVALID_DIVISION(400, "소속은 student, worker, etc 중 하나여야 합니다."),
     INVALID_JOB_GROUP(400, "직군이 올바르지 않습니다."),
     JOB_GROUP_MISMATCH(400, "주어진 소직군이 대직군에 포함되지 않습니다."),
+    CATEGORY_NOT_FOUND(400, "해당 카테고리는 잘못된 요청입니다"),
+
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     EXPIRED_TOKEN(401, "토큰이 만료되었습니다."),
+    NOT_ACCESS(401, "접근 할 수 없는 유저입니다"),
     NO_TOKEN_EXISTS(401, "토큰이 존재하지 않습니다."),
 
     /* 403 UNAUTHORIZED : Resource 접근이 거부됨 */
@@ -29,8 +33,10 @@ public enum ErrorCode {
     CHAT_USER_NOT_FOUND(404, "해당하는 채팅방 참여자가 없습니다."),
     PORT_FOLIO_NOT_FOUND(404, "해당 포트폴리오는 없습니다"),
     COMMENT_NOT_FOUND(404, "해당 댓글은 없습니다."),
+  
     NO_USER_FOUND_VIA_TOKEN(404, "토큰으로 유저를 찾지 못했습니다."),
     USER_NOT_FOUND(404, "해당 유저를 찾지 못했습니다"),
+    GATHERING_NOT_FOUND(404, "해당 게더링은 찾을 수 없습니다"),
 
     /* 415 Unsupported Media Type : 지원하지 않는 미디어 타입 */
     BAD_FILE_EXTENSION(415, "적절하지 않은 파일 확장자입니다."),
