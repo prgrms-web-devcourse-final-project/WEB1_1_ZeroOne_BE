@@ -4,14 +4,20 @@ import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.palettee.gathering.domain.QGathering.gathering;
 import static com.palettee.likes.domain.QLikes.likes;
@@ -57,31 +63,38 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
 
     @Override
     public CustomSliceResponse PageFindLikeGathering(Pageable pageable, Long userId, Long likeId) {
-        List<Long> longs = queryFactory
-                .select(likes.targetId)
+        List<Tuple> results = queryFactory
+                .select(likes.targetId, likes.likeId)
                 .from(likes)
                 .where(
                         likes.user.id.eq(userId)
                                 .and(likes.likeType.eq(LikeType.GATHERING))
-                                .and(likeIdEq(likeId))
+                                .and(likeIdLoe(likeId))
                 )
                 .leftJoin(likes.user, user)
-                .limit(pageable.getPageSize() + 1)
                 .orderBy(likes.likeId.desc())
+                .limit(pageable.getPageSize() + 1)
                 .fetch();
 
-        boolean hasNext = hasNextPage(pageable, longs);
 
-        Long nextId = hasNext ? longs.get(longs.size() - 1) : null;
+        List<Long> targetIds = results.stream()
+                .map(result -> result.get(likes.targetId))
+                .collect(Collectors.toList());// targetId 리스트 생성
 
+
+        boolean hasNext = hasNextPage(pageable, targetIds);
+
+        Long nextId = hasNext ? results.get(results.size() -1).get(likes.likeId) : null;
 
         List<GatheringResponse> list = queryFactory
                 .selectFrom(gathering)
-                .where(gathering.id.in(longs))
+                .where(gathering.id.in(targetIds))
                 .join(gathering.user, user).fetchJoin()
                 .fetch()
                 .stream()
-                .map(GatheringResponse::toDto).toList();
+                .map(GatheringResponse::toDto).collect(Collectors.toList());
+
+        list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.gatheringId())));
 
 
         return new CustomSliceResponse(list, hasNext, nextId);
@@ -107,8 +120,8 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         return pageId != null ? gathering.id.lt(pageId) : null;
     }
 
-    private BooleanExpression likeIdEq(Long likeId) {
-        return likeId != null ? likes.likeId.lt(likeId) : null;
+    private BooleanExpression likeIdLoe(Long likeId) {
+        return likeId != null ? likes.likeId.loe(likeId) : null;
     }
 
     private static boolean hasNextPage(Pageable pageable, List<?> result) {
@@ -120,5 +133,6 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         }
         return hasNext;
     }
+
 }
 

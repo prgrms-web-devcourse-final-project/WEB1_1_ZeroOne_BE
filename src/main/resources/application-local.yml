@@ -8,7 +8,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: 1952
+    password: 8112
     url: jdbc:mysql://localhost:3306/final_project?createDatabaseIfNotExists
 
   jpa:
