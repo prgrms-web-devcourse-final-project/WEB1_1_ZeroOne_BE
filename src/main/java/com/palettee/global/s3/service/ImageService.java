@@ -5,6 +5,8 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.util.IOUtils;
+import com.palettee.global.s3.controller.dto.response.ImageUrlResponse;
+import com.palettee.global.s3.controller.dto.response.ImagesResponse;
 import com.palettee.global.s3.domain.FileExtension;
 import com.palettee.global.s3.exception.BadFileExtensionException;
 import com.palettee.global.s3.exception.FileEmptyException;
@@ -16,9 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -32,6 +32,14 @@ public class ImageService {
 
     @Value("${aws.s3.base-url}")
     private String baseUrl;
+
+    public ImagesResponse upload(List<MultipartFile> files) {
+        List<ImageUrlResponse> imageUrls = files.stream()
+                .map(file -> new ImageUrlResponse(uploadAndMakeImgUrl(file)))
+                .toList();
+
+        return new ImagesResponse(imageUrls);
+    }
 
     public String uploadAndMakeImgUrl(MultipartFile file) {
         isExistFile(file);
