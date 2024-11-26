@@ -6,6 +6,9 @@ import lombok.*;
 @AllArgsConstructor
 public enum ErrorCode {
     /* 400 BAD_REQUEST : 잘못된 요청 */
+    WRONG_SUB_PATH(400, "올바른 sub 경로가 아닙니다."),
+    NO_EXIST_FILE(400, "파일이 존재하지 않습니다."),
+    FILE_UPLOAD_FAIL(400,  "파일 업로드를 실패하였습니다."),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     INVALID_TOKEN(400, "토큰이 유효하지 않습니다."), // 예시
@@ -27,6 +30,9 @@ public enum ErrorCode {
     CHAT_USER_NOT_FOUND(404, "해당하는 채팅방 참여자가 없습니다."),
     PORT_FOLIO_NOT_FOUND(404, "해당 포트폴리오는 없습니다"),
     COMMENT_NOT_FOUND(404, "해당 댓글은 없습니다."),
+
+    /* 415 Unsupported Media Type : 지원하지 않는 미디어 타입 */
+    BAD_FILE_EXTENSION(415, "적절하지 않은 파일 확장자입니다."),
 
     /* 500 */
     INTERNAL_SERVER_ERROR(500, "서버 에러");

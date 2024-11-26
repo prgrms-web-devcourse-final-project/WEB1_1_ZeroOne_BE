@@ -7,6 +7,7 @@ import com.palettee.global.security.oauth.*;
 import com.palettee.global.security.oauth.handler.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
+import java.util.*;
 import lombok.*;
 import org.springframework.context.annotation.*;
 import org.springframework.http.*;
@@ -42,6 +43,10 @@ public class SecurityConfig {
     public BypassUrlHolder bypassUrlHolder() {
         return BypassUrlHolder.builder()
                 .byPassable("/error")
+
+                // webSocket
+                .byPassable("/index.html")
+                .byPassable("/ws")
 
                 // swagger
                 .byPassable("/api-test")

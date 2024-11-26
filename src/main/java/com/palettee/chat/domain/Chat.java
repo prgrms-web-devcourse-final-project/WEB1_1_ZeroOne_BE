@@ -1,14 +1,18 @@
 package com.palettee.chat.domain;
 
 import com.palettee.chat_room.domain.*;
+import com.palettee.global.entity.BaseEntity;
 import com.palettee.user.domain.*;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Chat {
+public class Chat extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chat_id", nullable = false)
@@ -24,13 +28,19 @@ public class Chat {
 
     private String content;
 
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.REMOVE)
+    List<ChatImage> chatImages = new ArrayList<>();
 
     @Builder
-    public Chat(Long id, User user,
-            ChatRoom chatRoom, String content) {
-        this.id = id;
+    public Chat(User user,
+            ChatRoom chatRoom,
+                String content) {
         this.user = user;
         this.chatRoom = chatRoom;
         this.content = content;
+    }
+
+    public void addChatImage(ChatImage chatImage) {
+        this.chatImages.add(chatImage);
     }
 }
