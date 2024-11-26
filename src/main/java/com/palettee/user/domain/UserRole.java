@@ -1,5 +1,7 @@
 package com.palettee.user.domain;
 
+import lombok.*;
+
 /**
  * 유저 권한을 나타내는 {@code enum}
  *
@@ -13,7 +15,33 @@ package com.palettee.user.domain;
  * }
  * </pre>
  */
+@RequiredArgsConstructor
 public enum UserRole {
-    REAL_NEWBIE, JUST_NEWBIE,
-    OLD_NEWBIE, USER, ADMIN
+    REAL_NEWBIE(0), JUST_NEWBIE(1),
+    OLD_NEWBIE(2), USER(3), ADMIN(4);
+
+    private final int value;
+
+    /**
+     * 현재 권한 {@code (curr)} 과 {@code target} 을 비교해, {@code target} 보다 높거나 같은 권한을 뱉는 메서드
+     * <p>
+     * 만약 {@code curr} 이 {@code target} 보다 높거나 같으면 {@code curr} 을 반환
+     * <p>
+     * 그렇지 않다면 {@code target} 권한을 반환
+     * <p>
+     * {@code USER -> ADMIN} 상승은 이뤄지지 않음.
+     *
+     * @param curr 현재 권한
+     * @return {@code target} 보다 높거나 같은 권한
+     */
+    public static UserRole upgrade(UserRole curr, UserRole target) {
+
+        if (target.value <= curr.value) {
+            return curr;
+        } else if (target == ADMIN) {
+            return USER;
+        } else {
+            return target;
+        }
+    }
 }
