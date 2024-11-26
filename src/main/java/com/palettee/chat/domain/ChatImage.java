@@ -19,9 +19,9 @@ public class ChatImage {
     private String imageUrl;
 
     @Builder
-    public ChatImage(Long id, Chat chat, String imageUrl) {
-        this.id = id;
+    public ChatImage(Chat chat, String imageUrl) {
         this.chat = chat;
         this.imageUrl = imageUrl;
+        chat.addChatImage(this);
     }
 }

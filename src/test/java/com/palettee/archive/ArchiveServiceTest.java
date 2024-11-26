@@ -2,34 +2,20 @@ package com.palettee.archive;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
-import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
-import com.palettee.archive.controller.dto.request.ImageUrlDto;
-import com.palettee.archive.controller.dto.request.TagDto;
-import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
-import com.palettee.archive.controller.dto.response.ArchiveListResponse;
-import com.palettee.archive.controller.dto.response.ArchiveResponse;
-import com.palettee.archive.domain.Archive;
-import com.palettee.archive.domain.ArchiveImage;
-import com.palettee.archive.domain.ArchiveType;
+import com.palettee.archive.controller.dto.request.*;
+import com.palettee.archive.controller.dto.response.*;
 import com.palettee.archive.domain.Tag;
-import com.palettee.archive.repository.ArchiveImageRepository;
-import com.palettee.archive.repository.ArchiveRepository;
-import com.palettee.archive.repository.TagRepository;
-import com.palettee.archive.service.ArchiveService;
-import com.palettee.user.domain.MajorJobGroup;
-import com.palettee.user.domain.MinorJobGroup;
-import com.palettee.user.domain.User;
-import com.palettee.user.repository.UserRepository;
-import java.util.List;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.transaction.annotation.Transactional;
+import com.palettee.archive.domain.*;
+import com.palettee.archive.repository.*;
+import com.palettee.archive.service.*;
+import com.palettee.user.domain.*;
+import com.palettee.user.repository.*;
+import java.util.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.data.domain.*;
+import org.springframework.transaction.annotation.*;
 
 @SpringBootTest
 @Transactional
@@ -45,7 +31,14 @@ public class ArchiveServiceTest {
 
     @BeforeEach
     void beforeEach() {
-        savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro", MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND));
+        savedUser = userRepository.save(
+                User.builder()
+                        .email("email").imageUrl("imageUrl").name("name").briefIntro("briefIntro")
+                        .userRole(UserRole.REAL_NEWBIE)
+                        .majorJobGroup(MajorJobGroup.DEVELOPER)
+                        .minorJobGroup(MinorJobGroup.BACKEND)
+                        .build()
+        );
     }
 
     @AfterEach
@@ -86,6 +79,9 @@ public class ArchiveServiceTest {
         assertThat(archive.getTitle()).isEqualTo(request.title());
         assertThat(archive.getDescription()).isEqualTo(request.description());
         assertThat(archive.getType()).isEqualTo(ArchiveType.RED);
+
+        assertThat(savedUser.getUserRole()).isNotNull()
+                .isNotEqualTo(UserRole.REAL_NEWBIE);
     }
 
     @Test

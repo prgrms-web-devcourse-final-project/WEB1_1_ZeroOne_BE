@@ -1,19 +1,20 @@
 package com.palettee.user.domain;
 
+import com.palettee.user.exception.*;
+import java.util.*;
 import lombok.*;
 
-import java.util.Arrays;
-
+@Getter
 @RequiredArgsConstructor
 public enum MajorJobGroup {
-    DEVELOPER("개발"),
-    PROMOTER("기획"),
-    DESIGN("디자인"),
-    MARKETING("마케팅"),
-    ETC("기타");
+    DEVELOPER("개발", 0),
+    PROMOTER("기획", 1),
+    DESIGN("디자인", 2),
+    MARKETING("마케팅", 3),
+    ETC("기타", 4);
 
     private final String majorGroup;
-
+    private final int jobIdentity;
 
     public static MajorJobGroup findMajorGroup(String input) {
         return Arrays.stream(MajorJobGroup.values())
@@ -22,7 +23,16 @@ public enum MajorJobGroup {
                 .orElse(null);
     }
 
-    public String getMajorGroup() {
-        return majorGroup;
+    public static MajorJobGroup of(String group) throws InvalidJobGroupException {
+        String upper = group.toUpperCase();
+
+        return Arrays.stream(MajorJobGroup.values())
+                .filter(job -> job.toString().equals(upper))
+                .findFirst()
+                .orElseThrow(() -> InvalidJobGroupException.EXCEPTION);
+    }
+
+    public boolean matches(MinorJobGroup minorJobGroup) {
+        return this.jobIdentity == minorJobGroup.getJobIdentity();
     }
 }

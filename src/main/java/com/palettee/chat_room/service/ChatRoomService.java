@@ -42,7 +42,7 @@ public class ChatRoomService {
         chatUserService.deleteChatUser(chatRoom, user);
     }
 
-    private ChatRoom getChatRoom(Long chatRoomId) {
+    public ChatRoom getChatRoom(Long chatRoomId) {
         return chatRoomRepository
                 .findById(chatRoomId)
                 .orElseThrow(() -> ChatRoomNotFoundException.EXCEPTION);
