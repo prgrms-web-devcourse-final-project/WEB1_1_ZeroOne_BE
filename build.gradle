@@ -1,3 +1,5 @@
+//file:noinspection GroovyAssignabilityCheck
+//file:noinspection VulnerableLibrariesLocal
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.5'
@@ -78,6 +80,26 @@ tasks.named('test') {
     finalizedBy 'jacocoTestReport'
 }
 
+def QDomains = []
+for (qPattern in '*.QA'..'*.QZ') {
+    QDomains.add(qPattern + '*')
+}
+
+def jacocoExcludePatterns = [
+        '**/*Application*',
+        '**/*Config*',
+        '**/oauth/**',
+        '**/filters/**',
+        '**/handler/**',
+        '**/*Exception*', '**/exception/**',
+        '**/dto/**',
+        '**/*Request*', '**/request/**',
+        '**/*Response*', '**/response/**',
+        '**/domain/**', '**/entity/**',
+        '**/repository/**',
+
+]
+
 // jacocoTestReport 구성
 jacocoTestReport {
     dependsOn test
@@ -89,12 +111,9 @@ jacocoTestReport {
     }
 
     // coverage 분석에 포함시키지 않을 항목들
-    // QueryDSL 로 만들어진거 나중에 포함해야 될수도
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
-            fileTree(dir: it, excludes: [
-                    "**/*Application*"
-            ])
+            fileTree(dir: it, excludes: jacocoExcludePatterns + QDomains)
         }))
     }
 }
@@ -113,6 +132,8 @@ sonar {
         // jacocoTestReport 수행 시 test report xml 파일 위치 (중요)
         property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
         property "sonar.test.inclusions", "**/*Test.java"
-        property "sonar.coverage.exclusions", "**/dto/**, **/event/**, **/*InitData*, **/*Application*, **/exception/**, **/service/alarm/**, **/aop/**, **/config/**, **/MemberRole*"
+        property "sonar.text.exclusions", jacocoExcludePatterns.join(',')
+        property "sonar.coverage.exclusions", jacocoExcludePatterns.join(',')
+        property "sonar.java.coveragePlugin", 'jacoco'
     }
 }
