@@ -84,15 +84,9 @@ public enum MinorJobGroup {
     public static MinorJobGroup of(String group) throws InvalidJobGroupException {
         String upper = group.toUpperCase();
 
-        MinorJobGroup minorGroup = Arrays.stream(MinorJobGroup.values())
+        return Arrays.stream(MinorJobGroup.values())
                 .filter(job -> job.toString().equals(upper))
                 .findFirst()
-                .orElse(null);
-
-        if (minorGroup == null) {
-            throw InvalidJobGroupException.EXCEPTION;
-        }
-
-        return minorGroup;
+                .orElseThrow(() -> InvalidJobGroupException.EXCEPTION);
     }
 }

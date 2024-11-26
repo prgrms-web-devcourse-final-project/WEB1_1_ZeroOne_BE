@@ -26,16 +26,10 @@ public enum MajorJobGroup {
     public static MajorJobGroup of(String group) throws InvalidJobGroupException {
         String upper = group.toUpperCase();
 
-        MajorJobGroup majorGroup = Arrays.stream(MajorJobGroup.values())
+        return Arrays.stream(MajorJobGroup.values())
                 .filter(job -> job.toString().equals(upper))
                 .findFirst()
-                .orElse(null);
-
-        if (majorGroup == null) {
-            throw InvalidJobGroupException.EXCEPTION;
-        }
-
-        return majorGroup;
+                .orElseThrow(() -> InvalidJobGroupException.EXCEPTION);
     }
 
     public boolean matches(MinorJobGroup minorJobGroup) {
