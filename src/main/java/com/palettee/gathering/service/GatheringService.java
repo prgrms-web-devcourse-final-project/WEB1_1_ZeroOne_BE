@@ -12,7 +12,6 @@ import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
 import com.palettee.user.exception.UserNotFoundException;
@@ -87,9 +86,10 @@ public class GatheringService {
     @Transactional
     public GatheringCommonResponse updateGathering(Long gatheringId, GatheringCommonRequest request, User user) {
 
-        accessUser(user);
 
         Gathering gathering = gatheringRepository.findByFetchId(gatheringId).orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
+
+        accessUser(user, gathering);
 
         gathering.updateGathering(request);
 
@@ -100,9 +100,10 @@ public class GatheringService {
 
     @Transactional
     public GatheringCommonResponse deleteGathering(Long gatheringId, User user) {
-        accessUser(user);
 
         Gathering gathering = getGathering(gatheringId);
+
+        accessUser(user, gathering);
 
         gatheringRepository.delete(gathering);
 
@@ -111,8 +112,9 @@ public class GatheringService {
 
     @Transactional
     public GatheringCommonResponse updateStatusGathering(Long gatheringId, User user){
-        accessUser(user);
+
         Gathering gathering = getGathering(gatheringId);
+        accessUser(user, gathering);
 
         gathering.updateStatusComplete();
 
@@ -150,8 +152,8 @@ public class GatheringService {
                 .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
     }
 
-    private void accessUser(User user) {
-        if(!gatheringRepository.existsByUserId(user.getId())) {
+    private void accessUser(User user, Gathering gathering) {
+        if(gathering.getUser().getId() != user.getId()){
             throw  UserAccessException.EXCEPTION;
         }
     }
