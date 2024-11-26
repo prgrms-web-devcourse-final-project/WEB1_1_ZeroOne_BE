@@ -1,7 +1,7 @@
 package com.palettee.user.domain;
 
 import com.palettee.archive.domain.*;
-import com.palettee.gathering.domain.Gathering;
+import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.user.controller.dto.request.*;
@@ -109,6 +109,7 @@ public class User {
 
         this.name = updateRequest.name();
         this.briefIntro = updateRequest.briefIntro();
+        this.imageUrl = updateRequest.imageUrl();
         this.jobTitle = updateRequest.jobTitle();
         this.division = division;
         this.majorJobGroup = majorGroup;
