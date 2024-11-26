@@ -99,4 +99,8 @@ public class JwtUtils {
     public String getEmailFromRefreshToken(String refreshToken) {
         return refreshJwtUtil.getEmail(refreshToken);
     }
+
+    public UserRole getUserRoleFromAccessToken(String accessToken) {
+        return accessJwtUtil.getUserRole(accessToken);
+    }
 }

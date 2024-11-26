@@ -7,6 +7,9 @@ import lombok.*;
 public enum ErrorCode {
     /* 400 BAD_REQUEST : 잘못된 요청 */
     INVALID_TOKEN(400, "토큰이 유효하지 않습니다."),
+    WRONG_SUB_PATH(400, "올바른 sub 경로가 아닙니다."),
+    NO_EXIST_FILE(400, "파일이 존재하지 않습니다."),
+    FILE_UPLOAD_FAIL(400,  "파일 업로드를 실패하였습니다."),
     NOT_COMMENT_OWNER(400, "댓글 작성자가 아닙니다."),
     COMMENT_NOT_OPEN(400, "해당 아카이브는 댓글이 허용되지 않았습니다."),
     INVALID_DIVISION(400, "소속은 student, worker, etc 중 하나여야 합니다."),
@@ -28,6 +31,9 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND(404, "해당 댓글은 없습니다."),
     NO_USER_FOUND_VIA_TOKEN(404, "토큰으로 유저를 찾지 못했습니다."),
     USER_NOT_FOUND(404, "해당 유저를 찾지 못했습니다"),
+
+    /* 415 Unsupported Media Type : 지원하지 않는 미디어 타입 */
+    BAD_FILE_EXTENSION(415, "적절하지 않은 파일 확장자입니다."),
 
     /* 500 */
     INTERNAL_SERVER_ERROR(500, "서버 에러");
