@@ -31,10 +31,10 @@ public class GatheringController {
 
     @GetMapping()
     public Slice<GatheringResponse> findAll(
-            @RequestParam String sort,
-            @RequestParam String period,
-            @RequestParam String position,
-            @RequestParam String status,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String period,
+            @RequestParam(required = false) String position,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) Long gatheringId,
             Pageable pageable
     ) {
