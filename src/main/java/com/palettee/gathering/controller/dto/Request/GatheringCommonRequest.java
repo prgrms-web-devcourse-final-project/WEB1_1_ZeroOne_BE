@@ -1,5 +1,6 @@
 package com.palettee.gathering.controller.dto.Request;
 
+import com.palettee.gathering.domain.GatheringImage;
 import com.palettee.gathering.domain.GatheringTag;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -42,7 +43,9 @@ public record GatheringCommonRequest(
         String title,
 
         @NotBlank(message = "내용은 필수 값 이빈다.")
-        String content
+        String content,
+
+        List<String> gatheringImages
 
 ) {
 
@@ -54,6 +57,11 @@ public record GatheringCommonRequest(
     public static List<GatheringTag> getGatheringTag(List<String> gatheringTag){
        return gatheringTag.stream()
                 .map(GatheringTag::new).toList();
+    }
+
+    public static List<GatheringImage> getGatheringImage(List<String> gatheringImages){
+        return gatheringImages.stream()
+                .map(GatheringImage :: new).toList();
     }
 
 }

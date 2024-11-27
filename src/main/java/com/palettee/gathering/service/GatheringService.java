@@ -49,6 +49,7 @@ public class GatheringService {
                 .contact(Contact.findContact(request.contact()))
                 .deadLine(GatheringCommonRequest.getDeadLineLocalDate(request.deadLine()))
                 .personnel(request.personnel())
+                .gatheringImages(GatheringCommonRequest.getGatheringImage(request.gatheringImages()))
                 .position(Position.findPosition(request.position()))
                 .title(request.title())
                 .content(request.content())

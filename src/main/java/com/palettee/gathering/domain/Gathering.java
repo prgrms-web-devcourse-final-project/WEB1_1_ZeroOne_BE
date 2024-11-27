@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 // 완료
@@ -55,8 +56,10 @@ public class Gathering extends BaseEntity {
     private User user;
 
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GatheringTag> gatheringTagList;
+    private List<GatheringTag> gatheringTagList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GatheringImage> gatheringImages= new ArrayList<>();
 
     @Builder
     public Gathering(
@@ -71,7 +74,8 @@ public class Gathering extends BaseEntity {
             String content,
             String url,
             User user,
-            List<GatheringTag> gatheringTagList
+            List<GatheringTag> gatheringTagList,
+            List<GatheringImage> gatheringImages
     ) {
         this.sort = sort;
         this.subject = subject;
@@ -87,13 +91,22 @@ public class Gathering extends BaseEntity {
         this.user = user;
         user.addGathering(this);
        setGatheringTagList(gatheringTagList);
+       setGatheringImages(gatheringImages);
     }
 
     public void setGatheringTagList(List<GatheringTag> gatheringTagList) {
         for (GatheringTag gatheringTag : gatheringTagList) {
             gatheringTag.setGathering(this);
+            this.gatheringTagList.add(gatheringTag);
         }
-        this.gatheringTagList = gatheringTagList;
+    }
+
+    public void setGatheringImages(List<GatheringImage> gatheringImages){
+        System.out.println(gatheringImages.size());
+        for(GatheringImage gatheringImage : gatheringImages){
+            gatheringImage.setGathering(this);
+            this.gatheringImages.add(gatheringImage);
+        }
     }
 
 
@@ -112,10 +125,7 @@ public class Gathering extends BaseEntity {
             this.gatheringTagList.clear();
         }
         List<GatheringTag> gatheringTag = GatheringCommonRequest.getGatheringTag(gathering.gatheringTag());
-        this.gatheringTagList.addAll(gatheringTag );
-        for(GatheringTag tag : gatheringTag){
-            tag.setGathering(this);
-        }
+       setGatheringTagList(gatheringTag);
     }
 
     public void updateStatusComplete(){
