@@ -15,6 +15,9 @@ public record RegisterBasicInfoRequest(
         @Length(min = 1, max = 100, message = "자기소개는 최대 100자 까지 가능합니다.")
         String briefIntro,
 
+        // URL 검증은 필요 없겠지?
+        String imageUrl,
+
         @NotBlank(message = "직군을 입력해 주세요.")
         String majorJobGroup,
 
