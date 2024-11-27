@@ -26,6 +26,8 @@ class BasicRegisterServiceTest {
     RelatedLinkRepository relatedLinkRepo;
     @Autowired
     PortFolioRepository portFolioRepo;
+    @Autowired
+    StoredProfileImageUrlRepository storedProfileImageUrlRepo;
 
     @Autowired
     BasicRegisterService basicRegisterService;
@@ -35,13 +37,15 @@ class BasicRegisterServiceTest {
             = gen(MajorJobGroup.DEVELOPER.toString(),
             MinorJobGroup.BACKEND.toString(),
             Division.STUDENT.toString(),
-            List.of("111.com", "222.com", "333.com"));
+            List.of("111.com", "222.com", "333.com"),
+            List.of("resource1.com", "resource2.com", "resource3.com")
+    );
 
-    private static RegisterBasicInfoRequest gen(String major, String minor, String div,
-            List<String> urls) {
+    private static RegisterBasicInfoRequest gen(String major, String minor,
+            String div, List<String> urls, List<String> s3Resources) {
         return new RegisterBasicInfoRequest(
                 "이름", "자기소개", "test-image-url.com", major, minor,
-                "타이틀", div, urls
+                "타이틀", div, urls, s3Resources
         );
     }
 
@@ -64,6 +68,7 @@ class BasicRegisterServiceTest {
         userRepo.deleteAll();
         relatedLinkRepo.deleteAll();
         portFolioRepo.deleteAll();
+        storedProfileImageUrlRepo.deleteAll();
     }
 
     @Test
@@ -90,6 +95,18 @@ class BasicRegisterServiceTest {
         // 정보 진짜 변경 됐는지 확인
         User verify = userRepo.findById(testUser.getId()).orElseThrow();
         checkEquality(verify);
+
+        // S3 저장된 자원들도 db 에 기록 됬는지 확인
+        List<String> s3Resources = registerBasicInfoRequest.s3StoredImageUrls()
+                .stream()
+                .sorted()
+                .toList();
+        List<String> urls = storedProfileImageUrlRepo.findAllByUserId(testUser.getId())
+                .stream().map(StoredProfileImageUrl::getUrl)
+                .sorted()
+                .toList();
+
+        assertThat(urls).containsAll(s3Resources);
 
         checkExceptions(testUser);
     }
@@ -159,19 +176,23 @@ class BasicRegisterServiceTest {
     private void checkExceptions(User user) {
         // 직군 이상한거 제공 1
         RegisterBasicInfoRequest invalidRequest1
-                = gen("!!!!이상한거!!!!", "backend", "student", null);
+                = gen("!!!!이상한거!!!!", "backend", "student", null
+                , null);
 
         // 직군 이상한거 제공 2
         RegisterBasicInfoRequest invalidRequest2
-                = gen("etc", "!!!!이상한거!!!!", "student", null);
+                = gen("etc", "!!!!이상한거!!!!", "student",
+                null, null);
 
         // 대직군 - 소직군 안맞음
         RegisterBasicInfoRequest invalidRequest3
-                = gen("etc", "backend", "student", null);
+                = gen("etc", "backend", "student",
+                null, null);
 
         // 소속 이상한거
         RegisterBasicInfoRequest invalidRequest4
-                = gen("developer", "backend", "!!!!이상한거!!!!", null);
+                = gen("developer", "backend", "!!!!이상한거!!!!",
+                null, null);
 
         assertThatThrownBy(() -> basicRegisterService.registerBasicInfo(user, invalidRequest1))
                 .isInstanceOf(InvalidJobGroupException.class);

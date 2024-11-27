@@ -85,7 +85,7 @@ class BasicRegisterControllerTest {
             List<String> urls) {
         return new RegisterBasicInfoRequest(
                 "이름", "자기소개", "test-image-url.com", major, minor,
-                "타이틀", div, urls
+                "타이틀", div, urls, null
         );
     }
 
