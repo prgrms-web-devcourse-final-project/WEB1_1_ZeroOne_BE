@@ -1,15 +1,13 @@
 package com.palettee.chat.service;
 
 import com.palettee.chat.controller.dto.request.ChatRequest;
-import com.palettee.chat.controller.dto.request.ChatImgRequest;
-import com.palettee.chat.controller.dto.response.ChatImgResponse;
 import com.palettee.chat.controller.dto.response.ChatResponse;
 import com.palettee.chat.domain.Chat;
 import com.palettee.chat.domain.ChatImage;
 import com.palettee.chat.repository.ChatRepository;
 import com.palettee.chat_room.domain.ChatRoom;
 import com.palettee.chat_room.service.ChatRoomService;
-import com.palettee.global.s3.exception.FileEmptyException;
+import com.palettee.global.handler.exception.ChatContentNullException;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserNotFoundException;
 import com.palettee.user.repository.UserRepository;
@@ -33,26 +31,21 @@ public class ChatService {
     public ChatResponse saveChat(String email, Long chatRoomId, ChatRequest chatRequest) {
         User user = getUser(email);
         ChatRoom chatRoom = chatRoomService.getChatRoom(chatRoomId);
+
         Chat chat = chatRequest.toEntityChat(user, chatRoom);
         Chat savedChat = chatRepository.save(chat);
-        return ChatResponse.toResponse(savedChat);
-    }
 
-    @Transactional
-    public ChatImgResponse saveImageMessage(String email, Long chatRoomId, ChatImgRequest chatImgRequest) {
-        User user = getUser(email);
-        ChatRoom chatRoom = chatRoomService.getChatRoom(chatRoomId);
-        Chat chat = chatImgRequest.toEntityChat(user, chatRoom);
-        Chat savedChat = chatRepository.save(chat);
-
-        if(chatImgRequest.imgUrls().isEmpty()) {
-            throw FileEmptyException.EXCEPTION;
+        List<ChatImage> savedChatImages = null;
+        if (chatRequest.imgUrls() != null && !chatRequest.imgUrls().isEmpty()) {
+            List<ChatImage> chatImages = chatRequest.toEntityChatImages(savedChat);
+            savedChatImages = chatImageService.saveChatImages(chatImages);
         }
 
-        List<ChatImage> chatImages = chatImgRequest.toEntityChatImages(savedChat);
-        chatImageService.saveChatImages(chatImages);
+        if (chatRequest.content() == null && savedChatImages == null) {
+            throw ChatContentNullException.EXCEPTION;
+        }
 
-        return ChatImgResponse.toResponse(savedChat);
+        return ChatResponse.toResponse(chatRoomId, savedChat, savedChatImages);
     }
 
     private User getUser(String email) {
