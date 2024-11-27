@@ -1,5 +1,10 @@
 package com.palettee.global.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.palettee.chat.controller.dto.request.ChatRequest;
+import com.palettee.global.handler.exception.ChatContentNullException;
+import com.palettee.global.handler.exception.JSONMappingException;
 import com.palettee.global.handler.exception.WrongSubPathException;
 import com.palettee.global.security.jwt.exceptions.ExpiredTokenException;
 import com.palettee.global.security.jwt.exceptions.InvalidTokenException;
@@ -22,6 +27,7 @@ public class StompHandler implements ChannelInterceptor {
 
     private static final String TOPIC_CHAT_ENDPOINT = "/sub/chat";
     private final JwtUtils jwtUtils;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -44,6 +50,7 @@ public class StompHandler implements ChannelInterceptor {
 
         else if(StompCommand.SEND.equals(accessor.getCommand())) {
             validateUserRole(token);
+            validateContent(message);
         }
 
         return message;
@@ -85,6 +92,29 @@ public class StompHandler implements ChannelInterceptor {
         if (userRole.equals(UserRole.JUST_NEWBIE) || userRole.equals(UserRole.REAL_NEWBIE)) {
             log.error("Role is mismatch");
             throw RoleMismatchException.EXCEPTION;
+        }
+    }
+
+    private void validateContent(Message<?> message) {
+        String payload = new String((byte[]) message.getPayload());
+        ChatRequest chatRequest = null;
+
+        try {
+            chatRequest = objectMapper.readValue(payload, ChatRequest.class);
+            log.info("매핑된 ChatRequest = {}", chatRequest);
+        } catch (JsonProcessingException e) {
+            log.error("JSON 매핑 오류");
+            throw JSONMappingException.EXCEPTION;
+        }
+
+        if(chatRequest == null) {
+            log.error("JSON 매핑 오류");
+            throw JSONMappingException.EXCEPTION;
+        }
+
+        if(chatRequest.content() == null && chatRequest.imgUrls() == null) {
+            log.error("채팅 내용 null 오류");
+            throw ChatContentNullException.EXCEPTION;
         }
     }
 }
