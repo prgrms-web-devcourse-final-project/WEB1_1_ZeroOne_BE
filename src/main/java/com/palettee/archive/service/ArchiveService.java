@@ -151,6 +151,7 @@ public class ArchiveService {
         Archive archive = getArchive(archiveId);
         if(findLike != null) {
             likeRepository.delete(findLike);
+            return new ArchiveResponse(archive.getId());
         }
 
         User findUser = getUser(user.getId());

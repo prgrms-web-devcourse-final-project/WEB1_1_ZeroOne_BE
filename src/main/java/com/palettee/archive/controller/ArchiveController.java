@@ -94,7 +94,7 @@ public class ArchiveController {
     }
 
     @PostMapping("/{archiveId}")
-    public ArchiveResponse likeArchive(@PathVariable("archiveId") long archiveId) {
+    public ArchiveResponse likeArchive(@PathVariable("archiveId") Long archiveId) {
         return archiveService.likeArchive(archiveId, UserUtils.getContextUser());
     }
 
