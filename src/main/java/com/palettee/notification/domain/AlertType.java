@@ -8,7 +8,8 @@ import lombok.Getter;
 public enum AlertType {
     LIKE("LIKE", "empty"),
     FEEDBACK("FEEDBACK", "/chat-room/participation/"),
-    GATHERING("GATHERING", "/chat-room/participation/");
+    GATHERING("GATHERING", "/chat-room/participation/"),
+    COFFEE_CHAT("COFFEE_CHAT", "/chat-room/participation/");
 
     private final String value;
     private final String url;
