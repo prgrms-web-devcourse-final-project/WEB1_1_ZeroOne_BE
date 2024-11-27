@@ -49,6 +49,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         List<PortFolioResponse> result = queryFactory
                 .select(new QPortFolioResponse(
                         portFolio.portfolioId,
+                        user.id,
                         portFolio.url,
                         user.name,
                         user.briefIntro,
@@ -110,6 +111,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         List<PortFolioResponse> list = queryFactory
                 .select(new QPortFolioResponse(
                         portFolio.portfolioId,
+                        user.id,
                         portFolio.url,
                         user.name,
                         user.briefIntro,
