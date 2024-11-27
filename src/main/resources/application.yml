@@ -15,3 +15,8 @@ springdoc:
     groups-order: desc
     tags-sorter: alpha
     operations-sorter: method
+
+sse:
+  timeout: 3600000 # 1시간
+
+
