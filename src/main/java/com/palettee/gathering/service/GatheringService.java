@@ -11,6 +11,9 @@ import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
+import com.palettee.notification.domain.AlertType;
+import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
@@ -30,11 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
-
     private final UserRepository userRepository;
-
     private final LikeRepository likeRepository;
-
+    private final NotificationService notificationService;
 
     @Transactional
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
@@ -125,7 +126,7 @@ public class GatheringService {
     public GatheringLikeResponse createGatheringLike(Long gatheringId, User user){
 
         User findUser = getUser(user.getId());
-
+        Gathering gathering = getGathering(gatheringId);
         if(cancelLike(gatheringId, findUser)) {
             return GatheringLikeResponse.toDto(null);
         }
@@ -135,6 +136,14 @@ public class GatheringService {
                 .user(findUser)
                 .targetId(gatheringId)
                 .build();
+
+        notificationService.send(new NotificationRequest(
+                gathering.getUser().getId(),
+                "좋아요 알림",
+                user.getName() + "님이 나의 게더링에 좋아요를 남겼습니다.",
+                AlertType.LIKE.name(),
+                null
+        ));
 
         return GatheringLikeResponse.toDto(likeRepository.save(likes));
     }

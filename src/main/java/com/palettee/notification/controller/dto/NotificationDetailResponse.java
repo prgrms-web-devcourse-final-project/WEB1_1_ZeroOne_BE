@@ -23,7 +23,7 @@ public record NotificationDetailResponse(
                 notification.getContent(),
                 type,
                 notification.getIsRead(),
-                type.getUrl() + notification.getId(),
+                type.getUrl() + notification.getChatRoomId(),
                 "/notification/" + notification.getId(),
                 notification.getCreateAt()
         );

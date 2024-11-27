@@ -6,9 +6,9 @@ import lombok.Getter;
 
 @Getter
 public enum AlertType {
-    BOOKMARK("BOOKMARK", "empty"),
-    FEEDBACK("FEEDBACK", ""),
-    GATHERING("GATHERING", "");
+    LIKE("BOOKMARK", "empty"),
+    FEEDBACK("FEEDBACK", "/chat-room/participation/"),
+    GATHERING("GATHERING", "/chat-room/participation/");
 
     private final String value;
     private final String url;

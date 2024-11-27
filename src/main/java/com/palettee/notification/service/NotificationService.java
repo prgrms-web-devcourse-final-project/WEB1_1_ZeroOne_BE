@@ -13,12 +13,14 @@ import com.palettee.user.domain.User;
 import java.io.IOException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -43,11 +45,12 @@ public class NotificationService {
 
         if (!lastEventId.isEmpty()) {
             Map<String, Object> events = emitterRepository.findAllEventCacheStartWithUserId(
-                    String.valueOf(user.getId()));
+                    user.getId() + "_");
             events.entrySet().stream()
-                    .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
+                    .filter(entry -> lastEventId.compareTo(entry.getKey()) > 0)
                     .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getKey(),
-                            entry.getValue()));
+                            NotificationDetailResponse.of((Notification) entry.getValue())));
+            emitterRepository.deleteAllEventCacheStartWithId(user.getId() + "_");
         }
         return emitter;
     }
@@ -64,7 +67,7 @@ public class NotificationService {
                     .data(data));
         } catch (IOException exception) {
             emitterRepository.deleteById(emitterId, 0L);
-            throw new IllegalArgumentException();
+            log.error("[SSE ERROR] connection is down - emitter : {} emitterId : {} eventId : {} message : {}", emitter, emitterId, eventId, exception.getMessage());
         }
     }
 
@@ -79,6 +82,7 @@ public class NotificationService {
                 .targetId(request.targetId())
                 .title(request.title())
                 .content(request.content())
+                .chatRoomId(request.chatRoomId())
                 .type(AlertType.findByInput(request.type()))
                 .build();
         notificationRepository.save(notification);

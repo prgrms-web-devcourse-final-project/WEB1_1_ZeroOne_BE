@@ -29,13 +29,16 @@ public class Notification extends BaseEntity {
 
     private Boolean isRead;
 
+    private Long chatRoomId;
+
     @Builder
-    public Notification(Long targetId, String title, String content, AlertType type) {
+    public Notification(Long targetId, String title, String content, AlertType type, Long chatRoomId) {
         this.targetId = targetId;
         this.title = title;
         this.content = content;
         this.type = type;
         this.isRead = false;
+        this.chatRoomId = chatRoomId;
     }
 
     public void read(User user) {

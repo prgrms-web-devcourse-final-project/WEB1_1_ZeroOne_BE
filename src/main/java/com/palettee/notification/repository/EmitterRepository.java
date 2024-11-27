@@ -37,21 +37,9 @@ public class EmitterRepository {
 
     public void deleteById(String id, Long userId) {
         emitters.remove(id);
-        deleteAllEmitterStartWithUserId(String.valueOf(userId));
-        deleteAllEventCacheStartWithId(String.valueOf(userId));
     }
 
-    private void deleteAllEmitterStartWithUserId(String userId) {
-        emitters.forEach(
-                (key, emitter) -> {
-                    if (key.startsWith(userId)) {
-                        emitters.remove(key);
-                    }
-                }
-        );
-    }
-
-    private void deleteAllEventCacheStartWithId(String userId) {
+    public void deleteAllEventCacheStartWithId(String userId) {
         eventCache.forEach(
                 (key, emitter) -> {
                     if (key.startsWith(userId)) {

@@ -3,6 +3,9 @@ package com.palettee.portfolio.service;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
+import com.palettee.notification.domain.AlertType;
+import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
@@ -25,6 +28,7 @@ public class PortFolioService {
 
     private final PortFolioRepository portFolioRepository;
     private final LikeRepository likeRepository;
+    private final NotificationService notificationService;
 
     public Slice<PortFolioResponse> findAllPortFolio(
             Pageable pageable,
@@ -52,7 +56,8 @@ public class PortFolioService {
 
     @Transactional
     public PortFolioLikeResponse createPortFolioLike(Long portfolioId, User user) {
-
+        PortFolio portFolio = portFolioRepository.findById(portfolioId)
+                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
         if(cancelLike(portfolioId, user)) {
             return new PortFolioLikeResponse(null);
         }
@@ -63,6 +68,13 @@ public class PortFolioService {
                 .targetId(portfolioId)
                 .build();
 
+        notificationService.send(new NotificationRequest(
+                portFolio.getUser().getId(),
+                "좋아요 알림",
+                user.getName() + "님이 나의 포트폴리오에 좋아요를 남겼습니다.",
+                AlertType.LIKE.name(),
+                null
+        ));
         return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
     }
 

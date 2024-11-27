@@ -7,7 +7,6 @@ import com.palettee.global.security.oauth.*;
 import com.palettee.global.security.oauth.handler.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
-import java.util.*;
 import lombok.*;
 import org.springframework.context.annotation.*;
 import org.springframework.http.*;
@@ -67,8 +66,8 @@ public class SecurityConfig {
 
                 // 유저의 프로필 정보를 조회
                 .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
-                .conditionalByPassable("/subscribe", HttpMethod.GET)
-                .conditionalByPassable("/test-noti", HttpMethod.POST)
+                .conditionalByPassable("/notification/subscribe", HttpMethod.GET)
+                .conditionalByPassable("/notification/test-noti", HttpMethod.POST)
 
                 /* <-------------- Portfolio API --------------> */
                 // 포트폴리오 전체 조회

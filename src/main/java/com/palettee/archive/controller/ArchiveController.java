@@ -93,6 +93,11 @@ public class ArchiveController {
         archiveService.changeArchiveOrder(changeOrderRequest);
     }
 
+    @PostMapping("/{archiveId}")
+    public ArchiveResponse likeArchive(@PathVariable("archiveId") long archiveId) {
+        return archiveService.likeArchive(archiveId, UserUtils.getContextUser());
+    }
+
     @PostMapping("/{archiveId}/comment")
     public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
         User user = UserUtils.getContextUser();

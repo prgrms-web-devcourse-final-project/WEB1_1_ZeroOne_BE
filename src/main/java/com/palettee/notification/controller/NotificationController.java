@@ -23,11 +23,13 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+    // 클라이언트가 서버를 구독하
     @GetMapping(value = "/subscribe", produces = "text/event-stream")
     public SseEmitter subscribe(@RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         return notificationService.subscribe(UserUtils.getContextUser(), lastEventId);
     }
 
+    // 삭제 예정
     @PostMapping("/test-noti")
     public void testNOti(@RequestBody NotificationRequest notificationRequest) {
         notificationService.send(notificationRequest);
