@@ -8,6 +8,7 @@ import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
+import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,6 +37,8 @@ public class GatheringService {
     private final UserRepository userRepository;
 
     private final LikeRepository likeRepository;
+
+    private final ImageService imageService;
 
 
     @Transactional
@@ -102,13 +107,21 @@ public class GatheringService {
     @Transactional
     public GatheringCommonResponse deleteGathering(Long gatheringId, User user) {
 
-        Gathering gathering = getGathering(gatheringId);
+        Gathering gathering = gatheringRepository.findByImageFetchId(gatheringId).orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
         accessUser(user, gathering);
+
+        deleteImages(gathering);
 
         gatheringRepository.delete(gathering);
 
         return GatheringCommonResponse.toDTO(gathering);
+    }
+
+    private void deleteImages(Gathering gathering) {
+        if(!gathering.getGatheringImages().isEmpty()){
+            gathering.getGatheringImages().forEach(gatheringImage -> imageService.delete(gatheringImage.getImageUrl()));
+        }
     }
 
     @Transactional

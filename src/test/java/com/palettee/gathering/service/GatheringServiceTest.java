@@ -251,6 +251,39 @@ class GatheringServiceTest {
         Assertions.assertThat(gathering1.getStatus()).isEqualTo(Status.COMPLETE);
     }
 
+//    @Test
+//    @DisplayName("게더링 삭제 시에 태그와 이미지가 삭제되어야한다.")
+//    public void gatheringDelete() throws Exception {
+//       //given
+//
+//        List<String> tagList = new ArrayList<>();
+//
+//        tagList.add("tag1");
+//        tagList.add("tag2");
+//
+//        List<String> imageList = new ArrayList<>();
+//        imageList.add("URL1");
+//        imageList.add("URL2");
+//
+//        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content",  imageList);
+//        GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
+//
+//
+//       //when
+//
+//        gatheringService.deleteGathering(gathering.gatheringId(), savedUser);
+//
+//        List<GatheringTag> byGatheringId = gatheringTagRepository.findByGatheringId(gathering.gatheringId());
+//
+//        List<GatheringImage> byGatheringId1 = gatheringImageRepository.findByGatheringId(gathering.gatheringId());
+//
+//
+//       //then
+//
+//        Assertions.assertThat(byGatheringId.size()).isEqualTo(0);
+//        Assertions.assertThat(byGatheringId1.size()).isEqualTo(0);
+//    }
+
 
 
 
