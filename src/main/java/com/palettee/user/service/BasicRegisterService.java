@@ -25,6 +25,7 @@ public class BasicRegisterService {
     private final UserRepository userRepo;
     private final RelatedLinkRepository relatedLinkRepo;
     private final PortFolioRepository portFolioRepo;
+    private final StoredProfileImageUrlRepository storedProfileImageUrlRepo;
 
     /**
      * 유저 기본 정보 등록시 기초 정보 보여주기
@@ -64,6 +65,14 @@ public class BasicRegisterService {
 
         // 기본 정보 등록했으니까 권한 상승
         user.changeUserRole(UserRole.JUST_NEWBIE);
+
+        // 사용자가 S3 에 업로드한 자원들 추가
+        List<String> s3Resources = registerBasicInfoRequest.s3StoredImageUrls();
+        if (s3Resources != null && !s3Resources.isEmpty()) {
+            for (String s3Resource : s3Resources) {
+                storedProfileImageUrlRepo.save(new StoredProfileImageUrl(s3Resource, user));
+            }
+        }
 
         log.info("Registered basic user info on id: {}",
                 user.getId());

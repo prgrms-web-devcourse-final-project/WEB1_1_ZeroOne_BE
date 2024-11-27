@@ -31,7 +31,11 @@ public record RegisterBasicInfoRequest(
         String division,
 
         @Size(max = 5, message = "연관 링크는 최대 5개 까지 가능합니다.")
-        List<String> url
+        List<String> url,
+
+        // 정보 등록 전 사용자가 S3 에 업로드한 이미지 링크들
+        // imageUrl 도 여기에 포함되어야 함.
+        List<String> s3StoredImageUrls
 ) {
 
 }
