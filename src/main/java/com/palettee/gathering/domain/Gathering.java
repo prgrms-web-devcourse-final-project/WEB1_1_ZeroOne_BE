@@ -95,20 +95,25 @@ public class Gathering extends BaseEntity {
     }
 
     public void setGatheringTagList(List<GatheringTag> gatheringTagList) {
-        for (GatheringTag gatheringTag : gatheringTagList) {
-            gatheringTag.setGathering(this);
-            this.gatheringTagList.add(gatheringTag);
+        if(gatheringTagList != null){
+            for (GatheringTag gatheringTag : gatheringTagList) {
+                gatheringTag.setGathering(this);
+                this.gatheringTagList.add(gatheringTag);
+            }
         }
+
     }
 
     public void setGatheringImages(List<GatheringImage> gatheringImages){
-        System.out.println(gatheringImages.size());
-        for(GatheringImage gatheringImage : gatheringImages){
-            gatheringImage.setGathering(this);
-            this.gatheringImages.add(gatheringImage);
+        if(gatheringImages != null){
+            System.out.println(gatheringImages.size());
+            for(GatheringImage gatheringImage : gatheringImages){
+                gatheringImage.setGathering(this);
+                this.gatheringImages.add(gatheringImage);
+            }
         }
-    }
 
+    }
 
     public void updateGathering(GatheringCommonRequest gathering){
         this.sort = Sort.findSort(gathering.sort());
@@ -121,11 +126,26 @@ public class Gathering extends BaseEntity {
         this.title = gathering.title();
         this.content = gathering.content();
         this.url = gathering.url();
-        if(!this.gatheringTagList.isEmpty()){
+        updateGatheringTag(gathering);
+        updateGatheringImages(gathering);
+    }
+
+    // 이미지 태그 있을때만 교체
+    private void updateGatheringTag(GatheringCommonRequest gathering) {
+        if(gathering.gatheringTag()!= null){
             this.gatheringTagList.clear();
+
+            List<GatheringTag> gatheringTag = GatheringCommonRequest.getGatheringTag(gathering.gatheringTag());
+            setGatheringTagList(gatheringTag);
         }
-        List<GatheringTag> gatheringTag = GatheringCommonRequest.getGatheringTag(gathering.gatheringTag());
-       setGatheringTagList(gatheringTag);
+    }
+    // 이미지가 있을때만 교체
+    private void updateGatheringImages(GatheringCommonRequest gathering){
+        if(gathering.gatheringImages()!=null){
+            this.gatheringImages.clear();
+            List<GatheringImage> gatheringImage = GatheringCommonRequest.getGatheringImage(gathering.gatheringImages());
+            setGatheringImages(gatheringImage);
+        }
     }
 
     public void updateStatusComplete(){

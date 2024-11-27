@@ -24,8 +24,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -99,6 +97,8 @@ public class GatheringService {
 
         gathering.updateGathering(request);
 
+        if(request.gatheringImages()!= null) deleteImages(gathering);  // 업데이트시 이미지가 들어왓을시 본래 s3 이미지삭제
+
         return GatheringCommonResponse.toDTO(gathering);
     }
 
@@ -117,13 +117,6 @@ public class GatheringService {
 
         return GatheringCommonResponse.toDTO(gathering);
     }
-
-    private void deleteImages(Gathering gathering) {
-        if(!gathering.getGatheringImages().isEmpty()){
-            gathering.getGatheringImages().forEach(gatheringImage -> imageService.delete(gatheringImage.getImageUrl()));
-        }
-    }
-
     @Transactional
     public GatheringCommonResponse updateStatusGathering(Long gatheringId, User user){
 
@@ -189,6 +182,13 @@ public class GatheringService {
     private User getUser(Long userId){
         return  userRepository.findById(userId).orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
+
+    private void deleteImages(Gathering gathering) {
+        if (!gathering.getGatheringImages().isEmpty()) {
+            gathering.getGatheringImages().forEach(gatheringImage -> imageService.delete(gatheringImage.getImageUrl()));
+        }
+    }
+
 
 
 }

@@ -35,7 +35,7 @@ public record GatheringCommonRequest(
         String position,
 
 
-        List<String> gatheringTag,
+        List<String> gatheringTag ,
 
         String url,
 
@@ -55,13 +55,20 @@ public record GatheringCommonRequest(
     }
 
     public static List<GatheringTag> getGatheringTag(List<String> gatheringTag){
-       return gatheringTag.stream()
-                .map(GatheringTag::new).toList();
+        if(gatheringTag != null){
+            return gatheringTag.stream()
+                    .map(GatheringTag::new).toList();
+        }
+        return null;
+
     }
 
     public static List<GatheringImage> getGatheringImage(List<String> gatheringImages){
-        return gatheringImages.stream()
-                .map(GatheringImage :: new).toList();
+        if(gatheringImages != null){
+            return gatheringImages.stream()
+                    .map(GatheringImage :: new).toList();
+        }
+        return null;
     }
 
 }
