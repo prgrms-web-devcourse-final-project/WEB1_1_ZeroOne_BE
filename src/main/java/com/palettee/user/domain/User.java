@@ -133,6 +133,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private final List<Archive> archives = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private final List<StoredProfileImageUrl> storedProfileImageUrls = new ArrayList<>();
+
     @Builder
     public User(
             String oauthIdentity, UserRole userRole,
@@ -165,6 +168,10 @@ public class User {
 
     public void addArchive(Archive archive) {
         this.archives.add(archive);
+    }
+
+    public void addStoredProfileImageUrl(StoredProfileImageUrl storedProfileImageUrl) {
+        this.storedProfileImageUrls.add(storedProfileImageUrl);
     }
 
     public User(String email, String imageUrl, String name, String briefIntro, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {
