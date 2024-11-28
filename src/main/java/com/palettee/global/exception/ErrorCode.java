@@ -11,7 +11,7 @@ public enum ErrorCode {
     NO_EXIST_FILE(400, "파일이 존재하지 않습니다."),
     NOT_COMMENT_OWNER(400, "댓글 작성자가 아닙니다."),
     COMMENT_NOT_OPEN(400, "해당 아카이브는 댓글이 허용되지 않았습니다."),
- 
+
     INVALID_DIVISION(400, "소속은 student, worker, etc 중 하나여야 합니다."),
     INVALID_JOB_GROUP(400, "직군이 올바르지 않습니다."),
     JOB_GROUP_MISMATCH(400, "주어진 소직군이 대직군에 포함되지 않습니다."),
@@ -25,6 +25,7 @@ public enum ErrorCode {
 
     /* 403 UNAUTHORIZED : Resource 접근이 거부됨 */
     ROLE_MISMATCH(403, "권한이 부족합니다."),
+    NOT_OWN_USER(403, "오직 본인만 사이트에 접근할 수 있습니다."),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     ARCHIVE_NOT_FOUND_EXCEPTION(404, "아카이브를 찾을 수 없습니다."),
