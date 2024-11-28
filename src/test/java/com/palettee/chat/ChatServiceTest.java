@@ -1,15 +1,14 @@
 package com.palettee.chat;
 
-import com.palettee.chat.controller.dto.request.ChatImgRequest;
 import com.palettee.chat.controller.dto.request.ChatImgUrlRequest;
 import com.palettee.chat.controller.dto.request.ChatRequest;
-import com.palettee.chat.controller.dto.response.ChatImgResponse;
 import com.palettee.chat.controller.dto.response.ChatResponse;
 import com.palettee.chat.repository.ChatRepository;
 import com.palettee.chat.service.ChatService;
 import com.palettee.chat_room.domain.ChatCategory;
 import com.palettee.chat_room.domain.ChatRoom;
 import com.palettee.chat_room.repository.ChatRoomRepository;
+import com.palettee.global.handler.exception.ChatContentNullException;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
@@ -53,43 +52,120 @@ public class ChatServiceTest {
     }
 
     @Test
-    @DisplayName("채팅 저장")
+    @DisplayName("채팅 저장, 채팅 이미지 null")
     void saveChat() {
         // given
         String userEmail = savedUser.getEmail();
         Long chatRoomId = savedChatRoom.getId();
-        ChatRequest chatRequest = new ChatRequest("Hi");
+        ChatRequest chatRequest = new ChatRequest("Hi", null);
 
         // when
         ChatResponse chatResponse = chatService.saveChat(userEmail, chatRoomId, chatRequest);
 
         // then
-        assertThat(chatResponse.chatId()).isNotNull();
-        assertThat(chatResponse.email()).isEqualTo(userEmail);
-        assertThat(chatResponse.profileImg()).isEqualTo("imageUrl");
-        assertThat(chatResponse.content()).isEqualTo("Hi");
+        assertThat(chatResponse.getChatId()).isNotNull();
+        assertThat(chatResponse.getChatRoomId()).isNotNull();
+        assertThat(chatResponse.getEmail()).isEqualTo(userEmail);
+        assertThat(chatResponse.getProfileImg()).isEqualTo("imageUrl");
+        assertThat(chatResponse.getContent()).isEqualTo("Hi");
+        assertThat(chatResponse.getImgUrls()).isNull();
     }
 
     @Test
-    @DisplayName("채팅 이미지 저장")
+    @DisplayName("채팅 이미지 저장, 채팅 null")
     void saveChatImage() {
         // given
         String userEmail = savedUser.getEmail();
         Long chatRoomId = savedChatRoom.getId();
         List<ChatImgUrlRequest> urls = new ArrayList<>();
-        ChatImgRequest chatImgRequest = new ChatImgRequest(urls);
+        ChatRequest chatImgRequest = new ChatRequest(null, urls);
 
         urls.add(new ChatImgUrlRequest("aaa"));
         urls.add(new ChatImgUrlRequest("bbb"));
         urls.add(new ChatImgUrlRequest("ccc"));
 
         // when
-        ChatImgResponse chatImgResponse = chatService.saveImageMessage(userEmail, chatRoomId, chatImgRequest);
+        ChatResponse chatResponse = chatService.saveChat(userEmail, chatRoomId, chatImgRequest);
 
         // then
-        assertThat(chatImgResponse.chatId()).isNotNull();
-        assertThat(chatImgResponse.email()).isEqualTo(userEmail);
-        assertThat(chatImgResponse.profileImg()).isEqualTo("imageUrl");
-        assertThat(chatImgResponse.imgUrls().size()).isEqualTo(3);
+        assertThat(chatResponse.getChatId()).isNotNull();
+        assertThat(chatResponse.getChatRoomId()).isNotNull();
+        assertThat(chatResponse.getEmail()).isEqualTo(userEmail);
+        assertThat(chatResponse.getProfileImg()).isEqualTo("imageUrl");
+        assertThat(chatResponse.getImgUrls().size()).isEqualTo(3);
+        assertThat(chatResponse.getContent()).isNull();
+    }
+
+    @Test
+    @DisplayName("채팅 이미지 저장, 채팅 null, 채팅 이미지 url empty")
+    void ImageUrlEmpty() {
+        // given
+        String userEmail = savedUser.getEmail();
+        Long chatRoomId = savedChatRoom.getId();
+        List<ChatImgUrlRequest> urls = new ArrayList<>();
+        ChatRequest chatImgRequest = new ChatRequest(null, urls);
+
+        // then
+        assertThatThrownBy(() -> chatService.saveChat(userEmail, chatRoomId, chatImgRequest))
+                .isInstanceOf(ChatContentNullException.class);
+    }
+
+    @Test
+    @DisplayName("채팅 이미지 저장, 채팅 저장")
+    void saveChatAndChatImage() {
+        // given
+        String userEmail = savedUser.getEmail();
+        Long chatRoomId = savedChatRoom.getId();
+        List<ChatImgUrlRequest> urls = new ArrayList<>();
+        ChatRequest chatImgRequest = new ChatRequest("Hi", urls);
+
+        urls.add(new ChatImgUrlRequest("aaa"));
+        urls.add(new ChatImgUrlRequest("bbb"));
+        urls.add(new ChatImgUrlRequest("ccc"));
+
+        // when
+        ChatResponse chatResponse = chatService.saveChat(userEmail, chatRoomId, chatImgRequest);
+
+        // then
+        assertThat(chatResponse.getChatId()).isNotNull();
+        assertThat(chatResponse.getChatRoomId()).isNotNull();
+        assertThat(chatResponse.getEmail()).isEqualTo(userEmail);
+        assertThat(chatResponse.getProfileImg()).isEqualTo("imageUrl");
+        assertThat(chatResponse.getImgUrls().size()).isEqualTo(3);
+        assertThat(chatResponse.getContent()).isEqualTo("Hi");
+    }
+
+    @Test
+    @DisplayName("채팅 이미지 저장, 채팅 저장")
+    void saveChatAndChatImageAndImgUrlEmpty() {
+        // given
+        String userEmail = savedUser.getEmail();
+        Long chatRoomId = savedChatRoom.getId();
+        List<ChatImgUrlRequest> urls = new ArrayList<>();
+        ChatRequest chatImgRequest = new ChatRequest("Hi", urls);
+
+        // when
+        ChatResponse chatResponse = chatService.saveChat(userEmail, chatRoomId, chatImgRequest);
+
+        // then
+        assertThat(chatResponse.getChatId()).isNotNull();
+        assertThat(chatResponse.getChatRoomId()).isNotNull();
+        assertThat(chatResponse.getEmail()).isEqualTo(userEmail);
+        assertThat(chatResponse.getProfileImg()).isEqualTo("imageUrl");
+        assertThat(chatResponse.getImgUrls()).isNull();
+        assertThat(chatResponse.getContent()).isEqualTo("Hi");
+    }
+
+    @Test
+    @DisplayName("채팅 null, 채팅 이미지 null")
+    void allNull() {
+        // given
+        String userEmail = savedUser.getEmail();
+        Long chatRoomId = savedChatRoom.getId();
+        ChatRequest chatImgRequest = new ChatRequest(null, null);
+
+        // then
+        assertThatThrownBy(() -> chatService.saveChat(userEmail, chatRoomId, chatImgRequest))
+                .isInstanceOf(ChatContentNullException.class);
     }
 }

@@ -64,12 +64,17 @@
             font-size: 14px;
         }
 
+        .message-content img {
+            margin-top: 5px;
+            max-width: 100%;
+            border-radius: 5px;
+        }
+
         .message-content .timestamp {
             font-size: 10px;
             color: gray;
-            position: absolute;
-            bottom: -15px;
-            right: 5px;
+            margin-top: 5px;
+            text-align: right;
         }
 
         #input-container {
@@ -114,7 +119,7 @@
 <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const token = "My Token";
+        const token = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyRW1haWwiOiJodW5pbEBnbWFpbC5jb20iLCJyb2xlIjoiT0xEX05FV0JJRSIsImlhdCI6MTczMjcwNzcxOCwiZXhwIjoxNzMyNzc5NzE4fQ.P39KSm2NANbv9SG5IwqL5ow0681YRt8lxTAiwR8egK8"; // Replace with your actual token
         const chatRoomId = 1;
 
         const socket = new WebSocket("ws://localhost:8080/ws");
@@ -129,46 +134,28 @@
 
             stompClient.subscribe(`/sub/chat/${chatRoomId}`, function (message) {
                 const content = JSON.parse(message.body);
-                if (content.imgUrls && content.imgUrls.length > 0) {
-                    addImageMessage(content);
-                } else {
-                    addTextMessage(content);
-                }
+                displayMessage(content);
             });
         }, function (error) {
             console.error("STOMP connection error:", error);
         });
 
-        function addTextMessage(content) {
+        function displayMessage(content) {
             const messagesDiv = document.getElementById("messages");
-            const time = new Date(content.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const timestamp = new Date(content.timestamp).toLocaleString();
+
+            const imgHtml = content.imgUrls && content.imgUrls.length > 0
+                ? content.imgUrls.map(img => `<img src="${img.imgUrl}" alt="Chat Image"/>`).join("")
+                : "";
 
             messagesDiv.innerHTML += `
                 <div class="message">
-                    <img src="${content.profileImg}" alt="Profile" class="profile-img">
+                    <img src="${content.profileImg || 'https://via.placeholder.com/40'}" alt="Profile" class="profile-img">
                     <div class="message-content">
                         <div class="email">${content.email}</div>
-                        <p class="text">${content.content}</p>
-                        <span class="timestamp">${time}</span>
-                    </div>
-                </div>
-            `;
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        function addImageMessage(content) {
-            const messagesDiv = document.getElementById("messages");
-            const time = new Date(content.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            const imgHtml = content.imgUrls.map(img => `<img src="${img.imgUrl}" alt="Image" style="margin-top: 5px; max-width: 100%;"/>`).join("");
-
-            messagesDiv.innerHTML += `
-                <div class="message">
-                    <img src="${content.profileImg}" alt="Profile" class="profile-img">
-                    <div class="message-content">
-                        <div class="email">${content.email}</div>
+                        ${content.content ? `<p class="text">${content.content}</p>` : ""}
                         ${imgHtml}
-                        <span class="timestamp">${time}</span>
+                        <div class="timestamp">${timestamp}</div>
                     </div>
                 </div>
             `;
@@ -176,12 +163,12 @@
         }
 
         window.sendMessage = function () {
-            const message = document.getElementById("message").value;
-            const imgUrlsInput = document.getElementById("imgUrls").value;
+            const message = document.getElementById("message").value.trim();
+            const imgUrlsInput = document.getElementById("imgUrls").value.trim();
 
-            if (message.trim()) {
-                stompClient.send(`/pub/chat/${chatRoomId}`, headers, JSON.stringify({ content: message }));
-                document.getElementById("message").value = "";
+            if (!message && !imgUrlsInput) {
+                alert("Please enter a message or provide image URLs.");
+                return;
             }
 
             const imgUrls = imgUrlsInput
@@ -190,10 +177,13 @@
                 .filter(url => url.length > 0)
                 .map(url => ({ imgUrl: url }));
 
-            if (imgUrls.length > 0) {
-                stompClient.send(`/pub/chat-image/${chatRoomId}`, headers, JSON.stringify({ imgUrls: imgUrls }));
-                document.getElementById("imgUrls").value = "";
-            }
+            stompClient.send(`/pub/chat/${chatRoomId}`, headers, JSON.stringify({
+                content: message,
+                imgUrls: imgUrls
+            }));
+
+            document.getElementById("message").value = "";
+            document.getElementById("imgUrls").value = "";
         };
     });
 </script>

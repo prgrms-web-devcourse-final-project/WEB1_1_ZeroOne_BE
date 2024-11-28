@@ -1,7 +1,7 @@
 package com.palettee.user.domain;
 
 import com.palettee.archive.domain.*;
-import com.palettee.gathering.domain.Gathering;
+import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.user.controller.dto.request.*;
@@ -109,6 +109,7 @@ public class User {
 
         this.name = updateRequest.name();
         this.briefIntro = updateRequest.briefIntro();
+        this.imageUrl = updateRequest.imageUrl();
         this.jobTitle = updateRequest.jobTitle();
         this.division = division;
         this.majorJobGroup = majorGroup;
@@ -131,6 +132,9 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private final List<Archive> archives = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private final List<StoredProfileImageUrl> storedProfileImageUrls = new ArrayList<>();
 
     @Builder
     public User(
@@ -164,6 +168,10 @@ public class User {
 
     public void addArchive(Archive archive) {
         this.archives.add(archive);
+    }
+
+    public void addStoredProfileImageUrl(StoredProfileImageUrl storedProfileImageUrl) {
+        this.storedProfileImageUrls.add(storedProfileImageUrl);
     }
 
     public User(String email, String imageUrl, String name, String briefIntro, MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {

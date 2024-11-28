@@ -16,6 +16,7 @@ public enum ErrorCode {
     INVALID_JOB_GROUP(400, "직군이 올바르지 않습니다."),
     JOB_GROUP_MISMATCH(400, "주어진 소직군이 대직군에 포함되지 않습니다."),
     CATEGORY_NOT_FOUND(400, "해당 카테고리는 잘못된 요청입니다"),
+    CHAT_CONTENT_NULL(400, "채팅 내용이 없습니다."),
 
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
@@ -42,6 +43,7 @@ public enum ErrorCode {
 
     /* 500 */
     INTERNAL_SERVER_ERROR(500, "서버 에러"),
+    JSON_MAPPING_ERROR(500, "JSON 매핑에 실패하였습니다."),
     FILE_UPLOAD_FAIL(500,  "파일 업로드를 실패하였습니다.")
     ;
 
