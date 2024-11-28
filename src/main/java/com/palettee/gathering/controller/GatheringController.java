@@ -24,9 +24,13 @@ public class GatheringController {
 
     private final GatheringService gatheringService;
 
+
     @PostMapping()
     public GatheringCommonResponse create(@RequestBody @Valid GatheringCommonRequest request) {
-        return gatheringService.createGathering(request, UserUtils.getContextUser());
+
+        GatheringCommonResponse gathering = gatheringService.createGathering(request, UserUtils.getContextUser());
+
+        return gathering;
     }
 
     @GetMapping()
@@ -51,7 +55,9 @@ public class GatheringController {
             @RequestBody @Valid GatheringCommonRequest request,
             @PathVariable Long gatheringId
     ) {
-        return gatheringService.updateGathering(gatheringId, request, UserUtils.getContextUser());
+        GatheringCommonResponse gatheringCommonResponse = gatheringService.updateGathering(gatheringId, request, UserUtils.getContextUser());
+
+        return gatheringCommonResponse;
     }
 
     @DeleteMapping("/{gatheringId}")
@@ -78,4 +84,5 @@ public class GatheringController {
 
         return gatheringService.findLikeList(pageable, contextUser.getId(), likeId);
     }
+
 }

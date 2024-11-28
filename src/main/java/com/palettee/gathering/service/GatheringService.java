@@ -147,10 +147,8 @@ public class GatheringService {
     }
 
     @Transactional
-    public void updateGatheringStatus(Long id){
-        Gathering gathering = getGathering(id);
-
-        gathering.expiredStatus();
+    public void updateGatheringStatus(){
+       gatheringRepository.updateStatusExpired();
     }
 
     public CustomSliceResponse findLikeList(

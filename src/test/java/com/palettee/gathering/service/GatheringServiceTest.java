@@ -23,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -284,6 +285,52 @@ class GatheringServiceTest {
 //        Assertions.assertThat(byGatheringId1.size()).isEqualTo(0);
 //    }
 
+    @Test
+    @DisplayName("게더링이 Ongoing 상태 이면서 시간이 만료된 애들 만료처리")
+    public void expired_gatheringStatus() throws Exception {
+       //given
+
+        List<String> tagList = new ArrayList<>();
+
+        tagList.add("tag1");
+        tagList.add("tag2");
+
+        List<String> imageList = new ArrayList<>();
+        imageList.add("URL1");
+        imageList.add("URL2");
+
+        Gathering gathering = Gathering.builder()
+                .user(savedUser)
+                .sort(Sort.PROJECT)
+                .gatheringImages(null)
+                .gatheringTagList(null)
+                .url("zz")
+                .content("zz")
+                .contact(Contact.OFFLINE)
+                .period("zz")
+                .subject(Subject.HOBBY)
+                .personnel(4)
+                .position(Position.DEVELOP)
+                .title("테스트")
+                .deadLine(LocalDateTime.now()).build();
+
+        Gathering save = gatheringRepository.save(gathering);
+        gatheringRepository.save(gathering);
+        gatheringRepository.save(gathering);
+
+        //when
+
+        Thread.sleep(1000); // 혹시 모르니 1초간 sleep
+
+        gatheringService.updateGatheringStatus();
+
+
+        List<Gathering> all = gatheringRepository.findAll();
+        //then
+        for (Gathering gatherings : all) {
+            Assertions.assertThat(gatherings.getStatus()).isEqualTo(Status.EXPIRED);
+        }
+    }
 
 
 
