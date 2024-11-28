@@ -35,7 +35,7 @@ public class EmitterRepository {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    public void deleteById(String id, Long userId) {
+    public void deleteById(String id) {
         emitters.remove(id);
     }
 

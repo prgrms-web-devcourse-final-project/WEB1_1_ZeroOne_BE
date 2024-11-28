@@ -34,7 +34,7 @@ public class ChatRoomService {
         notificationService.send(new NotificationRequest(
                 chatRoomCreateRequest.targetId(),
                 "채팅 신청 알람",
-                "",
+                "", //
                 type.name(),
                 savedChatRoom.getId()
         ));

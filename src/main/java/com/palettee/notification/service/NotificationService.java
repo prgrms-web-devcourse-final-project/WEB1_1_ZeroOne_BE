@@ -36,23 +36,26 @@ public class NotificationService {
         String emitterId = makeTimeIncludeId(user);
         SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(ONE_HOUR));
 
-        emitter.onCompletion(() -> emitterRepository.deleteById(emitterId, user.getId()));
-        emitter.onTimeout(() -> emitterRepository.deleteById(emitterId, user.getId()));
+        emitter.onCompletion(() -> emitterRepository.deleteById(emitterId));
+        emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
 
         String eventId = makeTimeIncludeId(user);
         sendToClient(emitter, emitterId, eventId,
                 "연결되었습니다. EventStream Created. [userId=" + user.getId() + "]");
-
         if (!lastEventId.isEmpty()) {
+            Long lastEvent = toLong(lastEventId);
             Map<String, Object> events = emitterRepository.findAllEventCacheStartWithUserId(
                     user.getId() + "_");
             events.entrySet().stream()
-                    .filter(entry -> lastEventId.compareTo(entry.getKey()) > 0)
-                    .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getKey(),
-                            NotificationDetailResponse.of((Notification) entry.getValue())));
+                    .filter(entry -> lastEvent < toLong(entry.getKey()))
+                    .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getKey(), entry.getValue()));
             emitterRepository.deleteAllEventCacheStartWithId(user.getId() + "_");
         }
         return emitter;
+    }
+
+    private Long toLong(String input) {
+        return Long.parseLong(input.split("_")[1]);
     }
 
     private String makeTimeIncludeId(User user) {
@@ -66,7 +69,8 @@ public class NotificationService {
                     .id(eventId)
                     .data(data));
         } catch (IOException exception) {
-            emitterRepository.deleteById(emitterId, 0L);
+            emitterRepository.saveEventCache(eventId, data);
+            emitterRepository.deleteById(emitterId);
             log.error("[SSE ERROR] connection is down - emitter : {} emitterId : {} eventId : {} message : {}", emitter, emitterId, eventId, exception.getMessage());
         }
     }
@@ -85,22 +89,16 @@ public class NotificationService {
                 .chatRoomId(request.chatRoomId())
                 .type(AlertType.findByInput(request.type()))
                 .build();
-        notificationRepository.save(notification);
-        return notification;
+        return notificationRepository.save(notification);
     }
 
     @Async
     public void sendNotification(NotificationRequest request, Notification notification) {
         String receiverId = String.valueOf(request.targetId());
         String eventId = receiverId + "_" + System.currentTimeMillis();
-        Map<String, SseEmitter> emitters = emitterRepository
-                .findAllEmitterStartWithByUserId(receiverId);
-        emitters.forEach(
-                (key, emitter) -> {
-                    emitterRepository.saveEventCache(key, notification);
-                    sendToClient(emitter, key, eventId, NotificationDetailResponse.of(notification));
-                }
-        );
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByUserId(receiverId);
+
+        emitters.forEach((key, emitter) -> sendToClient(emitter, key, eventId, NotificationDetailResponse.of(notification)));
     }
 
     @Transactional(readOnly = true)
