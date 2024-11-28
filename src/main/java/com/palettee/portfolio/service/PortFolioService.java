@@ -70,8 +70,8 @@ public class PortFolioService {
 
         notificationService.send(new NotificationRequest(
                 portFolio.getUser().getId(),
-                "좋아요 알림",
-                user.getName() + "님이 나의 포트폴리오에 좋아요를 남겼습니다.",
+                AlertType.LIKE.getTitle(),
+                user.getName() +  AlertType.LIKE.getMessage(),
                 AlertType.LIKE.name(),
                 null
         ));

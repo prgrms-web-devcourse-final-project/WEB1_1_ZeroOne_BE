@@ -30,15 +30,21 @@ public class ChatRoomService {
     public ChatRoomResponse saveChatRoom(ChatRoomCreateRequest chatRoomCreateRequest) {
         ChatRoom chatRoom = chatRoomCreateRequest.toEntityChatRoom();
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        sendNotification(chatRoomCreateRequest, savedChatRoom);
+        return ChatRoomResponse.of(savedChatRoom);
+    }
+
+    private void sendNotification(ChatRoomCreateRequest chatRoomCreateRequest, ChatRoom savedChatRoom) {
         AlertType type = getType(chatRoomCreateRequest.chatCategory());
+        Long targetId = chatRoomCreateRequest.targetId();
+        String username = userRepository.getUsername(targetId);
         notificationService.send(new NotificationRequest(
-                chatRoomCreateRequest.targetId(),
-                "채팅 신청 알람",
-                "", //
+                targetId,
+                type.getTitle(),
+                username + type.getMessage(),
                 type.name(),
                 savedChatRoom.getId()
         ));
-        return ChatRoomResponse.of(savedChatRoom);
     }
 
     private AlertType getType(ChatCategory chatCategory) {

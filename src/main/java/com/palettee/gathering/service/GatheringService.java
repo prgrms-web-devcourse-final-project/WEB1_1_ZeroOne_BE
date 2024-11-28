@@ -139,8 +139,8 @@ public class GatheringService {
 
         notificationService.send(new NotificationRequest(
                 gathering.getUser().getId(),
-                "좋아요 알림",
-                user.getName() + "님이 나의 게더링에 좋아요를 남겼습니다.",
+                AlertType.LIKE.getTitle(),
+                user.getName() +  AlertType.LIKE.getMessage(),
                 AlertType.LIKE.name(),
                 null
         ));
@@ -162,7 +162,7 @@ public class GatheringService {
     }
 
     private void accessUser(User user, Gathering gathering) {
-        if(gathering.getUser().getId() != user.getId()){
+        if(!gathering.getUser().getId().equals(user.getId())){
             throw  UserAccessException.EXCEPTION;
         }
     }
