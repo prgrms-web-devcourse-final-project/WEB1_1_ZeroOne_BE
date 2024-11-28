@@ -195,7 +195,7 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content",  imageList);
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content",null);
         GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
 
@@ -206,7 +206,7 @@ class GatheringServiceTest {
         updateList.add("tag4");
 
 
-        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("스터디", "취미", "오프라인", 3, "3개월", "2024-11-24-09-30", "개발자", updateList, "testUrl", "제목", "content", imageList);
+        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("스터디", "취미", "오프라인", 3, "3개월", "2024-11-24-09-30", "개발자", updateList, "testUrl", "제목", "content", null);
 
         GatheringCommonResponse gatheringCreateResponse = gatheringService.updateGathering(gathering.gatheringId(), gatheringCreateRequest1, savedUser);
 

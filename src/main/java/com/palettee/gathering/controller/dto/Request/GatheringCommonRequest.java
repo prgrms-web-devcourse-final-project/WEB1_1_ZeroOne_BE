@@ -55,7 +55,7 @@ public record GatheringCommonRequest(
     }
 
     public static List<GatheringTag> getGatheringTag(List<String> gatheringTag){
-        if(gatheringTag != null){
+        if(gatheringTag != null && !gatheringTag.isEmpty()){
             return gatheringTag.stream()
                     .map(GatheringTag::new).toList();
         }
@@ -64,7 +64,7 @@ public record GatheringCommonRequest(
     }
 
     public static List<GatheringImage> getGatheringImage(List<String> gatheringImages){
-        if(gatheringImages != null){
+        if(gatheringImages != null && !gatheringImages.isEmpty()){
             return gatheringImages.stream()
                     .map(GatheringImage :: new).toList();
         }

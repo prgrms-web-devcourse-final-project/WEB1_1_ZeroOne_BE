@@ -146,12 +146,25 @@ public class GatheringService {
         return GatheringLikeResponse.toDto(likeRepository.save(likes));
     }
 
+    @Transactional
+    public void updateGatheringStatus(Long id){
+        Gathering gathering = getGathering(id);
+
+        gathering.expiredStatus();
+    }
+
     public CustomSliceResponse findLikeList(
             Pageable pageable,
             Long userId,
             Long likeId
     ){
         return gatheringRepository.PageFindLikeGathering(pageable, userId, likeId);
+    }
+
+    public Gathering getGathering(Long gatheringId){
+        return gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
+
     }
 
     private Gathering getFetchGathering(Long gatheringId) {
@@ -165,11 +178,7 @@ public class GatheringService {
         }
     }
 
-    private Gathering getGathering(Long gatheringId){
-        return gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
-    }
     private boolean cancelLike(Long gatheringId, User user) {
         Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), gatheringId, LikeType.GATHERING);
         if(findByLikes != null) {

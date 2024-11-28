@@ -95,7 +95,7 @@ public class Gathering extends BaseEntity {
     }
 
     public void setGatheringTagList(List<GatheringTag> gatheringTagList) {
-        if(gatheringTagList != null){
+        if(gatheringTagList != null && !gatheringTagList.isEmpty()){
             for (GatheringTag gatheringTag : gatheringTagList) {
                 gatheringTag.setGathering(this);
                 this.gatheringTagList.add(gatheringTag);
@@ -105,7 +105,7 @@ public class Gathering extends BaseEntity {
     }
 
     public void setGatheringImages(List<GatheringImage> gatheringImages){
-        if(gatheringImages != null){
+        if(gatheringImages != null && !gatheringImages.isEmpty()){
             System.out.println(gatheringImages.size());
             for(GatheringImage gatheringImage : gatheringImages){
                 gatheringImage.setGathering(this);
@@ -132,7 +132,7 @@ public class Gathering extends BaseEntity {
 
     // 이미지 태그 있을때만 교체
     private void updateGatheringTag(GatheringCommonRequest gathering) {
-        if(gathering.gatheringTag()!= null){
+        if(gathering.gatheringTag()!= null && !gathering.gatheringTag().isEmpty()){
             this.gatheringTagList.clear();
 
             List<GatheringTag> gatheringTag = GatheringCommonRequest.getGatheringTag(gathering.gatheringTag());
@@ -141,7 +141,7 @@ public class Gathering extends BaseEntity {
     }
     // 이미지가 있을때만 교체
     private void updateGatheringImages(GatheringCommonRequest gathering){
-        if(gathering.gatheringImages()!=null){
+        if(gathering.gatheringImages()!=null && !gathering.gatheringImages().isEmpty()){
             this.gatheringImages.clear();
             List<GatheringImage> gatheringImage = GatheringCommonRequest.getGatheringImage(gathering.gatheringImages());
             setGatheringImages(gatheringImage);
@@ -150,6 +150,10 @@ public class Gathering extends BaseEntity {
 
     public void updateStatusComplete(){
        this.status = Status.COMPLETE;
+    }
+
+    public void expiredStatus(){
+        this.status = Status.EXPIRED;
     }
 
 }
