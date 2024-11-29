@@ -66,8 +66,6 @@ public class SecurityConfig {
 
                 // 유저의 프로필 정보를 조회
                 .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
-                .conditionalByPassable("/notification/subscribe", HttpMethod.GET)
-                .conditionalByPassable("/notification/test-noti", HttpMethod.POST)
 
                 /* <-------------- Portfolio API --------------> */
                 // 포트폴리오 전체 조회
