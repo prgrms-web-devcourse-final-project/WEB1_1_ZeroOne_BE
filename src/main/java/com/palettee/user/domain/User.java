@@ -2,6 +2,7 @@ package com.palettee.user.domain;
 
 import com.palettee.archive.domain.*;
 import com.palettee.gathering.domain.*;
+import com.palettee.global.entity.*;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.user.controller.dto.request.*;
@@ -17,7 +18,8 @@ import lombok.*;
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseEntity {
+    // TODO : 나중에 userRole nullable = false 해두고 테코 바꿔놔야 됨.
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +35,7 @@ public class User {
     private String oauthIdentity;
 
     @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
     private UserRole userRole;
 
     @Column(name = "user_email", unique = true, nullable = false)
@@ -107,10 +110,45 @@ public class User {
             throw JobGroupMismatchException.EXCEPTION;
         }
 
-        this.name = updateRequest.name();
-        this.briefIntro = updateRequest.briefIntro();
-        this.imageUrl = updateRequest.imageUrl();
-        this.jobTitle = updateRequest.jobTitle();
+        return this.update(updateRequest.name(), updateRequest.briefIntro(),
+                updateRequest.imageUrl(), updateRequest.jobTitle(),
+                division, majorGroup, minorGroup);
+    }
+
+    /**
+     * 정보 변경 요청에 따라 {@code User} 정보를 변경하는 메서드
+     *
+     * @throws InvalidDivisionException  요청의 소속 잘못 주어진 경우
+     * @throws InvalidJobGroupException  {@code updateRequest} 의 {@code jobGroup} 이 잘못된 경우
+     * @throws JobGroupMismatchException {@code 대직군} 과 {@code 소직군} 이 잘못 이어진 경우
+     */
+    public User update(EditUserInfoRequest editRequest)
+            throws InvalidJobGroupException, JobGroupMismatchException {
+
+        Division division = Division.of(editRequest.division());
+        MajorJobGroup majorGroup = MajorJobGroup.of(editRequest.majorJobGroup());
+        MinorJobGroup minorGroup = MinorJobGroup.of(editRequest.minorJobGroup());
+
+        if (!majorGroup.matches(minorGroup)) {
+            throw JobGroupMismatchException.EXCEPTION;
+        }
+
+        return this.update(editRequest.name(), editRequest.briefIntro(),
+                editRequest.imageUrl(), editRequest.jobTitle(),
+                division, majorGroup, minorGroup);
+    }
+
+    /**
+     * 정보 바꾸는 내부 메서드
+     */
+    private User update(
+            String name, String intro, String imageUrl, String jobTitle,
+            Division division, MajorJobGroup majorGroup, MinorJobGroup minorGroup
+    ) {
+        this.name = name;
+        this.briefIntro = intro;
+        this.imageUrl = imageUrl;
+        this.jobTitle = jobTitle;
         this.division = division;
         this.majorJobGroup = majorGroup;
         this.minorJobGroup = minorGroup;
