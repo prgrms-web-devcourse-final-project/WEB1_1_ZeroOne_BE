@@ -33,9 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
-
     private final UserRepository userRepository;
-
     private final LikeRepository likeRepository;
 
     private final ImageService imageService;
@@ -137,7 +135,6 @@ public class GatheringService {
 
         User findUser = getUser(user.getId());
         Gathering gathering = getGathering(gatheringId);
-
         if(cancelLike(gatheringId, findUser)) {
             return GatheringLikeResponse.toDto(null);
         }
@@ -179,7 +176,7 @@ public class GatheringService {
     }
 
     private void accessUser(User user, Gathering gathering) {
-        if(gathering.getUser().getId() != user.getId()){
+        if(!gathering.getUser().getId().equals(user.getId())){
             throw  UserAccessException.EXCEPTION;
         }
     }
