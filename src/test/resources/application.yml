@@ -27,3 +27,6 @@ server:
     encoding:
       charset: utf-8
       force: true
+
+sse:
+  timeout: 3600000 # 1시간

@@ -4,11 +4,9 @@ import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.user.controller.dto.response.GetUserGatheringResponse;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -100,6 +98,43 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         return new CustomSliceResponse(list, hasNext, nextId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public GetUserGatheringResponse findGatheringsOnUserWithNoOffset(
+            Long userId, int size,
+            Long gatheringOffset
+    ) {
+
+        // id 내림차순 (최신순) 정렬
+        List<Gathering> searchResult = queryFactory
+                .selectFrom(gathering)
+                .where(
+                        gathering.user.id.eq(userId),
+                        gatheringOffset != null ?
+                                gathering.id.loe(gatheringOffset) : null
+                )
+                .orderBy(gathering.id.desc())
+                .limit(size + 1)
+                .fetch();
+
+        boolean hasNext = searchResult.size() > size;
+        Long nextOffset = null;
+
+        if (hasNext) {
+            nextOffset = searchResult.get(size).getId();
+            searchResult = searchResult.stream()
+                    .limit(size)
+                    .toList();
+        }
+
+        return GetUserGatheringResponse.of(
+                searchResult, hasNext, nextOffset
+        );
+    }
+
+
     private BooleanExpression sortEq(String sort) {
         return sort != null ? gathering.sort.eq(Sort.findSort(sort)) : null;
     }
@@ -133,6 +168,5 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         }
         return hasNext;
     }
-
 }
 

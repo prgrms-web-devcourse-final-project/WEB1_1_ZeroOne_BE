@@ -6,6 +6,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    open-in-view: false
 
 
 # Swagger -> localhost:8080/api-test
@@ -15,3 +16,8 @@ springdoc:
     groups-order: desc
     tags-sorter: alpha
     operations-sorter: method
+
+sse:
+  timeout: 3600000 # 1시간
+
+

@@ -7,7 +7,6 @@ import com.palettee.global.security.oauth.*;
 import com.palettee.global.security.oauth.handler.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
-import java.util.*;
 import lombok.*;
 import org.springframework.context.annotation.*;
 import org.springframework.http.*;
@@ -65,8 +64,9 @@ public class SecurityConfig {
                 // TODO : 편의용 임시 발급. 나중에 개발 다 되면 없애야 됨.
                 .byPassable("/token/test-issue", HttpMethod.POST)
 
-                // 유저의 프로필 정보를 조회
+                // 유저의 프로필, 아카이브, 게더링 조회
                 .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
+                .byPassable(HttpMethod.GET, "/user/{id}/archives", "/user/{id}/gatherings")
 
                 /* <-------------- Portfolio API --------------> */
                 // 포트폴리오 전체 조회

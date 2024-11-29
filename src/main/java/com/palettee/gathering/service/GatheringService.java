@@ -12,6 +12,8 @@ import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
+import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
@@ -37,6 +39,8 @@ public class GatheringService {
     private final LikeRepository likeRepository;
 
     private final ImageService imageService;
+
+    private final NotificationService notificationService;
 
 
     @Transactional
@@ -132,6 +136,7 @@ public class GatheringService {
     public GatheringLikeResponse createGatheringLike(Long gatheringId, User user){
 
         User findUser = getUser(user.getId());
+        Gathering gathering = getGathering(gatheringId);
 
         if(cancelLike(gatheringId, findUser)) {
             return GatheringLikeResponse.toDto(null);
@@ -143,12 +148,15 @@ public class GatheringService {
                 .targetId(gatheringId)
                 .build();
 
+        Long targetId = gathering.getUser().getId();
+        notificationService.send(NotificationRequest.like(targetId, user.getName()));
+
         return GatheringLikeResponse.toDto(likeRepository.save(likes));
     }
 
     @Transactional
     public void updateGatheringStatus(){
-       gatheringRepository.updateStatusExpired();
+        gatheringRepository.updateStatusExpired();
     }
 
     public CustomSliceResponse findLikeList(
