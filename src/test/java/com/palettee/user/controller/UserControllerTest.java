@@ -95,7 +95,7 @@ class UserControllerTest {
                 .map(i -> new Gathering(
                         Sort.ETC, Subject.ETC, "period? 이게 뭐지?", Contact.OFFLINE,
                         LocalDateTime.MAX, 3, Position.DEVELOP, "title" + i,
-                        "content", "url", user, List.of()
+                        "content", "url", user, null,null
                 )).toList();
     }
 
