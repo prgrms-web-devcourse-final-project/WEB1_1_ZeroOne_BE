@@ -1,5 +1,6 @@
 package com.palettee.gathering.repository;
 
+
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.LikeType;
@@ -19,9 +20,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.palettee.gathering.domain.QGathering.gathering;
-import static com.palettee.likes.domain.QLikes.likes;
-import static com.palettee.user.domain.QUser.user;
+import static com.palettee.gathering.domain.QGathering.*;
+import static com.palettee.likes.domain.QLikes.*;
+import static com.palettee.user.domain.QUser.*;
+
+import com.palettee.gathering.controller.dto.Response.*;
+import com.palettee.gathering.domain.Sort;
+import com.palettee.gathering.domain.*;
+import com.palettee.likes.domain.*;
+import com.palettee.portfolio.controller.dto.response.*;
+import com.palettee.user.controller.dto.response.*;
+import com.querydsl.core.types.dsl.*;
+import com.querydsl.jpa.impl.*;
+import java.util.*;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.*;
 
 @Repository
 public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
@@ -98,6 +111,42 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
 
 
         return new CustomSliceResponse(list, hasNext, nextId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public GetUserGatheringResponse findGatheringsOnUserWithNoOffset(
+            Long userId, int size,
+            Long gatheringOffset
+    ) {
+
+        // id 내림차순 (최신순) 정렬
+        List<Gathering> searchResult = queryFactory
+                .selectFrom(gathering)
+                .where(
+                        gathering.user.id.eq(userId),
+                        gatheringOffset != null ?
+                                gathering.id.loe(gatheringOffset) : null
+                )
+                .orderBy(gathering.id.desc())
+                .limit(size + 1)
+                .fetch();
+
+        boolean hasNext = searchResult.size() > size;
+        Long nextOffset = null;
+
+        if (hasNext) {
+            nextOffset = searchResult.get(size).getId();
+            searchResult = searchResult.stream()
+                    .limit(size)
+                    .toList();
+        }
+
+        return GetUserGatheringResponse.of(
+                searchResult, hasNext, nextOffset
+        );
     }
 
     private BooleanExpression sortEq(String sort) {

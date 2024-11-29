@@ -8,6 +8,7 @@ import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;
 import java.util.*;
+import java.util.function.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.stereotype.*;
@@ -52,15 +53,18 @@ public class BasicRegisterService {
         user = this.getUser(user.getEmail());
         user = user.update(registerBasicInfoRequest);
 
+        log.debug("Registered user {}'s basic info", user.getId());
+
         // 이전 저장되 있던 url 제거
         relatedLinkRepo.deleteAllByUserId(user.getId());
 
+        log.debug("Deleted user {}'s all social links", user.getId());
+
         // url (linkedin, 블로그 등) 정보 등록
         List<String> links = registerBasicInfoRequest.url();
-        if (links != null && !links.isEmpty()) {
-            for (String link : links) {
-                relatedLinkRepo.save(new RelatedLink(link, user));
-            }
+        // url 등록 되었으면 로그 찍기
+        if (this.registerUrlsOn(user, links, relatedLinkRepo::save, RelatedLink::new)) {
+            log.debug("Registered user {}'s social links", user.getId());
         }
 
         // 기본 정보 등록했으니까 권한 상승
@@ -68,10 +72,10 @@ public class BasicRegisterService {
 
         // 사용자가 S3 에 업로드한 자원들 추가
         List<String> s3Resources = registerBasicInfoRequest.s3StoredImageUrls();
-        if (s3Resources != null && !s3Resources.isEmpty()) {
-            for (String s3Resource : s3Resources) {
-                storedProfileImageUrlRepo.save(new StoredProfileImageUrl(s3Resource, user));
-            }
+        // S3 자원 url 들 DB 에 저장 되었으면 로그 찍기
+        if (this.registerUrlsOn(user, s3Resources,
+                storedProfileImageUrlRepo::save, StoredProfileImageUrl::new)) {
+            log.debug("Added S3 uploaded resource URLs on DB");
         }
 
         log.info("Registered basic user info on id: {}",
@@ -94,7 +98,9 @@ public class BasicRegisterService {
         // 이전 포폴 정보 삭제
         portFolioRepo.deleteAllByUserId(user.getId());
 
-        // 포폴 정보 등록
+        log.debug("Deleted user {}'s all portfolio links", user.getId());
+
+        // 포폴 정보 등록 -> validation 으로 빈 링크는 안들어옴.
         String url = registerPortfolioRequest.portfolioUrl();
         portFolioRepo.save(new PortFolio(user, url));
 
@@ -110,5 +116,20 @@ public class BasicRegisterService {
     private User getUser(String email) {
         return userRepo.findByEmail(email)
                 .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private <E> boolean registerUrlsOn(User user, List<String> urls,
+            Function<E, E> repoSaveFunc, BiFunction<String, User, E> entityMaker) {
+
+        if (urls == null || urls.isEmpty()) {
+            return false;
+        }
+
+        for (String url : urls) {
+            E entity = entityMaker.apply(url, user);  // new Entity(url, user)
+            repoSaveFunc.apply(entity);               // repo.save(entity)
+        }
+
+        return true;
     }
 }

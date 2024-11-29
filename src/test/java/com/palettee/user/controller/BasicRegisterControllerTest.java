@@ -129,25 +129,20 @@ class BasicRegisterControllerTest {
         this.checkJwtException(HttpMethod.POST, "/profile");
 
         // majorJobGroup, minorJobGroup 잘못 주어졌을 때
-        RegisterBasicInfoRequest invalidGroup1
-                = gen("!!이상한거!!", "backend", "student", null);
-        RegisterBasicInfoRequest invalidGroup2
-                = gen("etc", "!!이상한거!!", "student", null);
+        var invalidGroup1 = gen("!!이상한거!!", "backend", "student", null);
+        var invalidGroup2 = gen("etc", "!!이상한거!!", "student", null);
 
         this.checkValidationException("/profile", invalidGroup1, invalidGroup2);
 
         // major, minor 그룹 잘못 이어어져 있을 때
-        RegisterBasicInfoRequest jobGroupMismatch
-                = gen("etc", "backend", "student", null);
+        var jobGroupMismatch = gen("etc", "backend", "student", null);
         // division 잘못 주어졌을 때
-        RegisterBasicInfoRequest divisionMismatch
-                = gen("developer", "backend", "!!!이상한거!!!", null);
+        var divisionMismatch = gen("developer", "backend", "!!!이상한거!!!", null);
 
         this.checkValidationException("/profile", jobGroupMismatch, divisionMismatch);
 
         // url 5 개 초과 주어졌을 때
-        RegisterBasicInfoRequest tooManyUrl
-                = gen("developer", "backend", "student",
+        var tooManyUrl = gen("developer", "backend", "student",
                 List.of("111.com", "222.com", "333.com", "444.com", "555.com", "666.com"));
 
         this.checkValidationException("/profile", tooManyUrl);

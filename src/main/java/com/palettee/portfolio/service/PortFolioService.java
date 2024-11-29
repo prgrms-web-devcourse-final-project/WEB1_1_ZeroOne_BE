@@ -3,6 +3,8 @@ package com.palettee.portfolio.service;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
+import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
@@ -25,6 +27,7 @@ public class PortFolioService {
 
     private final PortFolioRepository portFolioRepository;
     private final LikeRepository likeRepository;
+    private final NotificationService notificationService;
 
     public Slice<PortFolioResponse> findAllPortFolio(
             Pageable pageable,
@@ -52,7 +55,8 @@ public class PortFolioService {
 
     @Transactional
     public PortFolioLikeResponse createPortFolioLike(Long portfolioId, User user) {
-
+        PortFolio portFolio = portFolioRepository.findById(portfolioId)
+                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
         if(cancelLike(portfolioId, user)) {
             return new PortFolioLikeResponse(null);
         }
@@ -62,6 +66,9 @@ public class PortFolioService {
                 .user(user)
                 .targetId(portfolioId)
                 .build();
+
+        Long targetId = portFolio.getUser().getId();
+        notificationService.send(NotificationRequest.like(targetId, user.getName()));
 
         return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
     }
