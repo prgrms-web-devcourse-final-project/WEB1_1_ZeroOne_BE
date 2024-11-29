@@ -9,6 +9,7 @@ public record GatheringResponse(
         Long gatheringId,
         Long userId,
         String sort,
+        String subject,
         String title,
         String deadLine,
         String username,
@@ -17,12 +18,23 @@ public record GatheringResponse(
 ) {
 
     public static GatheringResponse toDto(Gathering gathering) {
-        List<String> list = gathering.getGatheringTagList().stream()
-                .map(gatheringTag -> gathering.getContent()).toList();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
         String deadLine = gathering.getDeadLine().format(formatter);
 
-        return new GatheringResponse(gathering.getId(),gathering.getUser().getId(), gathering.getSort().name(), gathering.getTitle(), deadLine, gathering.getUser().getName(), list);
+        List<String> gatheringTagList = checkGatheringTag(gathering);
+
+
+        return new GatheringResponse(gathering.getId(),gathering.getUser().getId(), gathering.getSort().name(), gathering.getSubject().name(), gathering.getTitle(), deadLine, gathering.getUser().getName(), gatheringTagList);
     }
+
+
+    private static List<String> checkGatheringTag(Gathering gathering) {
+        if(gathering.getGatheringTagList() != null && !gathering.getGatheringTagList().isEmpty()){
+          return gathering.getGatheringTagList().stream()
+                    .map(gatheringTag -> gathering.getContent()).toList();
+        }
+        return null;
+    }
+
 }

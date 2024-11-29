@@ -65,7 +65,7 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
     }
 
-    public Slice<GatheringResponse> findAll(
+    public CustomSliceResponse findAll(
             String sort,
             String period,
             String position,

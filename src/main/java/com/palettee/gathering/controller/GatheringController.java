@@ -4,7 +4,6 @@ import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
@@ -13,7 +12,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,7 +32,7 @@ public class GatheringController {
     }
 
     @GetMapping()
-    public Slice<GatheringResponse> findAll(
+    public CustomSliceResponse findAll(
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String period,
             @RequestParam(required = false) String position,

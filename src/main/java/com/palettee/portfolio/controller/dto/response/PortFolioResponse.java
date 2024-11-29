@@ -1,39 +1,37 @@
 package com.palettee.portfolio.controller.dto.response;
 
-import com.palettee.user.domain.MajorJobGroup;
-import com.palettee.user.domain.MinorJobGroup;
-import com.querydsl.core.annotations.QueryProjection;
+import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.user.domain.RelatedLink;
+
+import java.util.List;
 
 public record PortFolioResponse(
         Long portFolioId,
         Long userId,
+        String jobTitle,
         String portFolioUrl,
         String username,
         String introduction,
         String majorJobGroup,
         String minorJobGroup,
-        String memberImageUrl
+        String memberImageUrl,
+        List<String> relatedUrl
 ) {
-    @QueryProjection
-    public PortFolioResponse(
-            Long portFolioId,
-            Long userId,
-            String portFolioUrl,  // 추가
-            String username,
-            String introduction,
-            MajorJobGroup majorJobGroup,
-            MinorJobGroup minorJobGroup,
-            String memberImageUrl
-    ) {
-        this(
-                portFolioId,
-                userId,
-                portFolioUrl,  // 추가
-                username,
-                introduction,
-                majorJobGroup != null ? majorJobGroup.getMajorGroup() : null, // Enum 값 변환
-                minorJobGroup != null ? minorJobGroup.getMinorJobGroup() : null,
-                memberImageUrl
-        );
+
+    public static PortFolioResponse toDto(PortFolio portFolio){
+
+        List<String> relationUrl=  checkRelationUrl(portFolio);
+
+        return new PortFolioResponse(portFolio.getPortfolioId(),portFolio.getUser().getId(), portFolio.getUser().getJobTitle(), portFolio.getUrl(),portFolio.getUser().getName() , portFolio.getUser().getBriefIntro(), portFolio.getUser().getMajorJobGroup().name(), portFolio.getUser().getMinorJobGroup().name(), portFolio.getUser().getImageUrl(),relationUrl);
+    }
+
+    private static List<String> checkRelationUrl(PortFolio portFolio) {
+        List<RelatedLink> relatedLinks = portFolio.getUser().getRelatedLinks();
+
+        if(relatedLinks != null && !relatedLinks.isEmpty()){
+            return relatedLinks.stream()
+                    .map(RelatedLink::getLink).toList();
+        }
+        return null;
     }
 }

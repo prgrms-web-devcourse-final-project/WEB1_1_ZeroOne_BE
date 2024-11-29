@@ -3,12 +3,12 @@ package com.palettee.gathering.service;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringImageRepository;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.gathering.repository.GatheringTagRepository;
 import com.palettee.global.exception.InvalidCategoryException;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -144,13 +143,13 @@ class GatheringServiceTest {
 
         //when
 
-        Slice<GatheringResponse> list = gatheringService.findAll("프로젝트", "3개월", "개발자", "모집중", null, PageRequest.of(0, 10));
+        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "3개월", "개발자", "모집중", null, PageRequest.of(0, 10));
 
 
         //then
 
-        Assertions.assertThat(list.getSize()).isEqualTo(10);
-        Assertions.assertThat(list.hasNext()).isEqualTo(true);
+        Assertions.assertThat(customSliceResponse.content().size()).isEqualTo(10);
+        Assertions.assertThat(customSliceResponse.hasNext()).isEqualTo(true);
 
     }
 
