@@ -25,8 +25,8 @@ public class UserController {
      *
      * @param id 조회하고자 하는 사용자의 id
      */
-    @GetMapping("/{id}/profile")
-    public UserDetailResponse getUserDetail(@PathVariable("id") Long id) {
+    @GetMapping("/{userId}/profile")
+    public UserDetailResponse getUserDetail(@PathVariable("userId") Long id) {
         return userService.getUserDetails(id, getUserFromContext());
     }
 
@@ -35,8 +35,8 @@ public class UserController {
      *
      * @param id 조회하고자 하는 사용자의 id (자기 자신)
      */
-    @GetMapping("/{id}/edit")
-    public UserEditFormResponse getUserEditForm(@PathVariable("id") Long id) {
+    @GetMapping("/{userId}/edit")
+    public UserEditFormResponse getUserEditForm(@PathVariable("userId") Long id) {
         return userService.getUserEditForm(id, getUserFromContext());
     }
 
@@ -45,9 +45,9 @@ public class UserController {
      *
      * @param id 수정하고자 하는 사용자의 id (자기 자신)
      */
-    @PutMapping("/{id}/edit")
+    @PutMapping("/{userId}/edit")
     public UserResponse editUserInfo(
-            @PathVariable("id") Long id,
+            @PathVariable("userId") Long id,
             @Valid @RequestBody
             EditUserInfoRequest editUserInfoRequest
     ) {
@@ -60,9 +60,9 @@ public class UserController {
      *
      * @param id 조회하고자 하는 사용자의 id
      */
-    @GetMapping("/{id}/archives")
+    @GetMapping("/{userId}/archives")
     public GetUserArchiveResponse getUserArchives(
-            @PathVariable("id") Long id,
+            @PathVariable("userId") Long id,
             @Min(1) @RequestParam("size") int size,
             @RequestParam(value = "nextArchiveId", required = false) Long nextArchiveId
     ) {

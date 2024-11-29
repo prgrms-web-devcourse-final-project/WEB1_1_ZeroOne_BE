@@ -198,7 +198,7 @@ public class UserService {
 
     // 유저 포폴 링크 가져오기
     private String getPortfolioLink(User user) {
-        List<PortFolio> portFolios = user.getPortfolios();
+        List<PortFolio> portFolios = portFolioRepo.findAllByUserId(user.getId());
         // 처음에 한 유저당 포폴 여러개 저장 가능으로 설계했어서 `get(0)`
         return portFolios.isEmpty() ? null : portFolios.get(0).getUrl();
     }
