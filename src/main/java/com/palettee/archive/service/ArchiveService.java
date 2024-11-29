@@ -9,7 +9,6 @@ import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.*;
 import com.palettee.notification.controller.dto.NotificationRequest;
-import com.palettee.notification.domain.AlertType;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.UserNotFoundException;
@@ -162,13 +161,8 @@ public class ArchiveService {
                 .build();
         likeRepository.save(like);
 
-        notificationService.send(new NotificationRequest(
-                archive.getUser().getId(),
-                AlertType.LIKE.getTitle(),
-                user.getName() +  AlertType.LIKE.getMessage(),
-                AlertType.LIKE.name(),
-                null
-        ));
+        Long targetId = archive.getUser().getId();
+        notificationService.send(NotificationRequest.like(targetId, user.getName()));
 
         return new ArchiveResponse(archive.getId());
     }

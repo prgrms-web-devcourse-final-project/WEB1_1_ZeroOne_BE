@@ -38,6 +38,10 @@ public class NotificationService {
 
         emitter.onCompletion(() -> emitterRepository.deleteById(emitterId));
         emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
+        emitter.onError(throwable -> {
+            log.error("SSE Emitter Error : ", throwable);
+            emitter.complete();
+        });
 
         String eventId = makeTimeIncludeId(user);
         sendToClient(emitter, emitterId, eventId,

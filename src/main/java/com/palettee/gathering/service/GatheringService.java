@@ -12,7 +12,6 @@ import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
-import com.palettee.notification.domain.AlertType;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.User;
@@ -137,13 +136,8 @@ public class GatheringService {
                 .targetId(gatheringId)
                 .build();
 
-        notificationService.send(new NotificationRequest(
-                gathering.getUser().getId(),
-                AlertType.LIKE.getTitle(),
-                user.getName() +  AlertType.LIKE.getMessage(),
-                AlertType.LIKE.name(),
-                null
-        ));
+        Long targetId = gathering.getUser().getId();
+        notificationService.send(NotificationRequest.like(targetId, user.getName()));
 
         return GatheringLikeResponse.toDto(likeRepository.save(likes));
     }

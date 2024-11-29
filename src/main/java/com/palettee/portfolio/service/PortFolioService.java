@@ -4,7 +4,6 @@ import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
-import com.palettee.notification.domain.AlertType;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
@@ -68,13 +67,9 @@ public class PortFolioService {
                 .targetId(portfolioId)
                 .build();
 
-        notificationService.send(new NotificationRequest(
-                portFolio.getUser().getId(),
-                AlertType.LIKE.getTitle(),
-                user.getName() +  AlertType.LIKE.getMessage(),
-                AlertType.LIKE.name(),
-                null
-        ));
+        Long targetId = portFolio.getUser().getId();
+        notificationService.send(NotificationRequest.like(targetId, user.getName()));
+
         return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
     }
 

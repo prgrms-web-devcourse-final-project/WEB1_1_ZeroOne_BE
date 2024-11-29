@@ -38,13 +38,8 @@ public class ChatRoomService {
         AlertType type = getType(chatRoomCreateRequest.chatCategory());
         Long targetId = chatRoomCreateRequest.targetId();
         String username = userRepository.getUsername(targetId);
-        notificationService.send(new NotificationRequest(
-                targetId,
-                type.getTitle(),
-                username + type.getMessage(),
-                type.name(),
-                savedChatRoom.getId()
-        ));
+
+        notificationService.send(NotificationRequest.chat(targetId, username, type, savedChatRoom.getId()));
     }
 
     private AlertType getType(ChatCategory chatCategory) {
