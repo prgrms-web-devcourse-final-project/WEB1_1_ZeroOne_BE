@@ -11,6 +11,8 @@ import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
+import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
@@ -30,11 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
-
     private final UserRepository userRepository;
-
     private final LikeRepository likeRepository;
-
+    private final NotificationService notificationService;
 
     @Transactional
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
@@ -125,7 +125,7 @@ public class GatheringService {
     public GatheringLikeResponse createGatheringLike(Long gatheringId, User user){
 
         User findUser = getUser(user.getId());
-
+        Gathering gathering = getGathering(gatheringId);
         if(cancelLike(gatheringId, findUser)) {
             return GatheringLikeResponse.toDto(null);
         }
@@ -135,6 +135,9 @@ public class GatheringService {
                 .user(findUser)
                 .targetId(gatheringId)
                 .build();
+
+        Long targetId = gathering.getUser().getId();
+        notificationService.send(NotificationRequest.like(targetId, user.getName()));
 
         return GatheringLikeResponse.toDto(likeRepository.save(likes));
     }
@@ -153,7 +156,7 @@ public class GatheringService {
     }
 
     private void accessUser(User user, Gathering gathering) {
-        if(gathering.getUser().getId() != user.getId()){
+        if(!gathering.getUser().getId().equals(user.getId())){
             throw  UserAccessException.EXCEPTION;
         }
     }

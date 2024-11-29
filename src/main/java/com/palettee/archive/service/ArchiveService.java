@@ -5,8 +5,14 @@ import com.palettee.archive.controller.dto.response.*;
 import com.palettee.archive.domain.*;
 import com.palettee.archive.exception.*;
 import com.palettee.archive.repository.*;
+import com.palettee.likes.domain.LikeType;
+import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.*;
+import com.palettee.notification.controller.dto.NotificationRequest;
+import com.palettee.notification.service.NotificationService;
 import com.palettee.user.domain.*;
+import com.palettee.user.exception.UserNotFoundException;
+import com.palettee.user.repository.UserRepository;
 import java.util.*;
 import lombok.*;
 import org.springframework.data.domain.*;
@@ -23,15 +29,18 @@ public class ArchiveService {
     private final ArchiveImageRepository archiveImageRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public ArchiveResponse registerArchive(ArchiveRegisterRequest archiveRegisterRequest, User user) {
+        User findUser = getUser(user.getId());
         Archive archive = Archive.builder()
                 .title(archiveRegisterRequest.title())
                 .description(archiveRegisterRequest.description())
                 .type(ArchiveType.findByInput(archiveRegisterRequest.colorType()))
                 .canComment(archiveRegisterRequest.canComment())
-                .user(user)
+                .user(findUser)
                 .build();
 
         Archive savedArchive = archiveRepository.save(archive);
@@ -40,7 +49,7 @@ public class ArchiveService {
         processingImage(archiveRegisterRequest.imageUrls(), archive);
 
         // 아카이브 등록시 유저 권한 상승
-        user.changeUserRole(UserRole.USER);
+        findUser.changeUserRole(UserRole.USER);
 
         return new ArchiveResponse(savedArchive.getId());
     }
@@ -135,6 +144,29 @@ public class ArchiveService {
         }
     }
 
+    @Transactional
+    public ArchiveResponse likeArchive(Long archiveId, User user) {
+        Likes findLike = likeRepository.findByUserIdAndTargetId(user.getId(), archiveId, LikeType.ARCHIVE);
+        Archive archive = getArchive(archiveId);
+        if(findLike != null) {
+            likeRepository.delete(findLike);
+            return new ArchiveResponse(archive.getId());
+        }
+
+        User findUser = getUser(user.getId());
+        Likes like = Likes.builder()
+                .likeType(LikeType.ARCHIVE)
+                .targetId(archiveId)
+                .user(findUser)
+                .build();
+        likeRepository.save(like);
+
+        Long targetId = archive.getUser().getId();
+        notificationService.send(NotificationRequest.like(targetId, user.getName()));
+
+        return new ArchiveResponse(archive.getId());
+    }
+
     private void processingTags(List<TagDto> tags, Archive archive) {
         for (TagDto dto : tags) {
             tagRepository.save(new Tag(dto.tag(), archive));
@@ -149,6 +181,11 @@ public class ArchiveService {
 
     private Archive getArchive(Long archiveId) {
         return archiveRepository.findById(archiveId).orElseThrow(() -> ArchiveNotFound.EXCEPTION);
+    }
+
+    private User getUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
 
 }

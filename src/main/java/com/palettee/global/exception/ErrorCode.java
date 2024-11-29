@@ -18,6 +18,9 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(400, "해당 카테고리는 잘못된 요청입니다"),
     CHAT_CONTENT_NULL(400, "채팅 내용이 없습니다."),
 
+    NOT_VALID_ALERT_TYPE(400, "존재하지 않는 알림 타입입니다."),
+    NOT_MY_NOTIFICATION(400, "나의 알람이 아닙니다."),
+
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     EXPIRED_TOKEN(401, "토큰이 만료되었습니다."),
@@ -37,6 +40,8 @@ public enum ErrorCode {
     NO_USER_FOUND_VIA_TOKEN(404, "토큰으로 유저를 찾지 못했습니다."),
     USER_NOT_FOUND(404, "해당 유저를 찾지 못했습니다"),
     GATHERING_NOT_FOUND(404, "해당 게더링은 찾을 수 없습니다"),
+
+    NOTIFICATION_NOT_FOUND(404, "해당 알림은 찾을 수 없습니다."),
 
     /* 415 Unsupported Media Type : 지원하지 않는 미디어 타입 */
     BAD_FILE_EXTENSION(415, "적절하지 않은 파일 확장자입니다."),

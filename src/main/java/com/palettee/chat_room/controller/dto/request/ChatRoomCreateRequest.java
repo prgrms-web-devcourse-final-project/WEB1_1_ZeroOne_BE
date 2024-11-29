@@ -6,7 +6,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record ChatRoomCreateRequest(
         @NotNull(message = "채팅방 유형 작성은 필수입니다.")
-        ChatCategory chatCategory
+        ChatCategory chatCategory,
+        Long targetId
 ) {
     public ChatRoom toEntityChatRoom() {
         return ChatRoom.builder()

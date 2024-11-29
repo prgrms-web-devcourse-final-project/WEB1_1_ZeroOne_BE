@@ -7,7 +7,6 @@ import com.palettee.global.security.oauth.*;
 import com.palettee.global.security.oauth.handler.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
-import java.util.*;
 import lombok.*;
 import org.springframework.context.annotation.*;
 import org.springframework.http.*;
