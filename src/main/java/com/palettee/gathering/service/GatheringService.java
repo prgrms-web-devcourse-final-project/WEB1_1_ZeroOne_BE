@@ -8,6 +8,7 @@ import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
+import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
@@ -34,7 +35,11 @@ public class GatheringService {
     private final GatheringRepository gatheringRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+
+    private final ImageService imageService;
+
     private final NotificationService notificationService;
+
 
     @Transactional
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
@@ -49,6 +54,7 @@ public class GatheringService {
                 .contact(Contact.findContact(request.contact()))
                 .deadLine(GatheringCommonRequest.getDeadLineLocalDate(request.deadLine()))
                 .personnel(request.personnel())
+                .gatheringImages(GatheringCommonRequest.getGatheringImage(request.gatheringImages()))
                 .position(Position.findPosition(request.position()))
                 .title(request.title())
                 .content(request.content())
@@ -93,6 +99,8 @@ public class GatheringService {
 
         gathering.updateGathering(request);
 
+        if(request.gatheringImages()!= null) deleteImages(gathering);  // 업데이트시 이미지가 들어왓을시 본래 s3 이미지삭제
+
         return GatheringCommonResponse.toDTO(gathering);
     }
 
@@ -101,15 +109,16 @@ public class GatheringService {
     @Transactional
     public GatheringCommonResponse deleteGathering(Long gatheringId, User user) {
 
-        Gathering gathering = getGathering(gatheringId);
+        Gathering gathering = gatheringRepository.findByImageFetchId(gatheringId).orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
         accessUser(user, gathering);
+
+        deleteImages(gathering);
 
         gatheringRepository.delete(gathering);
 
         return GatheringCommonResponse.toDTO(gathering);
     }
-
     @Transactional
     public GatheringCommonResponse updateStatusGathering(Long gatheringId, User user){
 
@@ -142,12 +151,23 @@ public class GatheringService {
         return GatheringLikeResponse.toDto(likeRepository.save(likes));
     }
 
+    @Transactional
+    public void updateGatheringStatus(){
+        gatheringRepository.updateStatusExpired();
+    }
+
     public CustomSliceResponse findLikeList(
             Pageable pageable,
             Long userId,
             Long likeId
     ){
         return gatheringRepository.PageFindLikeGathering(pageable, userId, likeId);
+    }
+
+    public Gathering getGathering(Long gatheringId){
+        return gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
+
     }
 
     private Gathering getFetchGathering(Long gatheringId) {
@@ -161,11 +181,7 @@ public class GatheringService {
         }
     }
 
-    private Gathering getGathering(Long gatheringId){
-        return gatheringRepository.findById(gatheringId)
-                .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
-    }
     private boolean cancelLike(Long gatheringId, User user) {
         Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), gatheringId, LikeType.GATHERING);
         if(findByLikes != null) {
@@ -178,6 +194,13 @@ public class GatheringService {
     private User getUser(Long userId){
         return  userRepository.findById(userId).orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
+
+    private void deleteImages(Gathering gathering) {
+        if (!gathering.getGatheringImages().isEmpty()) {
+            gathering.getGatheringImages().forEach(gatheringImage -> imageService.delete(gatheringImage.getImageUrl()));
+        }
+    }
+
 
 
 }

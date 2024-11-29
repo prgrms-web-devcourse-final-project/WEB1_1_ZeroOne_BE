@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public record GatheringDetailsResponse(
+        Long userId,
         String sort,
         String username,
         String createTime,
@@ -37,6 +38,7 @@ public record GatheringDetailsResponse(
         String deadLine = gathering.getDeadLine().format(formatter);
 
         return new GatheringDetailsResponse(
+                gathering.getUser().getId(),
                 gathering.getSort().name(),
                 gathering.getUser().getName(),
                 createTime,

@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 // 완료
@@ -55,8 +56,10 @@ public class Gathering extends BaseEntity {
     private User user;
 
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<GatheringTag> gatheringTagList;
+    private List<GatheringTag> gatheringTagList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GatheringImage> gatheringImages= new ArrayList<>();
 
     @Builder
     public Gathering(
@@ -71,7 +74,8 @@ public class Gathering extends BaseEntity {
             String content,
             String url,
             User user,
-            List<GatheringTag> gatheringTagList
+            List<GatheringTag> gatheringTagList,
+            List<GatheringImage> gatheringImages
     ) {
         this.sort = sort;
         this.subject = subject;
@@ -87,15 +91,29 @@ public class Gathering extends BaseEntity {
         this.user = user;
         user.addGathering(this);
        setGatheringTagList(gatheringTagList);
+       setGatheringImages(gatheringImages);
     }
 
     public void setGatheringTagList(List<GatheringTag> gatheringTagList) {
-        for (GatheringTag gatheringTag : gatheringTagList) {
-            gatheringTag.setGathering(this);
+        if(gatheringTagList != null && !gatheringTagList.isEmpty()){
+            for (GatheringTag gatheringTag : gatheringTagList) {
+                gatheringTag.setGathering(this);
+                this.gatheringTagList.add(gatheringTag);
+            }
         }
-        this.gatheringTagList = gatheringTagList;
+
     }
 
+    public void setGatheringImages(List<GatheringImage> gatheringImages){
+        if(gatheringImages != null && !gatheringImages.isEmpty()){
+            System.out.println(gatheringImages.size());
+            for(GatheringImage gatheringImage : gatheringImages){
+                gatheringImage.setGathering(this);
+                this.gatheringImages.add(gatheringImage);
+            }
+        }
+
+    }
 
     public void updateGathering(GatheringCommonRequest gathering){
         this.sort = Sort.findSort(gathering.sort());
@@ -108,18 +126,34 @@ public class Gathering extends BaseEntity {
         this.title = gathering.title();
         this.content = gathering.content();
         this.url = gathering.url();
-        if(!this.gatheringTagList.isEmpty()){
+        updateGatheringTag(gathering);
+        updateGatheringImages(gathering);
+    }
+
+    // 이미지 태그 있을때만 교체
+    private void updateGatheringTag(GatheringCommonRequest gathering) {
+        if(gathering.gatheringTag()!= null && !gathering.gatheringTag().isEmpty()){
             this.gatheringTagList.clear();
+
+            List<GatheringTag> gatheringTag = GatheringCommonRequest.getGatheringTag(gathering.gatheringTag());
+            setGatheringTagList(gatheringTag);
         }
-        List<GatheringTag> gatheringTag = GatheringCommonRequest.getGatheringTag(gathering.gatheringTag());
-        this.gatheringTagList.addAll(gatheringTag );
-        for(GatheringTag tag : gatheringTag){
-            tag.setGathering(this);
+    }
+    // 이미지가 있을때만 교체
+    private void updateGatheringImages(GatheringCommonRequest gathering){
+        if(gathering.gatheringImages()!=null && !gathering.gatheringImages().isEmpty()){
+            this.gatheringImages.clear();
+            List<GatheringImage> gatheringImage = GatheringCommonRequest.getGatheringImage(gathering.gatheringImages());
+            setGatheringImages(gatheringImage);
         }
     }
 
     public void updateStatusComplete(){
        this.status = Status.COMPLETE;
+    }
+
+    public void expiredStatus(){
+        this.status = Status.EXPIRED;
     }
 
 }

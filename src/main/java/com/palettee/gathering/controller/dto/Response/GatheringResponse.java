@@ -2,12 +2,12 @@ package com.palettee.gathering.controller.dto.Response;
 
 import com.palettee.gathering.domain.Gathering;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public record GatheringResponse(
         Long gatheringId,
+        Long userId,
         String sort,
         String title,
         String deadLine,
@@ -23,6 +23,6 @@ public record GatheringResponse(
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
         String deadLine = gathering.getDeadLine().format(formatter);
 
-        return new GatheringResponse(gathering.getId(),gathering.getSort().name(), gathering.getTitle(), deadLine, gathering.getUser().getName(), list);
+        return new GatheringResponse(gathering.getId(),gathering.getUser().getId(), gathering.getSort().name(), gathering.getTitle(), deadLine, gathering.getUser().getName(), list);
     }
 }

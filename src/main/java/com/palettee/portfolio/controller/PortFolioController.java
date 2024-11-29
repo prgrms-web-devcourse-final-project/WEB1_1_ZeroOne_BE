@@ -26,8 +26,8 @@ public class PortFolioController
     public Slice<PortFolioResponse>  findAll(
             Pageable pageable,
             @RequestParam(defaultValue = "latest") String sort,
-            @RequestParam String majorJobGroup,
-            @RequestParam String minorJobGroup
+            @RequestParam(required = false) String majorJobGroup,
+            @RequestParam(required = false) String minorJobGroup
             ){
 
         return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort);

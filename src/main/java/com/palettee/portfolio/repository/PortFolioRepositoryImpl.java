@@ -7,12 +7,12 @@ import com.palettee.portfolio.controller.dto.response.QPortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -20,7 +20,9 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.palettee.likes.domain.QLikes.likes;
 import static com.palettee.portfolio.domain.QPortFolio.portFolio;
@@ -47,6 +49,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         List<PortFolioResponse> result = queryFactory
                 .select(new QPortFolioResponse(
                         portFolio.portfolioId,
+                        user.id,
                         portFolio.url,
                         user.name,
                         user.briefIntro,
@@ -81,32 +84,34 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         NoOffset으로 먼저 targetId 들 조회 -> 유저가 좋아요한 포트폴리오 아이디들 조회
          */
 
-        log.info("likeId = {}" , likeId);
 
-
-        List<Long> longs = queryFactory
-                .select(likes.targetId)
+        List<Tuple> results = queryFactory
+                .select(likes.targetId, likes.likeId)
                 .from(likes)
                 .where(
                         likes.user.id.eq(userId)
                                 .and(likes.likeType.eq(LikeType.PORTFOLIO))
-                                .and(likeIdEq(likeId))
+                                .and(likeIdLoe(likeId))
                 )
                 .leftJoin(likes.user, user)
                 .orderBy(likes.likeId.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
-        log.info("log.size= {}", longs.size());
-
-        boolean hasNext = hasNextPage(pageable, longs);
-
-        Long nextId = hasNext ? longs.get(longs.size() - 1) : null;  // 다음 likeId를 조회하기 위해 NoOffSet 방식
+        List<Long> targetIds = results.stream()
+                .map(result -> result.get(likes.targetId))
+                .collect(Collectors.toList());// targetId 리스트 생성
 
 
-        List<PortFolioResponse> result = queryFactory
+        boolean hasNext = hasNextPage(pageable, targetIds);
+
+        Long nextId = hasNext ? results.get(results.size() -1).get(likes.likeId) : null;  // 다음 likeId를 조회하기 위해 NoOffSet 방식
+
+
+        List<PortFolioResponse> list = queryFactory
                 .select(new QPortFolioResponse(
                         portFolio.portfolioId,
+                        user.id,
                         portFolio.url,
                         user.name,
                         user.briefIntro,
@@ -116,11 +121,13 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                 ))
                 .from(portFolio)
                 .leftJoin(portFolio.user, user)
-                .where(portFolio.portfolioId.in(longs))
+                .where(portFolio.portfolioId.in(targetIds))
                 .fetch();
 
+        list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.portFolioId())));
 
-        return new CustomSliceResponse(result, hasNext, nextId);
+
+        return new CustomSliceResponse(list, hasNext, nextId);
     }
 
     private BooleanExpression majorJobGroupEquals(String majorJobGroup) {
@@ -160,8 +167,8 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         return new OrderSpecifier<>(Order.ASC, entityPath.get("createAt", LocalDateTime.class));
     }
 
-    private BooleanExpression likeIdEq(Long likeId) {
-        return likeId != null ? likes.likeId.lt(likeId) : null;
+    private BooleanExpression likeIdLoe(Long likeId) {
+        return likeId != null ? likes.likeId.loe(likeId) : null;
     }
 
     private static boolean hasNextPage(Pageable pageable, List<?> result) {

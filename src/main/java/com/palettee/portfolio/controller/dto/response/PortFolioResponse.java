@@ -6,6 +6,7 @@ import com.querydsl.core.annotations.QueryProjection;
 
 public record PortFolioResponse(
         Long portFolioId,
+        Long userId,
         String portFolioUrl,
         String username,
         String introduction,
@@ -16,6 +17,7 @@ public record PortFolioResponse(
     @QueryProjection
     public PortFolioResponse(
             Long portFolioId,
+            Long userId,
             String portFolioUrl,  // 추가
             String username,
             String introduction,
@@ -25,6 +27,7 @@ public record PortFolioResponse(
     ) {
         this(
                 portFolioId,
+                userId,
                 portFolioUrl,  // 추가
                 username,
                 introduction,

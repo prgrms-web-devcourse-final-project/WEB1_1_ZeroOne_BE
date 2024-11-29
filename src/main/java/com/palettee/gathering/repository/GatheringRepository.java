@@ -13,5 +13,11 @@ public interface GatheringRepository extends JpaRepository<Gathering, Long>, Gat
     @Query("select distinct  g from Gathering g join fetch g.gatheringTagList where g.id = :gatheringId")
     Optional<Gathering> findByFetchId(Long gatheringId);
 
+    @Query("select distinct g from Gathering g left join fetch g.gatheringImages where g.id = :gatheringId")
+    Optional<Gathering> findByImageFetchId(Long gatheringId);
+
+    @Modifying(clearAutomatically = true)
+    @Query("update Gathering  g set g.status = 'EXPIRED' where g.status = 'ONGOING' AND g.deadLine < CURRENT_TIMESTAMP")
+    void updateStatusExpired();
 
 }
