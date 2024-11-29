@@ -42,7 +42,7 @@ public record GatheringCommonRequest(
         @NotBlank(message = "제목은 필수 값 입니다.")
         String title,
 
-        @NotBlank(message = "내용은 필수 값 이빈다.")
+        @NotBlank(message = "내용은 필수 값 입니다.")
         String content,
 
         List<String> gatheringImages
