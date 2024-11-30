@@ -1,5 +1,6 @@
 package com.palettee.portfolio.service;
 
+import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
@@ -29,6 +30,9 @@ public class PortFolioService {
     private final LikeRepository likeRepository;
     private final NotificationService notificationService;
 
+    private final RedisService redisService;
+
+
     public Slice<PortFolioResponse> findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,
@@ -40,9 +44,7 @@ public class PortFolioService {
 
     @Transactional
     public void clickPortFolio(Long portPolioId) {
-        PortFolio portFolio = portFolioRepository.findById(portPolioId)
-                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
-        portFolio.incrementHits();
+        redisService.viewCount(portPolioId, "portFolio");
     }
 
     public CustomSliceResponse findListPortFolio(
@@ -71,6 +73,11 @@ public class PortFolioService {
         notificationService.send(NotificationRequest.like(targetId, user.getName()));
 
         return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
+    }
+
+    @Transactional
+    public void bulkUpdateHits(Long count,Long portFolioListId){
+        portFolioRepository.incrementHits(count, portFolioListId);
     }
 
     private boolean cancelLike(Long portfolioId, User user) {

@@ -29,6 +29,7 @@ public class RedisConfig {
 //    @Value("${redis.password}")
 //    private String password;
 
+
     @Bean // Redis 서버와 연결
     public RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration redisConfiguration = new RedisStandaloneConfiguration();
@@ -61,6 +62,16 @@ public class RedisConfig {
     }
 
     @Bean
+    public RedisTemplate<String, Long> redisTemplates(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Long> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericToStringSerializer<>(Long.class)); // 조회수가 Long 타입
+        return template;
+    }
+
+
+    @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
@@ -79,6 +90,8 @@ public class RedisConfig {
         redisTemplate.setConnectionFactory(connectionFactory);
         return redisTemplate;
     }
+
+
 
     @Bean(name = "redisObjectMapper") // LocalDateTime 직렬화 할 때 오류 발생 -> jsr310 Module 추가
     public ObjectMapper redisObjectMapper() {
