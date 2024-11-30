@@ -178,7 +178,6 @@ class PortFolioServiceTest {
 
         RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
 
-        redisTemplate.delete(VIEW_PREFIX + "portFolio" + ": " + portFolio.getPortfolioId());
 
         for(int i =0 ; i < 5; i++){
             redisService.viewCount(portFolio.getPortfolioId(), "portFolio");
@@ -295,7 +294,7 @@ class PortFolioServiceTest {
         redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
 
-        redisService.likeRedisToDB( LIKE_PREFIX + "portFolio:", "portFolio" );
+        redisService.likeRedisToDB( LIKE_PREFIX + "portFolio :", "portFolio" );
 
         Map<String, Long> localCache = memoryCache.getLocalCache();
 
@@ -309,5 +308,62 @@ class PortFolioServiceTest {
         Assertions.assertThat(aw).isEqualTo(15);
 
 
+    }
+
+
+    @Test
+    @DisplayName("인기 포폴 RedisZset을 활용한 누적 점수 합산 후 순위 메기기")
+    public void reids_score() throws Exception {
+        //given
+        RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
+
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+
+        User user1 = User.builder()
+                .imageUrl("image")
+                .email("hellod")
+                .name("테스트")
+                .briefIntro("안녕하세요")
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
+                .build();
+
+        User user2 = User.builder()
+                .imageUrl("image")
+                .email("hellos")
+                .name("테스트")
+                .briefIntro("안녕하세요")
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
+                .build();
+
+        userRepository.save(user1);
+
+        userRepository.save(user2);
+
+        //when
+
+        // 좋아요 총 3개 점수 15점
+        redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+
+        // 조회수 5번 점수 5 합산 20점
+        for(int i =0 ; i < 5; i++){
+            redisService.viewCount(portFolio.getPortfolioId(), "portFolio");
+        }
+
+        redisService.likeRedisToDB( LIKE_PREFIX + "portFolio: ", "portFolio" );
+        redisService.viewRedisToDB(VIEW_PREFIX + "portFolio" + ": ");
+
+        redisService.rankingCategory("portFolio");
+
+        Long size = redisTemplate.opsForZSet().size("portFolio_Ranking");
+        Double score = redisTemplate.opsForZSet().score("portFolio_Ranking", portFolio.getPortfolioId());
+
+
+        //then
+        Assertions.assertThat(size).isEqualTo(1);
+        Assertions.assertThat(score).isEqualTo(20.0);
     }
 }

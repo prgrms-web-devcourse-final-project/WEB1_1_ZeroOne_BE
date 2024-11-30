@@ -90,24 +90,31 @@ public class RedisService {
         Map<String, Long> viewCache = memoryCache.getViewCache(category);
         Map<String, Long> likeCache = memoryCache.getLikeCache(category);
 
+        log.info("viewCache: {}", viewCache.size());
+        log.info("likeCache: {}", likeCache.size());
+
         String viewsKeys = VIEW_PREFIX + category + ": ";
         String likesKeys = LIKE_PREFIX + category + ": ";
 
         viewCache.forEach((keys, value) -> {
             // key에 대한 String은 버리고 id만 빼옴
-            Long targetViewId = Long.parseLong((keys.replace(viewsKeys, "")));
+
+            log.info("viewKeys ={}" ,keys);
+            Long targetId = Long.parseLong((keys.replace(viewsKeys, "").trim()));
+
 
             // zset의 id에 대한 score
-            Double score = redisTemplate.opsForZSet().score(zSetKey, targetViewId);
+            Double score = redisTemplate.opsForZSet().score(zSetKey, targetId);
 
             // score가 null 이면 누적 점수 합산 그게 아니면 새로운 점수로 초기화
             double resultScore = (score == null ? 0 : score) + value;
 
-            redisTemplate.opsForZSet().add(zSetKey, targetViewId, resultScore); // zset에 해당 포트폴리오에 대한 id와 value 저장
+            redisTemplate.opsForZSet().add(zSetKey, targetId, resultScore); // zset에 해당 포트폴리오에 대한 id와 value 저장
         });
 
         likeCache.forEach((keys, value) -> {
-            long targetLikeId = Long.parseLong((keys.replace(likesKeys, "")));
+            log.info("keys ={}", keys);
+            long targetLikeId = Long.parseLong((keys.replace(likesKeys, "").trim()));
 
             // zset의 id에 대한 score
             Double score = redisTemplate.opsForZSet().score(zSetKey, targetLikeId);
