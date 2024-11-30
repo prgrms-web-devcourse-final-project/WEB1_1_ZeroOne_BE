@@ -190,8 +190,6 @@ class PortFolioServiceTest {
 
         Map<String, Long> localCache = memoryCache.getLocalCache();
 
-        Long count = localCache.get(VIEW_PREFIX + "portFolio" + ": "); // 누적합
-
         PortFolio portFolio1 = portFolioRepository.findById(portFolio.getPortfolioId()).get();
 
 
@@ -299,11 +297,16 @@ class PortFolioServiceTest {
 
         redisService.likeRedisToDB( LIKE_PREFIX + "portFolio:", "portFolio" );
 
+        Map<String, Long> localCache = memoryCache.getLocalCache();
+
+        Long aw = localCache.get(LIKE_PREFIX + "portFolio:" + portFolio.getPortfolioId());
+
 
         List<Likes> byTargetId = likeRepository.findByTargetId(portFolio.getPortfolioId());
 
         //then
         Assertions.assertThat(byTargetId).hasSize(3);
+        Assertions.assertThat(aw).isEqualTo(15);
 
 
     }
