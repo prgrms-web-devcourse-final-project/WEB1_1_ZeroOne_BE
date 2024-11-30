@@ -66,11 +66,12 @@ public class ArchiveService {
     }
 
     @Transactional
-    public ArchiveDetailResponse getArchiveDetail(Long archiveId) {
+    public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);
         archive.hit();
         return ArchiveDetailResponse.toResponse(
                 archive,
+                user.getId(),
                 likeRepository.countArchiveLike(archiveId),
                 commentRepository.countArchiveComment(archiveId),
                 tagRepository.findByArchiveId(archiveId)
