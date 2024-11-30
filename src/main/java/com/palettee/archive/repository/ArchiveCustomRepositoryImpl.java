@@ -1,11 +1,9 @@
 package com.palettee.archive.repository;
 
 import static com.palettee.archive.domain.QArchive.*;
-import static com.palettee.user.domain.QUser.*;
 
 import com.palettee.archive.domain.*;
 import com.palettee.user.controller.dto.response.*;
-import com.palettee.user.domain.*;
 import com.querydsl.core.types.*;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.*;
@@ -24,13 +22,12 @@ public class ArchiveCustomRepositoryImpl implements ArchiveCustomRepository{
     }
 
     @Override
-    public Slice<Archive> findAllArchiveWithCondition(String majorJObGroup, String minorJobGroup, String sort, Pageable pageable) {
+    public Slice<Archive> findAllArchiveWithCondition(String color, String sort, Pageable pageable) {
         JPAQuery<Long> query = queryFactory
                 .select(archive.id)
                 .from(archive)
                 .where(
-                        majorJobGroupEquals(majorJObGroup),
-                        minorJobEquals(minorJobGroup)
+                        archiveColorEquals(color)
                 )
                 .orderBy(sortType(sort))
                 .offset(pageable.getOffset())
@@ -108,24 +105,13 @@ public class ArchiveCustomRepositoryImpl implements ArchiveCustomRepository{
         );
     }
 
-    private BooleanExpression majorJobGroupEquals(String majorJobGroup) {
+    private BooleanExpression archiveColorEquals(String color) {
 
-        MajorJobGroup majorGroup = MajorJobGroup.findMajorGroup(majorJobGroup);
-
-        if(majorGroup != null){
-            return user.majorJobGroup.eq(majorGroup);
+        ArchiveType type = ArchiveType.findByInput(color);
+        if(color != null){
+            return archive.type.eq(type);
         }
 
-        return null;
-    }
-
-    private BooleanExpression minorJobEquals(String minorJobGroup) {
-
-        MinorJobGroup findMinorJobGroup = MinorJobGroup.findMinorJobGroup(minorJobGroup);
-
-        if(findMinorJobGroup != null){
-            return user.minorJobGroup.eq(findMinorJobGroup);
-        }
         return null;
     }
 

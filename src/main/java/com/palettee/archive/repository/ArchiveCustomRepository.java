@@ -7,7 +7,7 @@ import org.springframework.data.domain.*;
 
 public interface ArchiveCustomRepository {
 
-    Slice<Archive> findAllArchiveWithCondition(String majorJObGroup, String minorJobGroup, String sort, Pageable pageable);
+    Slice<Archive> findAllArchiveWithCondition(String color, String sort, Pageable pageable);
 
     Slice<Archive> searchArchive(String searchKeyword, List<Long> ids, Pageable pageable);
 

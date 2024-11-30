@@ -98,7 +98,7 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser);
         ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser);
 
-        ArchiveListResponse all = archiveService.getAllArchive("DEVELOPER", "BACKEND", "latest", PageRequest.of(0, 10));
+        ArchiveListResponse all = archiveService.getAllArchive("RED", "latest", PageRequest.of(0, 10));
 
         //then
         assertThat(all.archives().size()).isEqualTo(3);
@@ -158,7 +158,7 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //when
-        ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse.archiveId());
+        ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse.archiveId(), savedUser);
 
         //then
         assertThat(archiveResponse.archiveId()).isNotNull();
@@ -201,7 +201,7 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse1 = archiveService.updateArchive(archiveResponse.archiveId(),
                 archiveUpdateRequest);
 
-        ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse1.archiveId());
+        ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse1.archiveId(), savedUser);
 
         //then
         assertThat(archiveResponse.archiveId()).isNotNull();

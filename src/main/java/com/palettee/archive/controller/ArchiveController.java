@@ -45,17 +45,16 @@ public class ArchiveController {
 
     @GetMapping("/{archiveId}")
     public ArchiveDetailResponse getArchive(@PathVariable("archiveId") long archiveId) {
-        return archiveService.getArchiveDetail(archiveId);
+        return archiveService.getArchiveDetail(archiveId, UserUtils.getContextUser());
     }
 
     @GetMapping
     public ArchiveListResponse getArchives(
-            @RequestParam String majorJobGroup,
-            @RequestParam String minorJobGroup,
+            @RequestParam String color,
             @RequestParam String sort,
             Pageable pageable
     ) {
-        return archiveService.getAllArchive(majorJobGroup, minorJobGroup, sort, pageable);
+        return archiveService.getAllArchive(color, sort, pageable);
     }
 
     @GetMapping("/search")
