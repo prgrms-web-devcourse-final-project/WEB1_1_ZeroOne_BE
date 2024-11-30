@@ -111,8 +111,11 @@ public class UserService {
         // 자기 자신만 정보 변경할 수 있음.
         this.checkUsersAreSame(userOnTarget, loggedInUser);
 
-        userOnTarget = userOnTarget.update(editUserInfoRequest);
+        userOnTarget.changeUserRole(UserRole.OLD_NEWBIE);
+        userOnTarget.update(editUserInfoRequest);
         log.debug("Edited basic user {}'s info", userOnTarget.getId());
+
+        userOnTarget = this.getUserByIdFetchWithRelatedLinks(userId);
 
         // 이전 저장되 있던 url 제거
         relatedLinkRepo.deleteAllByUserId(userOnTarget.getId());
@@ -126,12 +129,10 @@ public class UserService {
             log.debug("Edited user {}'s social links", userOnTarget.getId());
         }
 
-        // 기본 정보는 등록 되었으니 권한 상승
-        userOnTarget.changeUserRole(UserRole.JUST_NEWBIE);
+        userOnTarget = this.getUserByIdFetchWithPortfolio(userId);
 
         // 이전 포폴 정보 삭제
         portFolioRepo.deleteAllByUserId(userOnTarget.getId());
-
         log.debug("Deleted user {}'s all portfolio links", userOnTarget.getId());
 
         // 포폴 정보 등록 -> validation 으로 빈 링크는 안들어옴.
@@ -140,11 +141,13 @@ public class UserService {
 
         log.debug("Edited user {}'s portfolio link", userOnTarget.getId());
 
-        // 권한 상승
-        userOnTarget.changeUserRole(UserRole.OLD_NEWBIE);
-
         // 사용자가 S3 에 업로드한 자원들 추가
         List<String> s3Resources = editUserInfoRequest.s3StoredImageUrls();
+
+        if (s3Resources != null && !s3Resources.isEmpty()) {
+            userOnTarget = this.getUserByIdFetchWithStoredImageUrls(userId);
+        }
+
         // S3 자원들 저장 되었다면 로그 찍기
         if (this.registerUrlsOn(userOnTarget, s3Resources,
                 storedProfileImageUrlRepo::save, StoredProfileImageUrl::new)) {
@@ -166,10 +169,6 @@ public class UserService {
     public GetUserArchiveResponse getUserArchives(
             Long userId, int size, Long prevArchiveId
     ) {
-
-        // TODO : 유저가 있는지 확인할 필요가 있나? 없겠지?
-        // User userOnTarget = this.getUserById(userId);
-
         return archiveRepo.findArchivesOnUserWithNoOffset(
                 userId, size, prevArchiveId
         );
@@ -195,6 +194,22 @@ public class UserService {
         return userRepo.findById(userId)
                 .orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
+
+    private User getUserByIdFetchWithRelatedLinks(Long userId) throws UserNotFoundException {
+        return userRepo.findByIdFetchWithRelatedLinks(userId)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private User getUserByIdFetchWithPortfolio(Long userId) throws UserNotFoundException {
+        return userRepo.findByIdFetchWithPortfolios(userId)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private User getUserByIdFetchWithStoredImageUrls(Long userId) throws UserNotFoundException {
+        return userRepo.findByIdFetchWithStoredProfileUrls(userId)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
 
     // 유저 포폴 링크 가져오기
     private String getPortfolioLink(User user) {
