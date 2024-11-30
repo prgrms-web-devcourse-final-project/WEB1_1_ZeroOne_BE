@@ -46,8 +46,8 @@ public class CommentServiceTest {
     @BeforeEach
     void beforeEach() {
         savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro", MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND));
-        savedArchiveCanComment = archiveRepository.save(new Archive("title", "description", ArchiveType.RED, true, savedUser));
-        savedArchiveNotComment = archiveRepository.save(new Archive("title", "description", ArchiveType.RED, false, savedUser));
+        savedArchiveCanComment = archiveRepository.save(new Archive("title", "description", "introduction", ArchiveType.RED, true, savedUser));
+        savedArchiveNotComment = archiveRepository.save(new Archive("title", "description", "introduction", ArchiveType.RED, false, savedUser));
     }
 
     @AfterEach

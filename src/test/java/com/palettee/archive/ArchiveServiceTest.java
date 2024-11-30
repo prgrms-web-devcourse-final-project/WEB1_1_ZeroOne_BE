@@ -54,7 +54,7 @@ public class ArchiveServiceTest {
     void registerArchiveTest() {
         // given
         ArchiveRegisterRequest request = new ArchiveRegisterRequest(
-                "title", "description", "RED", true,
+                "title", "description", "introduction", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
@@ -89,7 +89,7 @@ public class ArchiveServiceTest {
     void getAllArchiveTest() {
         // given
         ArchiveRegisterRequest request = new ArchiveRegisterRequest(
-                "title", "description", "RED", true,
+                "title", "description", "introduction", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
@@ -109,7 +109,7 @@ public class ArchiveServiceTest {
     void getMyArchiveTest() {
         // given
         ArchiveRegisterRequest request = new ArchiveRegisterRequest(
-                "title", "description", "RED", true,
+                "title", "description", "introduction", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
@@ -128,7 +128,7 @@ public class ArchiveServiceTest {
     @DisplayName("아카이브 검색 조회 성공")
     void searchArchiveTest() {
         ArchiveRegisterRequest request = new ArchiveRegisterRequest(
-                "title", "description", "RED", true,
+                "title", "description", "introduction", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
 
@@ -152,7 +152,7 @@ public class ArchiveServiceTest {
     void getArchiveDetailTest() {
         // given
         ArchiveRegisterRequest request = new ArchiveRegisterRequest(
-                "title", "description", "RED", true,
+                "title", "description", "introduction", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
         ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
@@ -188,13 +188,13 @@ public class ArchiveServiceTest {
     void updateArchiveTest() {
         // given
         ArchiveRegisterRequest request = new ArchiveRegisterRequest(
-                "title", "description", "RED", true,
+                "title", "description", "introduction", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
         ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //when
-        ArchiveUpdateRequest archiveUpdateRequest = new ArchiveUpdateRequest("new _title", "new_description", "YELLOW",
+        ArchiveUpdateRequest archiveUpdateRequest = new ArchiveUpdateRequest("new _title", "new_description", "introduction", "YELLOW",
                 false,
                 List.of(new TagDto("tag11"), new TagDto("tag12")),
                 List.of(new ImageUrlDto("url11"), new ImageUrlDto("url12")));
@@ -231,7 +231,7 @@ public class ArchiveServiceTest {
     void deleteArchiveTest() {
         // given
         ArchiveRegisterRequest request = new ArchiveRegisterRequest(
-                "title", "description", "RED", true,
+                "title", "description", "introduction", "RED", true,
                 List.of(new TagDto("tag1"), new TagDto("tag2")),
                 List.of(new ImageUrlDto("url1"), new ImageUrlDto("url2")));
         ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);

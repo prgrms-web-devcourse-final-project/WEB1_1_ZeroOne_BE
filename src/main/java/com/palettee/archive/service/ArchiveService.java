@@ -38,6 +38,7 @@ public class ArchiveService {
         Archive archive = Archive.builder()
                 .title(archiveRegisterRequest.title())
                 .description(archiveRegisterRequest.description())
+                .introduction(archiveRegisterRequest.introduction())
                 .type(ArchiveType.findByInput(archiveRegisterRequest.colorType()))
                 .canComment(archiveRegisterRequest.canComment())
                 .user(findUser)
