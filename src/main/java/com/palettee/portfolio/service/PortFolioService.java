@@ -15,10 +15,14 @@ import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -75,10 +79,22 @@ public class PortFolioService {
         return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
     }
 
-    @Transactional
-    public void bulkUpdateHits(Long count,Long portFolioListId){
-        portFolioRepository.incrementHits(count, portFolioListId);
+    /**
+     * 상위 5개 레디스에 캐싱
+     * @return
+     */
+    @Cacheable(value = "portFolio_cache", key = "'portFolio_cache'")
+    public List<PortFolioResponse> popularPortFolio(){
+        Set<Long> portFolio = redisService.getZSetPopularity("portFolio");
+
+       return portFolioRepository.findAllByPortfolioIdIn(portFolio)
+               .stream()
+               .map(PortFolioResponse::toDto).toList();
+
     }
+
+
+
 
     private boolean cancelLike(Long portfolioId, User user) {
         Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), portfolioId,LikeType.PORTFOLIO);

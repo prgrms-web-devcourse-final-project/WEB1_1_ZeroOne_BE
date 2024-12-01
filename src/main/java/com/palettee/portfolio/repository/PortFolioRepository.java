@@ -18,4 +18,7 @@ public interface PortFolioRepository extends JpaRepository<PortFolio, Long>,
     @Modifying(clearAutomatically = true)
     @Query("update PortFolio pf set pf.hits = pf.hits + :count where pf.portfolioId = :portFolioId")
     void incrementHits(@Param("count") Long count ,@Param("portFolioId") Long portFolioId);
+
+    @Query("select p from PortFolio p join fetch p.user where p.portfolioId in :portFolioIds")
+    List<PortFolio> findAllByPortfolioIdIn(Set<Long> portFolioIds);
 }

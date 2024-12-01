@@ -83,6 +83,12 @@ public class RedisService {
         likeRedisToDB(likeKeys, category);
     }
 
+    /**
+     *
+     *
+     * @param category
+     * zset 에 Map의 누적 합 게산하여 순위 정렬
+     */
     public void rankingCategory(String category) {
         String zSetKey = category + "_Ranking";
         redisTemplate.opsForZSet().removeRange(zSetKey, 0, -1); // 인기 순위 목록 한번 비우기
@@ -186,6 +192,13 @@ public class RedisService {
             // 해당 category에 좋아요를 누른 유저를 모두 꺼냄
             insertLikeDB(category, redisKey, targetId, likeKeys);
         });
+    }
+
+
+    public Set<Long> getZSetPopularity(String category){
+        String key = category + "_Ranking";
+
+       return  redisTemplate.opsForZSet().reverseRange(key, 0, 4);
     }
 
 
