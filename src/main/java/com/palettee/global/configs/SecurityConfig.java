@@ -68,6 +68,9 @@ public class SecurityConfig {
                 .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
                 .byPassable(HttpMethod.GET, "/user/{id}/archives", "/user/{id}/gatherings")
 
+                // 유저 제보 목록, 상세 내용 조회
+                .byPassable(HttpMethod.GET, "/report", "/report/{reportId}")
+
                 /* <-------------- Portfolio API --------------> */
                 // 포트폴리오 전체 조회
                 .byPassable("/portFolio", HttpMethod.GET)
@@ -137,6 +140,7 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtExceptionHandlingFilter(), JwtFilter.class);
 
         String oldNewbie = UserRole.OLD_NEWBIE.toString().toUpperCase();
+        String admin = UserRole.ADMIN.toString().toUpperCase();
 
         // API 별 authenticate 설정
         http
@@ -147,6 +151,11 @@ public class SecurityConfig {
 
                     /* <<<--------- 나머지 인증 필요한 요청들 등록 --------->>> */
                     auth
+                            /* <-------------- User API --------------> */
+                            // 유저 제보를 해결함으로 변경 (관리자만 가능)
+                            .requestMatchers(HttpMethod.PATCH, "/report/{reportId}/fixed")
+                            .hasRole(admin)
+
                             /* <-------------- Portfolio API --------------> */
                             // 포폴 등록한 사람부터 가능
                             // 포폴 세부 조회
