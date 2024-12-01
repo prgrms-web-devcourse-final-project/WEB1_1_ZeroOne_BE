@@ -1,4 +1,4 @@
-package com.palettee.user.controller.dto.request;
+package com.palettee.user.controller.dto.request.users;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.*;

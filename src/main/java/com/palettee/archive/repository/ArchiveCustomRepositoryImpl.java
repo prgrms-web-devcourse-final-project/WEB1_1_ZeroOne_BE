@@ -4,7 +4,7 @@ import static com.palettee.archive.domain.QArchive.*;
 import static com.palettee.user.domain.QUser.*;
 
 import com.palettee.archive.domain.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
 import com.querydsl.core.types.*;
 import com.querydsl.core.types.dsl.*;

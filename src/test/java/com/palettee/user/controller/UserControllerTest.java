@@ -14,7 +14,7 @@ import com.palettee.global.security.jwt.exceptions.*;
 import com.palettee.global.security.jwt.utils.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
-import com.palettee.user.controller.dto.request.*;
+import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;

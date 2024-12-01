@@ -1,25 +1,6 @@
 package com.palettee.gathering.repository;
 
 
-import com.palettee.gathering.controller.dto.Response.GatheringResponse;
-import com.palettee.gathering.domain.*;
-import com.palettee.likes.domain.LikeType;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
-import org.springframework.stereotype.Repository;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import static com.palettee.gathering.domain.QGathering.*;
 import static com.palettee.likes.domain.QLikes.*;
 import static com.palettee.user.domain.QUser.*;
@@ -29,10 +10,12 @@ import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.controller.dto.response.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.response.users.*;
+import com.querydsl.core.*;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.*;
 import java.util.*;
+import java.util.stream.*;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.*;
 
