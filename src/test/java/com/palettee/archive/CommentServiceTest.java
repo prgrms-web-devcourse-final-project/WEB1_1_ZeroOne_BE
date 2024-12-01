@@ -100,7 +100,7 @@ public class CommentServiceTest {
 
     @Test
     @DisplayName("정상적인 댓글 전체 조회 성공")
-    void getCommentsTest() {
+    void getCommentsTestWithArchive() {
         // given
         CommentWriteRequest request = new CommentWriteRequest("content");
         for (int i = 0; i < 5; i++) {
@@ -108,7 +108,7 @@ public class CommentServiceTest {
         }
 
         // when
-        CommentListResponse comment = commentService.getComment(savedUser, savedArchiveCanComment.getId(),
+        CommentListResponse comment = commentService.getCommentWithArchive(savedUser, savedArchiveCanComment.getId(),
                 PageRequest.of(0, 10));
 
         // then
