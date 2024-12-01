@@ -26,9 +26,11 @@ public class ReportService {
      * 새로운 제보를 등록
      *
      * @param user 로그인한 유저
+     * @throws InvalidReportTypeException {@code request} 의 {@code reportType} 이 이상할 때
      */
     @Transactional
-    public ReportResponse registerReport(RegisterReportRequest request, User user) {
+    public ReportResponse registerReport(RegisterReportRequest request, User user)
+            throws InvalidReportTypeException {
         ReportType type = ReportType.of(request.reportType());
 
         Report entity = Report.builder()

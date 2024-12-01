@@ -36,10 +36,11 @@ public class Report extends BaseEntity {
     private final List<ReportComment> reportComments = new ArrayList<>();
 
     @Builder
-    public Report(ReportType reportType, String title, String content, User user) {
+    public Report(ReportType reportType, String title, String content, boolean isFixed, User user) {
         this.reportType = reportType;
         this.title = title;
         this.content = content;
+        this.isFixed = isFixed;
         this.user = user;
     }
 

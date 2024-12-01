@@ -6,6 +6,7 @@ import com.palettee.user.controller.dto.response.reports.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.service.*;
+import jakarta.validation.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
 import org.springframework.data.domain.*;
@@ -21,11 +22,13 @@ public class ReportController {
 
     /**
      * 새로운 제보를 등록
+     *
+     * @throws InvalidReportTypeException {@code request} 의 {@code reportType} 이 이상할 때
      */
     @PostMapping
     public ReportResponse registerReport(
-            @RequestBody RegisterReportRequest request
-    ) {
+            @Valid @RequestBody RegisterReportRequest request
+    ) throws InvalidReportTypeException {
         return reportService.registerReport(request, getUserFromContext());
     }
 
@@ -35,10 +38,10 @@ public class ReportController {
      * @param reportId 제보 id
      * @throws ReportNotFoundException id 에 해당하는 제보를 못 찾았을 때
      */
-    @PostMapping("/{reportId}")
+    @PostMapping("/{reportId}/comment")
     public ReportCommentResponse registerReportComment(
             @PathVariable("reportId") Long reportId,
-            @RequestBody RegisterReportCommentRequest request
+            @Valid @RequestBody RegisterReportCommentRequest request
     ) throws ReportNotFoundException {
         return reportService.registerComment(reportId, request, getUserFromContext());
     }
