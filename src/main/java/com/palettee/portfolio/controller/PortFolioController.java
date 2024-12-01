@@ -2,8 +2,8 @@ package com.palettee.portfolio.controller;
 
 import com.palettee.global.security.validation.UserUtils;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.service.PortFolioService;
 import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,12 +53,16 @@ public class PortFolioController
     }
 
     @PostMapping("/{portFolioId}/likes")
-    public PortFolioLikeResponse createLikes(
+    public void createLikes(
             @PathVariable Long portFolioId
     ){
-        User contextUser = UserUtils.getContextUser();
+        portFolioService.likePortFolio(UserUtils.getContextUser(), portFolioId);
+    }
 
-        return portFolioService.createPortFolioLike(portFolioId, contextUser);
+    @GetMapping("/popular")
+    public PortFolioWrapper findPopular(){
+
+     return portFolioService.popularPortFolio();
     }
 
 

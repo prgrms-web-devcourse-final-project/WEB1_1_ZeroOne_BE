@@ -9,6 +9,7 @@ import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.exception.PortFolioNotFoundException;
 import com.palettee.portfolio.repository.PortFolioRepository;
@@ -21,8 +22,8 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -46,9 +47,13 @@ public class PortFolioService {
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
     }
 
-    @Transactional
+
     public void clickPortFolio(Long portPolioId) {
         redisService.viewCount(portPolioId, "portFolio");
+    }
+
+    public void likePortFolio(User user, Long portFolioId) {
+        redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
     public CustomSliceResponse findListPortFolio(
@@ -59,40 +64,50 @@ public class PortFolioService {
         return portFolioRepository.PageFindLikePortfolio(pageable, userId, likeId);
     }
 
-    @Transactional
-    public PortFolioLikeResponse createPortFolioLike(Long portfolioId, User user) {
-        PortFolio portFolio = portFolioRepository.findById(portfolioId)
-                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
-        if(cancelLike(portfolioId, user)) {
-            return new PortFolioLikeResponse(null);
-        }
-
-        Likes likes = Likes.builder()
-                .likeType(LikeType.PORTFOLIO)
-                .user(user)
-                .targetId(portfolioId)
-                .build();
-
-        Long targetId = portFolio.getUser().getId();
-        notificationService.send(NotificationRequest.like(targetId, user.getName()));
-
-        return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
-    }
+//    @Transactional
+//    public PortFolioLikeResponse createPortFolioLike(Long portfolioId, User user) {
+//        PortFolio portFolio = portFolioRepository.findById(portfolioId)
+//                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
+//        if(cancelLike(portfolioId, user)) {
+//            return new PortFolioLikeResponse(null);
+//        }
+//
+//        Likes likes = Likes.builder()
+//                .likeType(LikeType.PORTFOLIO)
+//                .user(user)
+//                .targetId(portfolioId)
+//                .build();
+//
+//        Long targetId = portFolio.getUser().getId();
+//        notificationService.send(NotificationRequest.like(targetId, user.getName()));
+//
+//        return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
+//    }
 
     /**
      * 상위 5개 레디스에 캐싱
      * @return
      */
-    @Cacheable(value = "portFolio_cache", key = "'portFolio_cache'")
-    public List<PortFolioResponse> popularPortFolio(){
+    @Cacheable(value = "portFolio_cache", key = "'cache'")
+    public PortFolioWrapper popularPortFolio(){
         Set<Long> portFolio = redisService.getZSetPopularity("portFolio");
+        List<Long> sortedPortFolio = new ArrayList<>(portFolio);
 
-       return portFolioRepository.findAllByPortfolioIdIn(portFolio)
-               .stream()
-               .map(PortFolioResponse::toDto).toList();
+        List<PortFolio> portfolios = portFolioRepository.findAllByPortfolioIdIn(sortedPortFolio);
 
+
+        // in 절을 사용하면 정렬 순서가 바뀌기 때문에 Set으로 정렬한 순서랑 맞춰줘야함
+        Map<Long, PortFolio> portfoliosMap = portfolios.stream()
+                .collect(Collectors.toMap(PortFolio::getPortfolioId, portfolio -> portfolio));
+
+        List<PortFolioResponse> list = sortedPortFolio.stream()
+                .map(portfoliosMap::get)
+                .filter(Objects::nonNull)
+                .map(PortFolioResponse::toDto)
+                .collect(Collectors.toList());
+
+        return new PortFolioWrapper(list);
     }
-
 
 
 

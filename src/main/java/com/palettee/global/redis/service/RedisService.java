@@ -4,12 +4,12 @@ import com.palettee.global.cache.MemoryCache;
 import com.palettee.likes.controller.dto.LikeDto;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.service.LikeService;
-import com.palettee.portfolio.repository.PortFolioRepository;
+import com.palettee.portfolio.service.PortFolioRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,7 +23,8 @@ import static com.palettee.global.Const.VIEW_PREFIX;
 public class RedisService {
 
     private final RedisTemplate<String, Long> redisTemplate;
-    private final PortFolioRepository portFolioRepository;
+    //순환 참조 떄문에 portFolioUpdateService 하나
+    private final PortFolioRedisService portFolioRedisService;
     private final MemoryCache memoryCache;
     private final LikeService likeService;
 
@@ -139,7 +140,7 @@ public class RedisService {
      *
      *
      */
-    @Transactional
+
     public void viewRedisToDB(String viewKeys) {
         Set<String> redisKeys = redisTemplate.keys(viewKeys + "*");
 
@@ -198,15 +199,27 @@ public class RedisService {
     public Set<Long> getZSetPopularity(String category){
         String key = category + "_Ranking";
 
-       return  redisTemplate.opsForZSet().reverseRange(key, 0, 4);
+        Set<Long> longs= redisTemplate.opsForZSet().reverseRange(key, 0, 4);
+
+        Set<ZSetOperations.TypedTuple<Long>> result = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, 4);
+
+        result.forEach(item -> {
+            // item.getValue()로 값, item.getScore()로 점수를 출력
+            System.out.println("popularNumber: " + item.getValue() + ", Score: " + item.getScore());
+        });
+
+        longs.forEach(number ->{
+            System.out.println("popularNumber" +number);
+        });
+
+        return longs;
     }
 
 
-
-    private void updateViewDB(String redisKey, Long count, Long targetId, String str) {
+        public void updateViewDB(String redisKey, Long count, Long targetId, String str) {
         log.info("count = {}, targetId = {}, str = {}", count, targetId, str);
         // DB에 Redis 의 조회수 반영
-        portFolioRepository.incrementHits(count, targetId);
+        portFolioRedisService.incrementHits(count, targetId);
 
         // 로컬 메모리 캐시에 디비에 반영된
         memoryCache.put(str + targetId, count);
@@ -215,10 +228,22 @@ public class RedisService {
         redisTemplate.opsForValue().decrement(redisKey, count);
     }
 
+    public void deleteKeyPatten(String patten){
+        Set<String> keys = redisTemplate.keys(patten);
+
+        if(keys != null && !keys.isEmpty()){
+            redisTemplate.delete(keys);
+        }
+    }
+
+
     private void insertLikeDB(String category, String redisKey, long targetId, String str) {
         Set<Long> userIds = redisTemplate.opsForSet().members(redisKey + "_user");
 
         Long count = redisTemplate.opsForValue().get(redisKey);
+
+        log.info("targetId= {}", targetId);
+        log.info("count = {}", count);
 
         if (userIds == null || userIds.isEmpty()) {
             return;
@@ -229,6 +254,8 @@ public class RedisService {
         userIds.forEach(userId -> {
             list.add(new LikeDto(targetId, userId, LikeType.findLike(category)));
         });
+
+        redisTemplate.opsForValue().decrement(redisKey, count);
         memoryCache.put(str + targetId,count);
 
         likeService.bulkSaveLike(list);
