@@ -113,6 +113,30 @@ public class ReportService {
     }
 
     /**
+     * 특정 제보의 댓글 내용을 조회
+     *
+     * @param reportId 제보 id
+     * @param pageable 페이징 파람 {@code (page & size)}
+     * @throws ReportNotFoundException id 에 해당하는 제보를 못 찾았을 때
+     */
+    public ReportCommentListResponse getReportComments(Long reportId, Pageable pageable)
+            throws ReportNotFoundException {
+        Report report = reportRepo.findById(reportId)
+                .orElseThrow(() -> ReportNotFoundException.EXCEPTION);
+
+        Slice<ReportComment> comments = reportCommentRepo.findCommentByReportId(
+                report.getId(), pageable
+        );
+
+        List<SimpleReportCommentResponse> resp = comments.getContent()
+                .stream()
+                .map(SimpleReportCommentResponse::of)
+                .toList();
+
+        return new ReportCommentListResponse(resp, SliceInfo.of(comments));
+    }
+
+    /**
      * 특정 제보를 해결함으로 변경
      *
      * @param reportId  제보 id

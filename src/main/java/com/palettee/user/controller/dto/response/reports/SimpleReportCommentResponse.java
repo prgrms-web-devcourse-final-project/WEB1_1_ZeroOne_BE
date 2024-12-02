@@ -2,7 +2,7 @@ package com.palettee.user.controller.dto.response.reports;
 
 import com.palettee.user.domain.*;
 
-public record ReportCommentDetailResponse(
+public record SimpleReportCommentResponse(
         Long reportCommentId,
         String content,
 
@@ -10,8 +10,8 @@ public record ReportCommentDetailResponse(
         String userName
 ) {
 
-    public static ReportCommentDetailResponse of(ReportComment reportComment) {
-        return new ReportCommentDetailResponse(
+    public static SimpleReportCommentResponse of(ReportComment reportComment) {
+        return new SimpleReportCommentResponse(
                 reportComment.getId(), reportComment.getContent(),
                 reportComment.getUser().getId(), reportComment.getUser().getName()
         );

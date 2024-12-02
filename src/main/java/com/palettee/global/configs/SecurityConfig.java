@@ -68,8 +68,9 @@ public class SecurityConfig {
                 .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
                 .byPassable(HttpMethod.GET, "/user/{id}/archives", "/user/{id}/gatherings")
 
-                // 유저 제보 목록, 상세 내용 조회
-                .byPassable(HttpMethod.GET, "/report", "/report/{reportId}")
+                // 유저 제보 목록, 상세 내용, 댓글 조회
+                .byPassable(HttpMethod.GET, "/report", "/report/{reportId}",
+                        "/report/{reportId}/comment")
 
                 /* <-------------- Portfolio API --------------> */
                 // 포트폴리오 전체 조회

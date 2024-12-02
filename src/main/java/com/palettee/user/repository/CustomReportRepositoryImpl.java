@@ -4,9 +4,7 @@ import static com.palettee.user.domain.QReport.*;
 
 import com.palettee.user.domain.*;
 import com.querydsl.core.types.*;
-import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.*;
-import java.time.*;
 import java.util.*;
 import lombok.*;
 import org.springframework.data.domain.*;
@@ -76,11 +74,9 @@ public class CustomReportRepositoryImpl implements
     }
 
     private OrderSpecifier<?> sortType(String sort) {
-        PathBuilder<?> entityPath = new PathBuilder<>(Report.class, "report");
-
         return new OrderSpecifier<>(
                 "oldest".equals(sort) ? Order.ASC : Order.DESC,
-                entityPath.get("createAt", LocalDateTime.class)
+                report.id
         );
     }
 

@@ -80,6 +80,21 @@ public class ReportController {
     }
 
     /**
+     * 특정 제보의 댓글 내용을 조회
+     *
+     * @param reportId 제보 id
+     * @param pageable 페이징 파람 {@code (page & size)}
+     * @throws ReportNotFoundException id 에 해당하는 제보를 못 찾았을 때
+     */
+    @GetMapping("/{reportId}/comment")
+    public ReportCommentListResponse getComments(
+            @PathVariable("reportId") Long reportId,
+            Pageable pageable
+    ) throws ReportNotFoundException {
+        return reportService.getReportComments(reportId, pageable);
+    }
+
+    /**
      * 특정 제보를 해결함으로 변경
      *
      * @param reportId 제보 id
