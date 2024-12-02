@@ -46,11 +46,7 @@ public class CustomReportRepositoryImpl implements
 
         final JPAQuery<Report> jpaQuery = jpaQueryFactory.selectFrom(report)
                 .where(report.id.in(slice.getContent()))
-                .orderBy(
-                        "oldest".equals(sort) ?
-                                report.createAt.asc() :
-                                report.createAt.desc()
-                );
+                .orderBy(this.sortType(sort));
 
         return new SliceImpl<>(jpaQuery.fetch(), pageable, slice.hasNext());
     }

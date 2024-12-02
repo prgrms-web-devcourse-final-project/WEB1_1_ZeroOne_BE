@@ -276,13 +276,6 @@ class ReportControllerTest {
                 new RegisterReportRequest("제목", "내용", "other"), testUser
         ).reportId();
 
-        var comments = IntStream.range(0, TEST_SIZE).boxed()
-                .map(i -> new RegisterReportCommentRequest("댓글" + i))
-                .toList();
-        for (var comment : comments) {
-            reportService.registerComment(reportId, comment, testUser);
-        }
-
         Report report = reportRepo.findById(reportId).orElseThrow();
 
         // 정상 응답 확인
@@ -303,12 +296,51 @@ class ReportControllerTest {
                 .andExpect(jsonPath("$.data.userId", is(
                         Integer.parseInt(String.valueOf(testUser.getId()))
                 )))
-                .andExpect(jsonPath("$.data.userName", is(testUser.getName())))
-                .andExpect(jsonPath("$.data.reportComments.length()", is(comments.size())));
+                .andExpect(jsonPath("$.data.userName", is(testUser.getName())));
 
         // reportId 없을때 에러 확인
         ErrorCode err = ReportNotFoundException.EXCEPTION.getErrorCode();
         mvc.perform(get("/report/" + Long.MAX_VALUE))
+                .andExpect(status().is(err.getStatus()))
+                .andExpect(content().string(containsString(err.getReason())));
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("특정 제보의 댓글 내용을 조회")
+    void getComments() throws Exception {
+
+        Long reportId = reportService.registerReport(
+                new RegisterReportRequest("제목", "내용", "other"), testUser
+        ).reportId();
+
+        var comments = IntStream.range(0, TEST_SIZE).boxed()
+                .map(i -> new RegisterReportCommentRequest("댓글" + i))
+                .toList();
+        for (var comment : comments) {
+            reportService.registerComment(reportId, comment, testUser);
+        }
+
+        // 정상 응답 확인
+        int size = comments.size() / 2 + 1;
+        mvc.perform(get("/report/" + reportId + "/comment?page=0&size=" + size))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.comments.length()", is(size)))
+                .andExpect(jsonPath("$.data.slice.currentPage", is(0)))
+                .andExpect(jsonPath("$.data.slice.size", is(size)))
+                .andExpect(jsonPath("$.data.slice.hasNext", is(true)));
+
+        // 다음 페이지
+        mvc.perform(get("/report/" + reportId + "/comment?page=1&size=" + size))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.comments.length()", is(comments.size() - size)))
+                .andExpect(jsonPath("$.data.slice.currentPage", is(1)))
+                .andExpect(jsonPath("$.data.slice.size", is(size)))
+                .andExpect(jsonPath("$.data.slice.hasNext", is(false)));
+
+        // reportId 없을때 에러 확인
+        ErrorCode err = ReportNotFoundException.EXCEPTION.getErrorCode();
+        mvc.perform(get("/report/" + Long.MAX_VALUE + "/comment"))
                 .andExpect(status().is(err.getStatus()))
                 .andExpect(content().string(containsString(err.getReason())));
     }
@@ -385,6 +417,4 @@ class ReportControllerTest {
 
         log.info("All validation exceptions were covered");
     }
-
-
 }

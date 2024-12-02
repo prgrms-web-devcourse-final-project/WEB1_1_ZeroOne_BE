@@ -2,6 +2,7 @@ package com.palettee.user.service;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.palettee.archive.controller.dto.response.*;
 import com.palettee.user.controller.dto.request.reports.*;
 import com.palettee.user.controller.dto.response.reports.*;
 import com.palettee.user.domain.*;
@@ -36,7 +37,8 @@ class ReportServiceTest {
 
     static User testUser;
     final static int TEST_SIZE = 20;
-    final static Comparator<Report> oldest = Comparator.comparing(Report::getCreateAt);
+    final static Comparator<Report> oldest = Comparator.comparing(Report::getCreateAt)
+            .thenComparing(Report::getId);
     final static Comparator<Report> latest = oldest.reversed();
 
     private RegisterReportRequest genReportRequest(String title, ReportType type) {
@@ -222,6 +224,36 @@ class ReportServiceTest {
         var reportRequest = this.genReportRequest("제목", type);
         Long reportId = reportService.registerReport(reportRequest, testUser).reportId();
 
+        var result = reportService.getReportDetail(reportId);
+
+        // 조회 값 일치 확인
+        assertThat(result).satisfies(
+                r -> assertThat(r).isNotNull(),
+                r -> assertThat(r.reportId()).isEqualTo(reportId),
+                r -> assertThat(r.title()).isEqualTo(reportRequest.title()),
+                r -> assertThat(r.content()).isEqualTo(reportRequest.content()),
+                r -> assertThat(r.reportType()).isEqualTo(type),
+                r -> assertThat(r.isFixed()).isFalse(),
+                r -> assertThat(r.userId()).isEqualTo(testUser.getId()),
+                r -> assertThat(r.userName()).isEqualTo(testUser.getName())
+        );
+
+        // 예외 확인
+        assertThatThrownBy(() -> reportService.getReportDetail(Long.MAX_VALUE))
+                .isInstanceOf(ReportNotFoundException.class);
+
+        log.info("--> getReportDetail");
+    }
+
+    @Test
+    @DisplayName("특정 제보의 댓글 내용을 조회")
+    void getReportComments() {
+        log.info("<-- getReportComments");
+
+        Long reportId = reportService.registerReport(
+                this.genReportRequest("제목", ReportType.BUG), testUser
+        ).reportId();
+
         List<RegisterReportCommentRequest> commentRequests = IntStream.range(0, TEST_SIZE).boxed()
                 .map(i -> this.genReportCommentRequest("댓글 내용" + i))
                 .toList();
@@ -234,44 +266,52 @@ class ReportServiceTest {
             );
         }
 
-        var result = reportService.getReportDetail(reportId);
+        var reportComments = commentResp.stream()
+                .map(ReportCommentResponse::reportCommentId)
+                .map(reportCommentRepo::findById)
+                .map(Optional::orElseThrow)
+                .toList();
 
-        // 죄회 값 일치 확인
-        assertThat(result).satisfies(
-                r -> assertThat(r).isNotNull(),
-                r -> assertThat(r.reportId()).isEqualTo(reportId),
-                r -> assertThat(r.title()).isEqualTo(reportRequest.title()),
-                r -> assertThat(r.content()).isEqualTo(reportRequest.content()),
-                r -> assertThat(r.reportType()).isEqualTo(type),
-                r -> assertThat(r.isFixed()).isFalse(),
-                r -> assertThat(r.userId()).isEqualTo(testUser.getId()),
-                r -> assertThat(r.userName()).isEqualTo(testUser.getName())
-        );
+        final int PAGE_SIZE = TEST_SIZE / 3;
 
-        // 댓글 내용도 확인
-        List<ReportCommentDetailResponse> comments = result.reportComments();
-        assertThat(comments)
-                .hasSize(commentRequests.size())
-                .hasSize(commentResp.size());
+        for (int pageNum = 0; ; pageNum++) {
 
-        for (int i = 0; i < comments.size(); i++) {
-            var resp = comments.get(i);
-            String content = commentRequests.get(i).content();
-            Long id = commentResp.get(i).reportCommentId();
-
-            assertThat(resp).isNotNull().satisfies(
-                    r -> assertThat(r.reportCommentId()).isEqualTo(id),
-                    r -> assertThat(r.content()).isEqualTo(content),
-                    r -> assertThat(r.userId()).isEqualTo(testUser.getId()),
-                    r -> assertThat(r.userName()).isEqualTo(testUser.getName())
+            var result = reportService.getReportComments(
+                    reportId, PageRequest.of(pageNum, PAGE_SIZE)
             );
+
+            List<ReportComment> expected = reportComments.subList(
+                    pageNum * PAGE_SIZE,
+                    Math.min(pageNum * PAGE_SIZE + PAGE_SIZE, reportComments.size())
+            );
+
+            var comments = result.comments();
+
+            assertThat(comments).hasSize(expected.size());
+
+            for (int i = 0; i < comments.size(); i++) {
+                var comment = comments.get(i);
+                var expectedComment = expected.get(i);
+
+                assertThat(comment).isNotNull().satisfies(
+                        r -> assertThat(r.reportCommentId()).isEqualTo(expectedComment.getId()),
+                        r -> assertThat(r.content()).isEqualTo(expectedComment.getContent()),
+                        r -> assertThat(r.userId()).isEqualTo(testUser.getId()),
+                        r -> assertThat(r.userName()).isEqualTo(testUser.getName())
+                );
+            }
+
+            SliceInfo slice = result.slice();
+
+            assertThat(slice).isNotNull();
+            assertThat(slice.size()).isEqualTo(PAGE_SIZE);
+
+            if (!slice.hasNext()) {
+                break;
+            }
         }
 
-        // 예외 확인
-        assertThatThrownBy(() -> reportService.getReportDetail(Long.MAX_VALUE))
-                .isInstanceOf(ReportNotFoundException.class);
-
-        log.info("--> getReportDetail");
+        log.info("--> getReportComments");
     }
 
     @Test
