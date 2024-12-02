@@ -53,10 +53,10 @@ public class PortFolioController
     }
 
     @PostMapping("/{portFolioId}/likes")
-    public void createLikes(
+    public boolean createLikes(
             @PathVariable Long portFolioId
     ){
-        portFolioService.likePortFolio(UserUtils.getContextUser(), portFolioId);
+        return portFolioService.likePortFolio(UserUtils.getContextUser(), portFolioId);
     }
 
     @GetMapping("/popular")

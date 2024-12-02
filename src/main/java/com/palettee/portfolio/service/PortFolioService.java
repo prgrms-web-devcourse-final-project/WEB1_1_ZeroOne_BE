@@ -52,8 +52,8 @@ public class PortFolioService {
         redisService.viewCount(portPolioId, "portFolio");
     }
 
-    public void likePortFolio(User user, Long portFolioId) {
-        redisService.likeCount(portFolioId, user.getId(),"portFolio");
+    public boolean likePortFolio(User user, Long portFolioId) {
+       return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
     public CustomSliceResponse findListPortFolio(

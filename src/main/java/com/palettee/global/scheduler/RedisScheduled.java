@@ -30,7 +30,7 @@ public class RedisScheduled {
     public void rankingRedis(){
 
         //랭킹 반영전에 랭킹 키 한번 비워주기
-        redisService.deleteKeyPatten("portFolio_*");
+        redisService.deleteKeyPatten("portFolio_*", null);
 
 
         redisService.rankingCategory("portFolio");
@@ -45,8 +45,8 @@ public class RedisScheduled {
         System.out.println("localCache: " + localCache.size());
 
         //redis 캐시 View vo
-        redisService.deleteKeyPatten("View_*");
-        redisService.deleteKeyPatten("Like_*");
+        redisService.deleteKeyPatten("View_*", null);
+        redisService.deleteKeyPatten("Like_*", "_user");
 
     }
 

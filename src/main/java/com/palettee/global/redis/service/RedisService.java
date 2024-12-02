@@ -32,6 +32,8 @@ public class RedisService {
      *
      * @param targetId 는  achieveId, portFolioId
      * @param category  는 achieve, portFolio
+     *
+     *  redis에 해당 뷰 카우팅
      */
     public void viewCount(Long targetId, String category) {
         String key = VIEW_PREFIX + category + ": " + targetId;
@@ -44,8 +46,8 @@ public class RedisService {
      * @param userId 유저 아이디
      * @param category achieve, portFolio, gathering
      */
-    public void likeCount(Long targetId, Long userId, String category) {
-        // String 자료구조에 들어갈 ㅂ키
+    public boolean likeCount(Long targetId, Long userId, String category) {
+        // String 자료구조에 들어갈 키
         String key = LIKE_PREFIX + category + ": " + targetId;
         // Set에 들어갈 키 카테고리 키를 포함 하고 있어야 어떤 유저가 어떤 카테고리 아이디에 좋아요를 눌렀는지 알 수 있음 -
         String userKey = key + "_user";
@@ -64,12 +66,16 @@ public class RedisService {
         if (validation != null && validation > 0) {
             log.info("좋아요를 눌렀습니다");
             redisTemplate.opsForValue().increment(key, 1L);
+
+            return true;
         }
         // 이미 유저가 좋아요를 눌른 상태면 해당 좋아요 취소
         else {
             log.info("좋아요를 취소하였습니다");
             redisTemplate.opsForSet().remove(userKey, userId);
-            redisTemplate.opsForValue().decrement(key, 1L);
+            redisTemplate.opsForValue().set(key,0L);
+
+            return false;
         }
     }
 
@@ -82,6 +88,70 @@ public class RedisService {
 
         viewRedisToDB(viewKeys);
         likeRedisToDB(likeKeys, category);
+    }
+
+    /**
+     *
+     * @param viewKeys String 자료구조에 있는  키 값들 전체 조회
+     *                 후  해당 키값에 대한 value 조히수를 DB에 반영
+     *
+     *
+     */
+
+    public void viewRedisToDB(String viewKeys) {
+
+        // 모든 카테고리들의 키를 가져옴
+        Set<String> redisKeys = redisTemplate.keys(viewKeys + "*");
+
+        // 카운팅 된 값이 아예 없으면 return
+        if (redisKeys.isEmpty()) {
+            log.info("해당 키에  대한 값이 없음");
+            return;
+        }
+
+        // View 의 키를 다 뒤짐
+        redisKeys.forEach(redisKey -> {
+            log.info("카운트");
+            // 해당 키에 대한 아이디만 빼냄
+            long targetId = Long.parseLong(redisKey.replace(viewKeys, "").trim());
+            // 키를 하나씩 가져와서 증가된 조회수를 가져옴 만약에 아이디에 대한 조회수가 없을시 0을 반환
+            Long countViews = Optional.ofNullable(redisTemplate.opsForValue().get(redisKey)).orElse(0L);
+
+            log.info("targetId: {}, countViews: {}", targetId, countViews);
+
+            if (countViews > 0) {
+                updateViewDB(redisKey, countViews, targetId, viewKeys);
+            }
+        });
+    }
+
+    /**
+     *
+     * @param likeKeys : 고정 상수 값 + 카테고리:
+     * @param category : 카테고리 : ex: portFolio, archive, gathering
+     */
+    public void likeRedisToDB(String likeKeys, String category) {
+        //키 중에 해당 패턴인 애들 다꺼내줌
+        Set<String> redisKeys = redisTemplate.keys(likeKeys + "*");
+
+        if (redisKeys.isEmpty() || redisKeys == null) {
+            return;
+        }
+
+        // :user:가 포함되지 않은 키만 필터링 -> 유저 키가 포함되지 않은 애들
+        redisKeys = redisKeys.stream()
+                .filter(redisKey -> !redisKey.contains("_user")) // :user:가 포함된 키 제외
+                .collect(Collectors.toSet());
+
+        redisKeys.forEach(redisKey -> {
+
+            log.info("redisKey ={}", redisKey);
+
+            long targetId = Long.parseLong(redisKey.replace(likeKeys, "").trim());
+
+            // 해당 category에 좋아요를 누른 유저를 모두 꺼냄
+            insertLikeDB(category, redisKey, targetId, likeKeys);
+        });
     }
 
     /**
@@ -133,68 +203,6 @@ public class RedisService {
         });
     }
 
-    /**
-     *
-     * @param viewKeys String 자료구조에 있는  키 값들 전체 조회
-     *                 후  해당 키값에 대한 value 조히수를 DB에 반영
-     *
-     *
-     */
-
-    public void viewRedisToDB(String viewKeys) {
-        Set<String> redisKeys = redisTemplate.keys(viewKeys + "*");
-
-        // 카운팅 된 값이 아예 없으면 return
-        if (redisKeys.isEmpty()) {
-            log.info("해당 키에  대한 값이 없음");
-            return;
-        }
-
-        // View 의 키를 다 뒤짐
-        redisKeys.forEach(redisKey -> {
-            log.info("카운트");
-            // 해당 키에 대한 아이디만 빼냄
-            long targetId = Long.parseLong(redisKey.replace(viewKeys, "").trim());
-            // 키를 하나씩 가져와서 증가된 조회수를 가져옴 만약에 아이디에 대하 조회수가 없을시 0을 반환
-            Long countViews = Optional.ofNullable(redisTemplate.opsForValue().get(redisKey)).orElse(0L);
-
-            log.info("targetId: {}, countViews: {}", targetId, countViews);
-
-            if (countViews > 0) {
-                updateViewDB(redisKey, countViews, targetId, viewKeys);
-            }
-        });
-    }
-
-    /**
-     *
-     * @param likeKeys : 고정 상수 값 + 카테고리:
-     * @param category : 카테고리 : ex: portFolio, archive, gathering
-     */
-    public void likeRedisToDB(String likeKeys, String category) {
-        //키 중에 해당 패턴인 애들 다꺼내줌
-        Set<String> redisKeys = redisTemplate.keys(likeKeys + "*");
-
-        if (redisKeys.isEmpty() || redisKeys == null) {
-            return;
-        }
-
-        // :user:가 포함되지 않은 키만 필터링 -> 유저 키가 포함되지 않은 애들
-        redisKeys = redisKeys.stream()
-                .filter(redisKey -> !redisKey.contains("_user")) // :user:가 포함된 키 제외
-                .collect(Collectors.toSet());
-
-        redisKeys.forEach(redisKey -> {
-            log.info("redisKey ={}", redisKey);
-            log.info("likeKeys ={}", likeKeys);
-
-            long targetId = Long.parseLong(redisKey.replace(likeKeys, "").trim());
-
-            // 해당 category에 좋아요를 누른 유저를 모두 꺼냄
-            insertLikeDB(category, redisKey, targetId, likeKeys);
-        });
-    }
-
 
     public Set<Long> getZSetPopularity(String category){
         String key = category + "_Ranking";
@@ -221,25 +229,39 @@ public class RedisService {
         // DB에 Redis 의 조회수 반영
         portFolioRedisService.incrementHits(count, targetId);
 
-        // 로컬 메모리 캐시에 디비에 반영된
+        // 해당 아이디의 조회수의 가중치를 저장해줌
         memoryCache.put(str + targetId, count);
 
         // Redis에 증가된 조회 수 차감 -> 데이터 정합성 때문에 해당 아이디 조회수 삭제
         redisTemplate.opsForValue().decrement(redisKey, count);
     }
 
-    public void deleteKeyPatten(String patten){
+    public void deleteKeyPatten(String patten,String userKeySuffix){
         Set<String> keys = redisTemplate.keys(patten);
 
         if(keys != null && !keys.isEmpty()){
-            redisTemplate.delete(keys);
+            Set<String> keyDelete;
+            if(userKeySuffix == null){
+                keyDelete = keys;
+            }
+            else{
+                keyDelete = keys.stream()
+                        .filter(key -> !key.contains(userKeySuffix))
+                        .collect(Collectors.toSet());
+            }
+            if(!keyDelete.isEmpty() && keyDelete != null){
+                redisTemplate.delete(keyDelete);
+            }
+
         }
     }
 
 
     private void insertLikeDB(String category, String redisKey, long targetId, String str) {
+        // Set 자료구조에서 해당 카테고리에 좋아요를 누른 유저의 아이디를 모두 꺼냄
         Set<Long> userIds = redisTemplate.opsForSet().members(redisKey + "_user");
 
+        // 해당 카테고리 아이디에 대한 좋아요수 count
         Long count = redisTemplate.opsForValue().get(redisKey);
 
         log.info("targetId= {}", targetId);
