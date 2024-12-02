@@ -8,6 +8,7 @@ build/
 ### Secrets ###
 src/**/resources/application-secret.yml
 src/**/resources/application-deploy.yml
+src/**/resources/application-ec2-dev.yml
 
 ### STS ###
 .apt_generated
