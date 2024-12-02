@@ -1,5 +1,6 @@
 package com.palettee.archive.service;
 
+import com.palettee.archive.controller.dto.request.CommentUpdateRequest;
 import com.palettee.archive.controller.dto.request.CommentWriteRequest;
 import com.palettee.archive.controller.dto.response.CommentDetail;
 import com.palettee.archive.controller.dto.response.CommentListResponse;
@@ -44,8 +45,18 @@ public class CommentService {
     }
 
     @Transactional
+    public CommentResponse updateComment(User user, Long commentId, CommentUpdateRequest commentUpdateRequest) {
+        Comment comment = getComment(commentId);
+        if (!comment.getUserId().equals(user.getId())) {
+            throw NotCommentOwner.EXCEPTION;
+        }
+        comment.update(commentUpdateRequest);
+        return new CommentResponse(commentId);
+    }
+
+    @Transactional
     public CommentResponse deleteComment(Long commentId, Long userId) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> CommentNotFound.EXCEPTION);
+        Comment comment = getComment(commentId);
         checkCommentOwner(comment, userId);
         commentRepository.delete(comment);
         return new CommentResponse(commentId);
@@ -57,7 +68,7 @@ public class CommentService {
         }
     }
 
-    public CommentListResponse getComment(User user, Long archiveId, Pageable pageable) {
+    public CommentListResponse getCommentWithArchive(User user, Long archiveId, Pageable pageable) {
         Archive archive = getArchive(archiveId);
         Slice<Comment> comments = commentRepository.findCommentWithArchiveId(archive.getId(), pageable);
 
@@ -65,6 +76,11 @@ public class CommentService {
                 .map(it -> CommentDetail.toResponse(it, user))
                 .toList();
         return new CommentListResponse(result, SliceInfo.of(comments));
+    }
+
+    private Comment getComment(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> CommentNotFound.EXCEPTION);
     }
 
     private Archive getArchive(Long archiveId) {

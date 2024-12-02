@@ -86,7 +86,7 @@ class UserControllerTest {
     private List<Archive> genArchiveList(int size, ArchiveType color, User user) {
         return IntStream.range(0, size).boxed()
                 .map(i -> new Archive(
-                        color.toString() + i, "desc", color, false, user
+                        color.toString() + i, "desc", "introduction", color, false, user
                 )).toList();
     }
 
