@@ -173,7 +173,7 @@ class PortFolioServiceTest {
 //    }
 
     @Test
-    @DisplayName("Redis를 사용한 포트폴리오 조회수 증가 및 DB 반영 테스트")
+    @DisplayName("Redis를 사용한 포트폴리오 중복 조회수 증가 및 DB 반영 테스트")
     public void portFolio_hits_redis() throws Exception {
        //given
 
@@ -181,12 +181,12 @@ class PortFolioServiceTest {
 
 
         for(int i =0 ; i < 5; i++){
-            redisService.viewCount(portFolio.getPortfolioId(), "portFolio");
+            redisService.viewCount(portFolio.getPortfolioId(), user.getId(),"portFolio");
         }
 
        //when
 
-        redisService.viewRedisToDB(VIEW_PREFIX + "portFolio" + ": ");
+        redisService.viewRedisToDB(VIEW_PREFIX + "portFolio: ");
 
         Map<String, Long> localCache = memoryCache.getLocalCache();
 
@@ -199,9 +199,10 @@ class PortFolioServiceTest {
         Long cacheCount = localCache.get(VIEW_PREFIX + "portFolio" + ": " + portFolio.getPortfolioId());
 
         //then
-        Assertions.assertThat(portFolio1.getHits()).isEqualTo(5);
+        // 조회수는 1이여야 함
+        Assertions.assertThat(portFolio1.getHits()).isEqualTo(1);
         Assertions.assertThat(remainCount).isEqualTo(0);
-        Assertions.assertThat(cacheCount).isEqualTo(5);
+        Assertions.assertThat(cacheCount).isEqualTo(1);
 
     }
 
@@ -347,9 +348,9 @@ class PortFolioServiceTest {
         redisService.likeCount(portFolio.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
         redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
-        // 조회수 5번 점수 5 합산 20점
+        // 중복 조회 이므로 1
         for(int i =0 ; i < 5; i++){
-            redisService.viewCount(portFolio.getPortfolioId(), "portFolio");
+            redisService.viewCount(portFolio.getPortfolioId(), user.getId(),"portFolio");
         }
 
         redisService.likeRedisToDB( LIKE_PREFIX + "portFolio: ", "portFolio" );
@@ -365,7 +366,7 @@ class PortFolioServiceTest {
 
         //then
 //        Assertions.assertThat(size).isEqualTo(1);
-        Assertions.assertThat(score).isEqualTo(20.0);
+        Assertions.assertThat(score).isEqualTo(16.0);
     }
 
 
@@ -412,8 +413,8 @@ class PortFolioServiceTest {
 
 
         for(int i =0 ; i < 5; i++){
-            redisService.viewCount(portFolio.getPortfolioId(), "portFolio");
-            redisService.viewCount(portFolio1.getPortfolioId(), "portFolio");
+            redisService.viewCount(portFolio.getPortfolioId(),user.getId(), "portFolio");
+            redisService.viewCount(portFolio1.getPortfolioId(), user1.getId(),"portFolio");
         }
 
         redisService.likeRedisToDB( LIKE_PREFIX + "portFolio: ", "portFolio" ); //DB반영

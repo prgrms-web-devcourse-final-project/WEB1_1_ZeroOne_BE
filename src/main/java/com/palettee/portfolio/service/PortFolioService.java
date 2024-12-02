@@ -48,8 +48,8 @@ public class PortFolioService {
     }
 
 
-    public void clickPortFolio(Long portPolioId) {
-        redisService.viewCount(portPolioId, "portFolio");
+    public void clickPortFolio(Long portPolioId, Long userId) {
+        redisService.viewCount(portPolioId,userId, "portFolio");
     }
 
     public boolean likePortFolio(User user, Long portFolioId) {
