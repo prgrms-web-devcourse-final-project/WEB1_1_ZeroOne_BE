@@ -10,9 +10,13 @@ public record ArchiveRegisterRequest(
         @Length(min = 1, max = 30, message = "최대 30자까지 가능합니다.")
         String title,
 
-        @NotBlank(message = "내용을 입력해 주세요.")
+        @NotBlank(message = "요약을 입력해 주세요.")
         @Length(min = 1, max = 2500, message = "최대 2500자까지 가능합니다.")
         String description,
+
+        @NotBlank(message = "내용을 입력해 주세요.")
+        @Length(min = 1, max = 2500, message = "최대 2500자까지 가능합니다.")
+        String introduction,
 
         @NotBlank(message = "타입을 입력해 주세요.")
         String colorType,

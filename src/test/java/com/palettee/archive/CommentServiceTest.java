@@ -46,8 +46,8 @@ public class CommentServiceTest {
     @BeforeEach
     void beforeEach() {
         savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro", MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND));
-        savedArchiveCanComment = archiveRepository.save(new Archive("title", "description", ArchiveType.RED, true, savedUser));
-        savedArchiveNotComment = archiveRepository.save(new Archive("title", "description", ArchiveType.RED, false, savedUser));
+        savedArchiveCanComment = archiveRepository.save(new Archive("title", "description", "introduction", ArchiveType.RED, true, savedUser));
+        savedArchiveNotComment = archiveRepository.save(new Archive("title", "description", "introduction", ArchiveType.RED, false, savedUser));
     }
 
     @AfterEach
@@ -100,7 +100,7 @@ public class CommentServiceTest {
 
     @Test
     @DisplayName("정상적인 댓글 전체 조회 성공")
-    void getCommentsTest() {
+    void getCommentsTestWithArchive() {
         // given
         CommentWriteRequest request = new CommentWriteRequest("content");
         for (int i = 0; i < 5; i++) {
@@ -108,7 +108,7 @@ public class CommentServiceTest {
         }
 
         // when
-        CommentListResponse comment = commentService.getComment(savedUser, savedArchiveCanComment.getId(),
+        CommentListResponse comment = commentService.getCommentWithArchive(savedUser, savedArchiveCanComment.getId(),
                 PageRequest.of(0, 10));
 
         // then

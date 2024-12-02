@@ -52,7 +52,7 @@ public class NotificationService {
                     user.getId() + "_");
             events.entrySet().stream()
                     .filter(entry -> lastEvent < toLong(entry.getKey()))
-                    .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getKey(), entry.getValue()));
+                    .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getKey(), "놓친 알람이 있습니다!"));
             emitterRepository.deleteAllEventCacheStartWithId(user.getId() + "_");
         }
         return emitter;
