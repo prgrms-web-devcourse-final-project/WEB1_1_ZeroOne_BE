@@ -4,10 +4,8 @@ import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
-import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioLikeResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.domain.PortFolio;
@@ -64,33 +62,14 @@ public class PortFolioService {
         return portFolioRepository.PageFindLikePortfolio(pageable, userId, likeId);
     }
 
-//    @Transactional
-//    public PortFolioLikeResponse createPortFolioLike(Long portfolioId, User user) {
-//        PortFolio portFolio = portFolioRepository.findById(portfolioId)
-//                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
-//        if(cancelLike(portfolioId, user)) {
-//            return new PortFolioLikeResponse(null);
-//        }
-//
-//        Likes likes = Likes.builder()
-//                .likeType(LikeType.PORTFOLIO)
-//                .user(user)
-//                .targetId(portfolioId)
-//                .build();
-//
-//        Long targetId = portFolio.getUser().getId();
-//        notificationService.send(NotificationRequest.like(targetId, user.getName()));
-//
-//        return PortFolioLikeResponse.toDTO(likeRepository.save(likes));
-//    }
-
     /**
      * 상위 5개 레디스에 캐싱
      * @return
      */
-    @Cacheable(value = "portFolio_cache", key = "'cache'")
+    @Cacheable(value = "pf_cache", key = "'cache'")
     public PortFolioWrapper popularPortFolio(){
         Set<Long> portFolio = redisService.getZSetPopularity("portFolio");
+
         List<Long> sortedPortFolio = new ArrayList<>(portFolio);
 
         List<PortFolio> portfolios = portFolioRepository.findAllByPortfolioIdIn(sortedPortFolio);
@@ -110,14 +89,20 @@ public class PortFolioService {
     }
 
 
-
-    private boolean cancelLike(Long portfolioId, User user) {
-        Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), portfolioId,LikeType.PORTFOLIO);
-
-        if(findByLikes != null) {
-            likeRepository.delete(findByLikes);
-            return true;
-        }
-        return false;
+    public PortFolio getPortFolio(Long portFolioId){
+       return portFolioRepository.findById(portFolioId)
+              .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
     }
+
+
+
+//    private boolean cancelLike(Long portfolioId, User user) {
+//        Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), portfolioId,LikeType.PORTFOLIO);
+//
+//        if(findByLikes != null) {
+//            likeRepository.delete(findByLikes);
+//            return true;
+//        }
+//        return false;
+//    }
 }

@@ -197,8 +197,8 @@ public class RedisService {
     /**
      * Redis에서 해당 패턴에 맞는 키 삭제
      */
-    public void deleteKeyPatten(String patten, String userKeySuffix) {
-        Set<String> keys = redisTemplate.keys(patten);
+    public void deleteKeyExceptionPattern(String pattern, String userKeySuffix) {
+        Set<String> keys = redisTemplate.keys(pattern);
 
         if (keys != null && !keys.isEmpty()) {
             Set<String> keyDelete;
@@ -213,6 +213,29 @@ public class RedisService {
                 redisTemplate.delete(keyDelete);
             }
         }
+    }
+
+    public void deleteKeyIncludePattern(String pattern, String userKeySuffix){
+        Set<String> keys = redisTemplate.keys(pattern);
+
+        if (keys != null && !keys.isEmpty()) {
+            Set<String> keyDelete;
+            if (userKeySuffix == null) {
+                keyDelete = keys;
+            } else {
+                keyDelete = keys.stream()
+                        .filter(key -> key.contains(userKeySuffix))
+                        .collect(Collectors.toSet());
+            }
+            if (!keyDelete.isEmpty()) {
+                redisTemplate.delete(keyDelete);
+            }
+        }
+    }
+
+    public Long zSetSize(String category){
+        String zSetKey = category + "_Ranking";
+        return redisTemplate.opsForZSet().size(zSetKey);
     }
 
     /**
