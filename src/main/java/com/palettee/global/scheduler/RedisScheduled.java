@@ -26,7 +26,7 @@ public class RedisScheduled {
     /**
      * 한식간 마다 로컬 캐시에 있는 가중치를 꺼내어 zSet에 더해줌
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "3 * * * * *")
     public void rankingRedis(){
 
         //랭킹 반영전에 랭킹 키 한번 비워주기
@@ -56,7 +56,7 @@ public class RedisScheduled {
     /**
      * 자정이 지나면 조회수 다시 리셋
      */
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "4 * * * * *", zone = "Asia/Seoul")
     public void hitsSet(){
         redisService.deleteKeyIncludePattern("View_*", "_user");
     }

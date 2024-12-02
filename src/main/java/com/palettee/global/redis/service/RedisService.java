@@ -105,7 +105,7 @@ public class RedisService {
             log.info("targetId: {}, countViews: {}", targetId, countViews);
 
             if (countViews > 0) {
-                updateViewDB(redisKey, countViews, targetId, viewKeys);
+                updateViewDB(redisKey, countViews, targetId);
             }
         });
     }
@@ -127,7 +127,7 @@ public class RedisService {
         redisKeys.forEach(redisKey -> {
             log.info("redisKey ={}", redisKey);
             long targetId = Long.parseLong(redisKey.replace(likeKeys, "").trim());
-            insertLikeDB(category, redisKey, targetId, likeKeys);
+            insertLikeDB(category, redisKey, targetId);
         });
     }
 
@@ -187,15 +187,19 @@ public class RedisService {
     /**
      * 조회수를 DB에 반영하고 Redis에서 차감
      */
-    private void updateViewDB(String redisKey, Long count, Long targetId, String str) {
-        log.info("count = {}, targetId = {}, str = {}", count, targetId, str);
+    private void updateViewDB(String redisKey, Long count, Long targetId) {
+        log.info("count = {}, targetId = {}, str = {}", count, targetId);
         portFolioRedisService.incrementHits(count, targetId);
-        memoryCache.put(str + targetId, count);
+        memoryCache.put(redisKey, count);
         redisTemplate.opsForValue().decrement(redisKey, count);
     }
 
     /**
-     * Redis에서 해당 패턴에 맞는 키 삭제
+     *
+     * @param pattern -> 삭제하고 싶은 패턴 지정
+     * @param userKeySuffix -> 패턴들중 상세 패턴 지정
+     *
+     *  상세 패턴 제외한 패턴
      */
     public void deleteKeyExceptionPattern(String pattern, String userKeySuffix) {
         Set<String> keys = redisTemplate.keys(pattern);
@@ -215,6 +219,14 @@ public class RedisService {
         }
     }
 
+    /**
+     *
+     * @param pattern -> 삭제하고 싶은 패턴 지정
+     * @param userKeySuffix -> 패턴들중 상세 패턴 지정
+     *
+     *    상세 패턴 적용한 패턴
+     */
+
     public void deleteKeyIncludePattern(String pattern, String userKeySuffix){
         Set<String> keys = redisTemplate.keys(pattern);
 
@@ -233,15 +245,52 @@ public class RedisService {
         }
     }
 
+    /**
+     *
+     * @param category
+     * @return 해당 zetSize 반환
+     */
     public Long zSetSize(String category){
         String zSetKey = category + "_Ranking";
         return redisTemplate.opsForZSet().size(zSetKey);
     }
 
+    public Boolean viewExistInRedis(String category, Long targetId, Long userId){
+       String userKey =  LIKE_PREFIX + category + ": " + targetId + "_user";
+
+      return redisTemplate.opsForSet().isMember(userKey, userId);
+    }
+
     /**
-     * 카테고리 아이디에 대한 좋아요 정보를 DB에 반영
+     *
+     * @param category
+     * @param targetId
+     * @param userId
+     * @return 이미 좋아요가 되어 있는 멤버중에 likeCount 가 LikeCount 가 존재하면 레디스 내부에 있는 좋아요
+     *  이미 좋아요가 되어 있는 멤버중 likeCount 가 0이거나 -> 이미 디비에 반영되거나 키가 시간이 지나 삭제된 애들은 DB에서 좋아요 삭제
+     *
      */
-    private void insertLikeDB(String category, String redisKey, long targetId, String str) {
+
+    public Boolean likeExistInRedis(String category, Long targetId, Long userId) {
+        // Redis 키 생성
+        String baseKey = LIKE_PREFIX + category + ": " + targetId;
+        String userKey = baseKey + "_user";
+
+        // Redis 데이터 조회
+        boolean isUserLiked = Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(userKey, userId));
+        Long likeCount = redisTemplate.opsForValue().get(baseKey);
+
+        return isUserLiked && (likeCount != null && likeCount > 0);
+    }
+
+
+    /**
+     *
+     * @param category
+     * @param redisKey String 자료구조에 있는 key값
+     * @param targetId categoryId
+     */
+    private void insertLikeDB(String category, String redisKey, long targetId) {
         Set<Long> userIds = redisTemplate.opsForSet().members(redisKey + "_user");
         Long count = redisTemplate.opsForValue().get(redisKey);
 
@@ -258,7 +307,7 @@ public class RedisService {
         });
 
         redisTemplate.opsForValue().decrement(redisKey, count);
-        memoryCache.put(str + targetId, count);
+        memoryCache.put(redisKey, count);
         likeService.bulkSaveLike(list);
     }
 

@@ -50,8 +50,15 @@ public class PortFolioService {
         redisService.viewCount(portPolioId,userId, "portFolio");
     }
 
+    @Transactional
     public boolean likePortFolio(User user, Long portFolioId) {
-       return redisService.likeCount(portFolioId, user.getId(),"portFolio");
+
+        Boolean flag = redisService.likeExistInRedis("portFolio", portFolioId, user.getId());
+
+        if(!flag){
+            cancelLike(portFolioId, user);
+        }
+        return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
     public CustomSliceResponse findListPortFolio(
@@ -96,13 +103,13 @@ public class PortFolioService {
 
 
 
-//    private boolean cancelLike(Long portfolioId, User user) {
-//        Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), portfolioId,LikeType.PORTFOLIO);
-//
-//        if(findByLikes != null) {
-//            likeRepository.delete(findByLikes);
-//            return true;
-//        }
-//        return false;
-//    }
+    private boolean cancelLike(Long portfolioId, User user) {
+        Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), portfolioId,LikeType.PORTFOLIO);
+
+        if(findByLikes != null) {
+            likeRepository.delete(findByLikes);
+            return true;
+        }
+        return false;
+    }
 }
