@@ -2,14 +2,14 @@ logging:
   level:
     com.palettee: debug
     web: debug
-    sql: debug
+#    sql: debug
 
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: 8112
-    url: jdbc:mysql://localhost:3306/final_project?createDatabaseIfNotExists
+    password: an902318
+    url: jdbc:mysql://localhost:3306/palette
 
   jpa:
     show-sql: true
@@ -17,7 +17,6 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        default_batch_fetch_size: 1000
         jdbc:
           time_zone: UTC
         format_sql: true   # SQL 포맷팅을 활성화
@@ -25,3 +24,6 @@ spring:
 redis:
   host: localhost
   port: 6379
+  password:
+
+  environment: local

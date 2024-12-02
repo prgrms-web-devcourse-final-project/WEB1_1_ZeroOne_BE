@@ -34,7 +34,7 @@ jobs:
 
       - name: Set up yml secrets file
         env:
-          YAML_SECRET: ${{ secrets.YAML_SECRET }}
+          YAML_SECRET: ${{ secrets.SECRET_YAML }}
           YAML_DIR: src/main/resources
           YAML_FILE_NAME: application-secret.yml
         run: |
