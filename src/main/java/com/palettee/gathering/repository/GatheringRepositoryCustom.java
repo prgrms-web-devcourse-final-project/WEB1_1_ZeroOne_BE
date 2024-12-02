@@ -2,7 +2,7 @@ package com.palettee.gathering.repository;
 
 import com.palettee.gathering.controller.dto.Response.*;
 import com.palettee.portfolio.controller.dto.response.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.response.users.*;
 import org.springframework.data.domain.*;
 
 public interface GatheringRepositoryCustom {

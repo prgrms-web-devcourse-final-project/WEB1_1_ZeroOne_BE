@@ -6,7 +6,7 @@ public class InvalidDivisionException extends PaletteException {
 
     public static PaletteException EXCEPTION = new InvalidDivisionException();
 
-    public InvalidDivisionException() {
+    private InvalidDivisionException() {
         super(ErrorCode.INVALID_DIVISION);
     }
 }

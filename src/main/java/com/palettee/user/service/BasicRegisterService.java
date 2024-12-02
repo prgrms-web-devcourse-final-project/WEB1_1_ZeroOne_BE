@@ -2,8 +2,8 @@ package com.palettee.user.service;
 
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
-import com.palettee.user.controller.dto.request.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.request.users.*;
+import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;

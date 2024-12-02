@@ -1,7 +1,7 @@
 package com.palettee.archive.repository;
 
 import com.palettee.archive.domain.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.response.users.*;
 import java.util.*;
 import org.springframework.data.domain.*;
 

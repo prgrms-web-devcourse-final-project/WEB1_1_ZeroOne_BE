@@ -6,7 +6,7 @@ public class JobGroupMismatchException extends PaletteException {
 
     public static PaletteException EXCEPTION = new JobGroupMismatchException();
 
-    public JobGroupMismatchException() {
+    private JobGroupMismatchException() {
         super(ErrorCode.JOB_GROUP_MISMATCH);
     }
 }

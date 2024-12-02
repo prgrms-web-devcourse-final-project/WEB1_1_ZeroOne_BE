@@ -1,4 +1,4 @@
-package com.palettee.user.controller.dto.response;
+package com.palettee.user.controller.dto.response.users;
 
 import com.palettee.archive.domain.*;
 import com.palettee.user.domain.*;
