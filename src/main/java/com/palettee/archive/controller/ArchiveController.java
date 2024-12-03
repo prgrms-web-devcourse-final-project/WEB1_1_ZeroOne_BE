@@ -40,7 +40,7 @@ public class ArchiveController {
 
     @PostMapping
     public ArchiveResponse registerArchive(@Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
-        User user = UserUtils.getContextUser();
+        User user = getContextUser();
         return archiveService.registerArchive(archiveRegisterRequest, user);
     }
 
@@ -74,7 +74,7 @@ public class ArchiveController {
 
     @GetMapping("/me/like")
     public ArchiveListResponse getMyLikeArchives() {
-        User user = UserUtils.getContextUser();
+        User user = getContextUser();
         return archiveService.getLikeArchive(user);
     }
 
@@ -100,7 +100,7 @@ public class ArchiveController {
 
     @PostMapping("/{archiveId}/comment")
     public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
-        User user = UserUtils.getContextUser();
+        User user = getContextUser();
         return commentService.writeComment(user, archiveId, commentWriteRequest);
     }
 
@@ -110,14 +110,14 @@ public class ArchiveController {
             @RequestParam int page,
             @RequestParam int size
     ) {
-        User user = UserUtils.getContextUser();
+        User user = getContextUser();
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
         return commentService.getCommentWithArchive(user, archiveId, pageRequest);
     }
 
     @PutMapping("/comment/{commentId}")
     public CommentResponse updateComment(@PathVariable("commentId") long commentId, @Valid @RequestBody CommentUpdateRequest commentUpdateRequest) {
-        User user = UserUtils.getContextUser();
+        User user = getContextUser();
         return commentService.updateComment(user, commentId, commentUpdateRequest);
     }
 
@@ -127,4 +127,12 @@ public class ArchiveController {
         return commentService.deleteComment(commentId, user.getId());
     }
 
+    private User getContextUser() {
+        try {
+            return UserUtils.getContextUser();
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
 }
