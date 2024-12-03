@@ -31,6 +31,9 @@ public class RedisService {
      * redis에 해당 뷰 카운팅
      * @param targetId 는 achieveId, portFolioId
      * @param category 는 achieve, portFolio
+     *
+     *   key = targetId의 view Count 용
+     *   userKey = 중복 조회수 방지를 위해 targetId를 조회한 유저 Id가 value
      */
     public boolean viewCount(Long targetId, Long userId ,String category) {
         String key = VIEW_PREFIX + category + ": " + targetId;
@@ -54,6 +57,11 @@ public class RedisService {
      * @param targetId 는 achieveId, portFolioId, gatheringId
      * @param userId 유저 아이디
      * @param category achieve, portFolio, gathering
+     *
+     *   key = targetId의 like Count
+     *   userKey = 좋아요 취소를 위해 targetId를 조회한 유저 Id가 value
+     *
+     *   이미 유저가 좋아요를 누른 게시물을 확인하고 좋아요를 눌렀을시에
      */
     public boolean likeCount(Long targetId, Long userId, String category) {
         String key = LIKE_PREFIX + category + ": " + targetId;
@@ -68,7 +76,7 @@ public class RedisService {
         } else {
             log.info("좋아요를 취소하였습니다");
             redisTemplate.opsForSet().remove(userKey, userId);
-            redisTemplate.opsForValue().set(key, 0L);
+            redisTemplate.opsForValue().set(key, 0L); //decrement 를 안한 이유: count redis 가 reset 된 후에 좋아요 취소하면 -1 값이 들어감
             return false;
         }
     }
@@ -88,25 +96,25 @@ public class RedisService {
      * redis의 조회수 데이터를 DB에 반영
      */
     public void viewRedisToDB(String viewKeys) {
-        Set<String> redisKeys = redisTemplate.keys(viewKeys + "*");
+        Set<String> redisKeys = redisTemplate.keys(viewKeys + "*");  //모든 VIEW_PREFIX 패턴을 가져옴
 
         if (redisKeys.isEmpty()) {
             log.info("해당 키에 대한 값이 없음");
             return;
         }
 
-        redisKeys = redisKeys.stream()
+        redisKeys = redisKeys.stream()   // SET에 있는 USER 조회용 키들은 제외시킴
                 .filter(redisKey -> !redisKey.contains("_user"))
                 .collect(Collectors.toSet());
 
         redisKeys.forEach(redisKey -> {
             log.info("카운트");
-            long targetId = Long.parseLong(redisKey.replace(viewKeys, "").trim());
-            Long countViews = Optional.ofNullable(redisTemplate.opsForValue().get(redisKey)).orElse(0L);
+            long targetId = Long.parseLong(redisKey.replace(viewKeys, "").trim()); // 키에 있는 targetId 들을 가져옴
+            Long countViews = Optional.ofNullable(redisTemplate.opsForValue().get(redisKey)).orElse(0L); // view count 인 value 를 가져옴
             log.info("targetId: {}, countViews: {}", targetId, countViews);
 
             if (countViews > 0) {
-                updateViewDB(redisKey, countViews, targetId);
+                updateViewDB(redisKey, countViews, targetId); //배치 업데이트
             }
         });
     }
@@ -128,7 +136,7 @@ public class RedisService {
         redisKeys.forEach(redisKey -> {
             log.info("redisKey ={}", redisKey);
             long targetId = Long.parseLong(redisKey.replace(likeKeys, "").trim());
-            insertLikeDB(category, redisKey, targetId);
+            insertLikeDB(category, redisKey, targetId); // 배치 insert
         });
     }
 
@@ -148,6 +156,7 @@ public class RedisService {
         String viewsKeys = VIEW_PREFIX + category + ": ";
         String likesKeys = LIKE_PREFIX + category + ": ";
 
+        //가중치 가져와서 합산 후에 더 한 값을 Zset에 반영
         viewCache.forEach((keys, value) -> {
             log.info("viewKeys ={}", keys);
             Long targetId = Long.parseLong(keys.replace(viewsKeys, "").trim());
@@ -156,6 +165,7 @@ public class RedisService {
             redisTemplate.opsForZSet().add(zSetKey, targetId, resultScore);
         });
 
+        //가중치 가져와서 합산 후에 더 한 값을 Zset에 반영
         likeCache.forEach((keys, value) -> {
             log.info("keys ={}", keys);
             long targetLikeId = Long.parseLong(keys.replace(likesKeys, "").trim());
@@ -166,7 +176,7 @@ public class RedisService {
     }
 
     /**
-     * 인기 순위 상위 5개를 조회
+     * 인기 순위 상위 5개 targetId와 점수조회
      */
     public Map<Long, Double> getZSetPopularity(String category) {
         String key = category + "_Ranking";
@@ -182,13 +192,16 @@ public class RedisService {
     }
 
     /**
-     * 조회수를 DB에 반영하고 Redis에서 차감
+     *
+     * @param redisKey -> view Count 용 키를 가져옴
+     * @param count  -> count 횟수
+     * @param targetId -> target Id
      */
     private void updateViewDB(String redisKey, Long count, Long targetId) {
         log.info("count = {}, targetId = {}, str = {}", count, targetId);
-        portFolioRedisService.incrementHits(count, targetId);
-        memoryCache.put(redisKey, count);
-        redisTemplate.opsForValue().decrement(redisKey, count);
+        portFolioRedisService.incrementHits(count, targetId); //배치 업데이트
+        memoryCache.put(redisKey, count); // 해당 대한 가중치 넣어줌
+        redisTemplate.opsForValue().decrement(redisKey, count); // view(count) 만큼 차감
     }
 
     /**
@@ -256,8 +269,10 @@ public class RedisService {
      * @param category
      * @param targetId
      * @param userId
-     * @return 이미 좋아요가 되어 있는 멤버중에 likeCount 가 LikeCount 가 존재하면 레디스 내부에 있는 좋아요
-     *  이미 좋아요가 되어 있는 멤버중 likeCount 가 0이거나 -> 이미 디비에 반영되거나 키가 시간이 지나 삭제된 애들은 DB에서 좋아요 삭제
+     * @return 이미 좋아요가 Set 에 targetId와 UserId가 존재하면 -> 즉 이미 좋아요를 누른 USER가 존재하고 count redis 안의 값이 1인 유저 -> 아직 db에 반영이 되지 않음
+     *  이미 좋아요가 되어 있는 멤버중 likeCount 가 0이거나 -> 이미 디비에 반영되거나 키가 시간이 지나 삭제된 애들은 DB에서 좋아요 삭제 하기 위해 false 반환 -> DB에 반영이됨
+     *
+     *  혹시나 Set User 의 키가 사라졌을때는 DB에서 해당 좋아요 삭제 시켜주고 다시 값을 넣어줌
      *
      */
 
@@ -281,8 +296,8 @@ public class RedisService {
      * @param targetId categoryId
      */
     private void insertLikeDB(String category, String redisKey, long targetId) {
-        Set<Long> userIds = redisTemplate.opsForSet().members(redisKey + "_user");
-        Long count = redisTemplate.opsForValue().get(redisKey);
+        Set<Long> userIds = redisTemplate.opsForSet().members(redisKey + "_user"); //해당 targetId에 좋아요를 누른 유저의 아이디들을 조회
+        Long count = redisTemplate.opsForValue().get(redisKey); // 타겟 아이디들을 좋아요 수를 가져옴
 
         log.info("targetId= {}", targetId);
         log.info("count = {}", count);
@@ -293,12 +308,12 @@ public class RedisService {
 
         List<LikeDto> list = new ArrayList<>();
         userIds.forEach(userId -> {
-            list.add(new LikeDto(targetId, userId, LikeType.findLike(category)));
+            list.add(new LikeDto(targetId, userId, LikeType.findLike(category))); // 해당 targetId에 대한 유저들을 list 로 뽑음
         });
 
-        redisTemplate.opsForValue().decrement(redisKey, count);
-        memoryCache.put(redisKey, count);
-        likeService.bulkSaveLike(list);
+        redisTemplate.opsForValue().decrement(redisKey, count); // 카운트 차감
+        memoryCache.put(redisKey, count); // 가중치 저장
+        likeService.bulkSaveLike(list);  // bulk insert
     }
 
     public RedisTemplate<String, Long> getRedisTemplate() {
