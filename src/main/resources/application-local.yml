@@ -22,6 +22,19 @@ spring:
         format_sql: true   # SQL 포맷팅을 활성화
         default_batch_fetch_size: 1000
 
+  # OAuth redirect URL for local dev
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: http://localhost:8080/login/oauth2/code/google
+
+          github:
+            redirect-uri: http://localhost:8080/login/oauth2/code/github
+
+oauth-success-redirect-uri: /token/issue
+
 redis:
   host: localhost
   port: 6379

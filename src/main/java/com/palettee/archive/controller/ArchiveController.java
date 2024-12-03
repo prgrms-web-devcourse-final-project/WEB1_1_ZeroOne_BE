@@ -46,12 +46,12 @@ public class ArchiveController {
 
     @GetMapping("/{archiveId}")
     public ArchiveDetailResponse getArchive(@PathVariable("archiveId") long archiveId) {
-        return archiveService.getArchiveDetail(archiveId, UserUtils.getContextUser());
+        return archiveService.getArchiveDetail(archiveId, getContextUser());
     }
 
     @GetMapping
     public ArchiveListResponse getArchives(
-            @RequestParam String color,
+            @RequestParam(required = false) String color,
             @RequestParam String sort,
             Pageable pageable
     ) {
@@ -106,11 +106,11 @@ public class ArchiveController {
 
     @GetMapping("/{archiveId}/comment")
     public CommentListResponse getComments(
-            @PathVariable("archiveId") long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @RequestParam int page,
             @RequestParam int size
     ) {
-        User user = UserUtils.getContextUser();
+        User user = getContextUser();
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
         return commentService.getCommentWithArchive(user, archiveId, pageRequest);
     }
@@ -127,4 +127,12 @@ public class ArchiveController {
         return commentService.deleteComment(commentId, user.getId());
     }
 
+    private User getContextUser() {
+        try {
+            return UserUtils.getContextUser();
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
 }
