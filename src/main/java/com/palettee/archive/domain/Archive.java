@@ -21,6 +21,9 @@ public class Archive extends BaseEntity {
     @Column(length = 2500)
     private String description;
 
+    @Column(length = 2500)
+    private String introduction;
+
     @Enumerated(EnumType.STRING)
     private ArchiveType type;
 
@@ -43,10 +46,11 @@ public class Archive extends BaseEntity {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Archive(String title, String description,
+    public Archive(String title, String description, String introduction,
             ArchiveType type, boolean canComment, User user) {
         this.title = title;
         this.description = description;
+        this.introduction = introduction;
         this.type = type;
         this.canComment = canComment;
         this.hits = 0;
@@ -71,6 +75,7 @@ public class Archive extends BaseEntity {
     public Archive update(ArchiveUpdateRequest req) {
         this.title = req.title();
         this.description = req.description();
+        this.introduction = req.introduction();
         this.type = ArchiveType.findByInput(req.colorType());
         this.canComment = req.canComment();
         return this;

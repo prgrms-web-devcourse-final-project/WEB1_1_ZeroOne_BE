@@ -2,8 +2,8 @@ package com.palettee.user.service;
 
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
-import com.palettee.user.controller.dto.request.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.request.users.*;
+import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;
@@ -51,9 +51,12 @@ public class BasicRegisterService {
 
         // url 제외 정보 등록
         user = this.getUser(user.getEmail());
-        user = user.update(registerBasicInfoRequest);
+        user.update(registerBasicInfoRequest);
+        user.changeUserRole(UserRole.JUST_NEWBIE);
 
         log.debug("Registered user {}'s basic info", user.getId());
+
+        user = this.getUserByIdFetchWithRelatedLinks(user.getId());
 
         // 이전 저장되 있던 url 제거
         relatedLinkRepo.deleteAllByUserId(user.getId());
@@ -67,8 +70,7 @@ public class BasicRegisterService {
             log.debug("Registered user {}'s social links", user.getId());
         }
 
-        // 기본 정보 등록했으니까 권한 상승
-        user.changeUserRole(UserRole.JUST_NEWBIE);
+        user = this.getUserByIdFetchWithStoredImageUrls(user.getId());
 
         // 사용자가 S3 에 업로드한 자원들 추가
         List<String> s3Resources = registerBasicInfoRequest.s3StoredImageUrls();
@@ -94,6 +96,9 @@ public class BasicRegisterService {
     ) {
 
         user = this.getUser(user.getEmail());
+        user.changeUserRole(UserRole.OLD_NEWBIE);
+
+        user = this.getUserByIdFetchWithPortfolio(user.getId());
 
         // 이전 포폴 정보 삭제
         portFolioRepo.deleteAllByUserId(user.getId());
@@ -104,9 +109,6 @@ public class BasicRegisterService {
         String url = registerPortfolioRequest.portfolioUrl();
         portFolioRepo.save(new PortFolio(user, url));
 
-        // 권한 상승
-        user.changeUserRole(UserRole.OLD_NEWBIE);
-
         log.info("Registered user portfolio info on id: {}",
                 user.getId());
 
@@ -115,6 +117,21 @@ public class BasicRegisterService {
 
     private User getUser(String email) {
         return userRepo.findByEmail(email)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private User getUserByIdFetchWithRelatedLinks(Long userId) throws UserNotFoundException {
+        return userRepo.findByIdFetchWithRelatedLinks(userId)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private User getUserByIdFetchWithPortfolio(Long userId) throws UserNotFoundException {
+        return userRepo.findByIdFetchWithPortfolios(userId)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private User getUserByIdFetchWithStoredImageUrls(Long userId) throws UserNotFoundException {
+        return userRepo.findByIdFetchWithStoredProfileUrls(userId)
                 .orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
 

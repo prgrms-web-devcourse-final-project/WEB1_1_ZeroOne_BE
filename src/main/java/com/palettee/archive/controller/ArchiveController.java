@@ -3,6 +3,7 @@ package com.palettee.archive.controller;
 import com.palettee.archive.controller.dto.request.ArchiveRegisterRequest;
 import com.palettee.archive.controller.dto.request.ArchiveUpdateRequest;
 import com.palettee.archive.controller.dto.request.ChangeOrderRequest;
+import com.palettee.archive.controller.dto.request.CommentUpdateRequest;
 import com.palettee.archive.controller.dto.request.CommentWriteRequest;
 import com.palettee.archive.controller.dto.response.ArchiveDetailResponse;
 import com.palettee.archive.controller.dto.response.ArchiveListResponse;
@@ -45,17 +46,16 @@ public class ArchiveController {
 
     @GetMapping("/{archiveId}")
     public ArchiveDetailResponse getArchive(@PathVariable("archiveId") long archiveId) {
-        return archiveService.getArchiveDetail(archiveId);
+        return archiveService.getArchiveDetail(archiveId, UserUtils.getContextUser());
     }
 
     @GetMapping
     public ArchiveListResponse getArchives(
-            @RequestParam String majorJobGroup,
-            @RequestParam String minorJobGroup,
+            @RequestParam String color,
             @RequestParam String sort,
             Pageable pageable
     ) {
-        return archiveService.getAllArchive(majorJobGroup, minorJobGroup, sort, pageable);
+        return archiveService.getAllArchive(color, sort, pageable);
     }
 
     @GetMapping("/search")
@@ -112,7 +112,13 @@ public class ArchiveController {
     ) {
         User user = UserUtils.getContextUser();
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
-        return commentService.getComment(user, archiveId, pageRequest);
+        return commentService.getCommentWithArchive(user, archiveId, pageRequest);
+    }
+
+    @PutMapping("/comment/{commentId}")
+    public CommentResponse updateComment(@PathVariable("commentId") long commentId, @Valid @RequestBody CommentUpdateRequest commentUpdateRequest) {
+        User user = UserUtils.getContextUser();
+        return commentService.updateComment(user, commentId, commentUpdateRequest);
     }
 
     @DeleteMapping("/comment/{commentId}")

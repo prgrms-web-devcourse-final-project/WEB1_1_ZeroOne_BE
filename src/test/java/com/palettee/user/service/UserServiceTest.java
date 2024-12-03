@@ -8,8 +8,8 @@ import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
-import com.palettee.user.controller.dto.request.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.request.users.*;
+import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;
@@ -67,7 +67,7 @@ class UserServiceTest {
     private List<Archive> genArchiveList(int size, ArchiveType color, User user) {
         return IntStream.range(0, size).boxed()
                 .map(i -> new Archive(
-                        color.toString() + i, "desc", color, false, user
+                        color.toString() + i, "desc", "introduction", color, false, user
                 )).toList();
     }
 

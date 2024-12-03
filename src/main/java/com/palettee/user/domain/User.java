@@ -5,7 +5,7 @@ import com.palettee.gathering.domain.*;
 import com.palettee.global.entity.*;
 import com.palettee.likes.domain.*;
 import com.palettee.portfolio.domain.*;
-import com.palettee.user.controller.dto.request.*;
+import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.exception.*;
 import jakarta.persistence.*;
 import java.util.*;

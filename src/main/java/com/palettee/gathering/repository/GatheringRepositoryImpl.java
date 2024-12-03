@@ -8,7 +8,7 @@ import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Status;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.user.controller.dto.response.GetUserGatheringResponse;
+import com.palettee.portfolio.controller.dto.response.*;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

@@ -1,8 +1,8 @@
 package com.palettee.user.controller;
 
 import com.palettee.global.security.validation.*;
-import com.palettee.user.controller.dto.request.*;
-import com.palettee.user.controller.dto.response.*;
+import com.palettee.user.controller.dto.request.users.*;
+import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.service.*;
 import jakarta.validation.*;

@@ -38,6 +38,7 @@ public class ArchiveService {
         Archive archive = Archive.builder()
                 .title(archiveRegisterRequest.title())
                 .description(archiveRegisterRequest.description())
+                .introduction(archiveRegisterRequest.introduction())
                 .type(ArchiveType.findByInput(archiveRegisterRequest.colorType()))
                 .canComment(archiveRegisterRequest.canComment())
                 .user(findUser)
@@ -54,8 +55,8 @@ public class ArchiveService {
         return new ArchiveResponse(savedArchive.getId());
     }
 
-    public ArchiveListResponse getAllArchive(String majorJobGroup, String minorJobGroup, String sort, Pageable pageable) {
-        Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(majorJobGroup, minorJobGroup, sort, pageable);
+    public ArchiveListResponse getAllArchive(String color, String sort, Pageable pageable) {
+        Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(color, sort, pageable);
 
         List<ArchiveSimpleResponse> list = archives
                 .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
@@ -65,11 +66,12 @@ public class ArchiveService {
     }
 
     @Transactional
-    public ArchiveDetailResponse getArchiveDetail(Long archiveId) {
+    public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);
         archive.hit();
         return ArchiveDetailResponse.toResponse(
                 archive,
+                user,
                 likeRepository.countArchiveLike(archiveId),
                 commentRepository.countArchiveComment(archiveId),
                 tagRepository.findByArchiveId(archiveId)

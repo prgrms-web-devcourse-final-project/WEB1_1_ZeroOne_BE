@@ -79,7 +79,7 @@ public class TokenController {
     // TODO : 개발 완료되면 삭제해야 함.
     @PostMapping("/test-issue")
     public TokenIssueResponse testIssueToken(
-            @RequestParam(value = "userEmail", required = false) String userEmail,
+            @RequestParam("userEmail") String userEmail,
             HttpServletResponse resp
     ) {
 

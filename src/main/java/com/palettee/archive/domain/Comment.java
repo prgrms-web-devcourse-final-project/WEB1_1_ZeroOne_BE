@@ -1,5 +1,6 @@
 package com.palettee.archive.domain;
 
+import com.palettee.archive.controller.dto.request.CommentUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,5 +30,9 @@ public class Comment {
         this.userId = userId;
         this.archive = archive;
         this.archive.addComment(this);
+    }
+
+    public void update(CommentUpdateRequest commentUpdateRequest) {
+        this.content = commentUpdateRequest.content();
     }
 }

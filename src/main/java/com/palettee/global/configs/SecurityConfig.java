@@ -42,6 +42,7 @@ public class SecurityConfig {
     public BypassUrlHolder bypassUrlHolder() {
         return BypassUrlHolder.builder()
                 .byPassable("/error")
+                .byPassable("/actuator/**")
 
                 // webSocket
                 .byPassable("/index.html")
@@ -67,6 +68,10 @@ public class SecurityConfig {
                 // 유저의 프로필, 아카이브, 게더링 조회
                 .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
                 .byPassable(HttpMethod.GET, "/user/{id}/archives", "/user/{id}/gatherings")
+
+                // 유저 제보 목록, 상세 내용, 댓글 조회
+                .byPassable(HttpMethod.GET, "/report", "/report/{reportId}",
+                        "/report/{reportId}/comment")
 
                 /* <-------------- Portfolio API --------------> */
                 // 포트폴리오 전체 조회
@@ -121,6 +126,11 @@ public class SecurityConfig {
                                 .successHandler(oauth2LoginsuccessHandler)
                                 .failureHandler(oAuth2LoginFailureHandler));
 
+        //Custome한 Cors 설정 넣기 위해서
+
+        http
+                .cors();
+
         // JwtFilter 추가
         // 토큰 만료로 재로그인 시 JwtFilter 로 무한루프(?) 빠질 수 있음.
         // 그래서 OAuth2 로그인 필터 뒤에 위치
@@ -137,6 +147,7 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtExceptionHandlingFilter(), JwtFilter.class);
 
         String oldNewbie = UserRole.OLD_NEWBIE.toString().toUpperCase();
+        String admin = UserRole.ADMIN.toString().toUpperCase();
 
         // API 별 authenticate 설정
         http
@@ -147,6 +158,11 @@ public class SecurityConfig {
 
                     /* <<<--------- 나머지 인증 필요한 요청들 등록 --------->>> */
                     auth
+                            /* <-------------- User API --------------> */
+                            // 유저 제보를 해결함으로 변경 (관리자만 가능)
+                            .requestMatchers(HttpMethod.PATCH, "/report/{reportId}/fixed")
+                            .hasRole(admin)
+
                             /* <-------------- Portfolio API --------------> */
                             // 포폴 등록한 사람부터 가능
                             // 포폴 세부 조회

@@ -14,7 +14,7 @@ import com.palettee.global.security.jwt.exceptions.*;
 import com.palettee.global.security.jwt.utils.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
-import com.palettee.user.controller.dto.request.*;
+import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;
@@ -86,7 +86,7 @@ class UserControllerTest {
     private List<Archive> genArchiveList(int size, ArchiveType color, User user) {
         return IntStream.range(0, size).boxed()
                 .map(i -> new Archive(
-                        color.toString() + i, "desc", color, false, user
+                        color.toString() + i, "desc", "introduction", color, false, user
                 )).toList();
     }
 

@@ -3,6 +3,7 @@ package com.palettee.archive.controller.dto.response;
 import com.palettee.archive.controller.dto.request.ImageUrlDto;
 import com.palettee.archive.controller.dto.request.TagDto;
 import com.palettee.archive.domain.Archive;
+import com.palettee.user.domain.User;
 import java.util.List;
 
 public record ArchiveDetailResponse(
@@ -11,7 +12,9 @@ public record ArchiveDetailResponse(
         String username,
         String type,
         boolean canComment,
+        boolean isMine,
         String job,
+        String userProfile,
         long likeCount,
         long commentCount,
         int hits,
@@ -21,18 +24,24 @@ public record ArchiveDetailResponse(
 
     public static ArchiveDetailResponse toResponse(
             Archive archive,
+            User user,
             long likeCount,
             long count,
             List<TagDto> tagDtoList,
             List<ImageUrlDto> urlDtoList
     ) {
+        User owner = archive.getUser();
+        Long userId = user == null ? 0L : user.getId();
+        String userProfile = owner.getImageUrl();
         return new ArchiveDetailResponse(
                 archive.getTitle(),
                 archive.getDescription(),
-                archive.getUser().getName(),
+                owner.getName(),
                 archive.getType().name(),
                 archive.isCanComment(),
-                archive.getUser().getMinorJobGroup().name(),
+                owner.getId().equals(userId),
+                owner.getMinorJobGroup().name(),
+                userProfile,
                 likeCount,
                 count,
                 archive.getHits(),
