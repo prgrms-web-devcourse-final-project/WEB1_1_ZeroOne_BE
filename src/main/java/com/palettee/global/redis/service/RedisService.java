@@ -254,13 +254,6 @@ public class RedisService {
         String zSetKey = category + "_Ranking";
         return redisTemplate.opsForZSet().size(zSetKey);
     }
-
-    public Boolean viewExistInRedis(String category, Long targetId, Long userId){
-       String userKey =  LIKE_PREFIX + category + ": " + targetId + "_user";
-
-      return redisTemplate.opsForSet().isMember(userKey, userId);
-    }
-
     /**
      *
      * @param category
