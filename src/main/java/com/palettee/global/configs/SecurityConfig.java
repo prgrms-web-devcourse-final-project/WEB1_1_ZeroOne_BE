@@ -42,6 +42,7 @@ public class SecurityConfig {
     public BypassUrlHolder bypassUrlHolder() {
         return BypassUrlHolder.builder()
                 .byPassable("/error")
+                .byPassable("/actuator/**")
 
                 // webSocket
                 .byPassable("/index.html")
