@@ -126,6 +126,11 @@ public class SecurityConfig {
                                 .successHandler(oauth2LoginsuccessHandler)
                                 .failureHandler(oAuth2LoginFailureHandler));
 
+        //Custome한 Cors 설정 넣기 위해서
+
+        http
+                .cors();
+
         // JwtFilter 추가
         // 토큰 만료로 재로그인 시 JwtFilter 로 무한루프(?) 빠질 수 있음.
         // 그래서 OAuth2 로그인 필터 뒤에 위치
