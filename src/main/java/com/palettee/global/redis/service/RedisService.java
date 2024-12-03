@@ -32,7 +32,7 @@ public class RedisService {
      * @param targetId 는 achieveId, portFolioId
      * @param category 는 achieve, portFolio
      */
-    public void viewCount(Long targetId, Long userId ,String category) {
+    public boolean viewCount(Long targetId, Long userId ,String category) {
         String key = VIEW_PREFIX + category + ": " + targetId;
         String userKey = key + "_user";
 
@@ -42,9 +42,10 @@ public class RedisService {
         if(validation != null && validation > 0) {
             log.info("조회수 카운팅");
             redisTemplate.opsForValue().increment(key, 1L);
-        }else{
-            log.info("24시간이 지나야 조회 할 수 있습니다");
+            return true;
         }
+            log.info("24시간이 지나야 조회 할 수 있습니다");
+            return false;
 
     }
 
@@ -167,21 +168,17 @@ public class RedisService {
     /**
      * 인기 순위 상위 5개를 조회
      */
-    public Set<Long> getZSetPopularity(String category) {
+    public Map<Long, Double> getZSetPopularity(String category) {
         String key = category + "_Ranking";
 
-        Set<Long> longs = redisTemplate.opsForZSet().reverseRange(key, 0, 4);
-        Set<ZSetOperations.TypedTuple<Long>> result = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, 4);
+        Set<ZSetOperations.TypedTuple<Long>> typedTuples = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, 4);
 
-        result.forEach(item -> {
-            System.out.println("popularNumber: " + item.getValue() + ", Score: " + item.getScore());
-        });
+        return  typedTuples.stream()
+                .collect(Collectors.toMap(
+                        ZSetOperations.TypedTuple::getValue,
+                        ZSetOperations.TypedTuple::getScore
+                ));
 
-        longs.forEach(number -> {
-            System.out.println("popularNumber" + number);
-        });
-
-        return longs;
     }
 
     /**

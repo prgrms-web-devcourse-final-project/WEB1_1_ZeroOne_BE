@@ -37,8 +37,8 @@ public class PortFolioController
 
 
     @GetMapping("/{portFolioId}")
-    public void clickPortFolio(@PathVariable Long portFolioId){
-        portFolioService.clickPortFolio(portFolioId, UserUtils.getContextUser().getId());
+    public boolean clickPortFolio(@PathVariable Long portFolioId){
+        return portFolioService.clickPortFolio(portFolioId, UserUtils.getContextUser().getId());
     }
 
     @GetMapping("/my-page")

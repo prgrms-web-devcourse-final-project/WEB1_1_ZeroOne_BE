@@ -6,6 +6,7 @@ import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.domain.PortFolio;
@@ -46,8 +47,8 @@ public class PortFolioService {
     }
 
 
-    public void clickPortFolio(Long portPolioId, Long userId) {
-        redisService.viewCount(portPolioId,userId, "portFolio");
+    public boolean clickPortFolio(Long portPolioId, Long userId) {
+       return redisService.viewCount(portPolioId,userId, "portFolio");
     }
 
     @Transactional
@@ -76,21 +77,28 @@ public class PortFolioService {
      */
     @Cacheable(value = "pf_cache", key = "'cache'")
     public PortFolioWrapper popularPortFolio(){
-        Set<Long> portFolio = redisService.getZSetPopularity("portFolio");
 
-        List<Long> sortedPortFolio = new ArrayList<>(portFolio);
+        Map<Long, Double> portFolioMap = redisService.getZSetPopularity("portFolio");
+
+        Set<Long> longs = portFolioMap.keySet();
+
+        List<Long> sortedPortFolio = new ArrayList<>(longs);
 
         List<PortFolio> portfolios = portFolioRepository.findAllByPortfolioIdIn(sortedPortFolio);
 
 
-        // in 절을 사용하면 정렬 순서가 바뀌기 때문에 Set으로 정렬한 순서랑 맞춰줘야함
+        // in 절을 사용하면 정렬 순서가 바뀌기 때문에 Map으로 순서를 맞춰줌
         Map<Long, PortFolio> portfoliosMap = portfolios.stream()
                 .collect(Collectors.toMap(PortFolio::getPortfolioId, portfolio -> portfolio));
 
-        List<PortFolioResponse> list = sortedPortFolio.stream()
-                .map(portfoliosMap::get)
+        // 본 List의 본 순서와 맞는 점수 대응
+        List<PortFolioPopularResponse> list = sortedPortFolio.stream()
+                .map(portFolioId -> {
+                    Double score = portFolioMap.get(portFolioId);
+                    PortFolio portFolio = portfoliosMap.get(portFolioId);
+                    return portFolio != null ? PortFolioPopularResponse.toDto(portFolio, score) : null;
+                })
                 .filter(Objects::nonNull)
-                .map(PortFolioResponse::toDto)
                 .collect(Collectors.toList());
 
         return new PortFolioWrapper(list);
