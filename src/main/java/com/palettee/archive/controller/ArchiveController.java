@@ -40,7 +40,7 @@ public class ArchiveController {
 
     @PostMapping
     public ArchiveResponse registerArchive(@Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
-        User user = getContextUser();
+        User user = UserUtils.getContextUser();
         return archiveService.registerArchive(archiveRegisterRequest, user);
     }
 
@@ -74,7 +74,7 @@ public class ArchiveController {
 
     @GetMapping("/me/like")
     public ArchiveListResponse getMyLikeArchives() {
-        User user = getContextUser();
+        User user = UserUtils.getContextUser();
         return archiveService.getLikeArchive(user);
     }
 
@@ -100,7 +100,7 @@ public class ArchiveController {
 
     @PostMapping("/{archiveId}/comment")
     public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
-        User user = getContextUser();
+        User user = UserUtils.getContextUser();
         return commentService.writeComment(user, archiveId, commentWriteRequest);
     }
 
@@ -117,7 +117,7 @@ public class ArchiveController {
 
     @PutMapping("/comment/{commentId}")
     public CommentResponse updateComment(@PathVariable("commentId") long commentId, @Valid @RequestBody CommentUpdateRequest commentUpdateRequest) {
-        User user = getContextUser();
+        User user = UserUtils.getContextUser();
         return commentService.updateComment(user, commentId, commentUpdateRequest);
     }
 
