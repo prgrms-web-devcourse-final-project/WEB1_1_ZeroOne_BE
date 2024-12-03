@@ -51,7 +51,7 @@ public class ArchiveController {
 
     @GetMapping
     public ArchiveListResponse getArchives(
-            @RequestParam String color,
+            @RequestParam(required = false) String color,
             @RequestParam String sort,
             Pageable pageable
     ) {
@@ -106,7 +106,7 @@ public class ArchiveController {
 
     @GetMapping("/{archiveId}/comment")
     public CommentListResponse getComments(
-            @PathVariable("archiveId") long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @RequestParam int page,
             @RequestParam int size
     ) {

@@ -9,6 +9,7 @@ import java.util.List;
 public record ArchiveDetailResponse(
         String title,
         String description,
+        String introduction,
         String username,
         String type,
         boolean canComment,
@@ -36,6 +37,7 @@ public record ArchiveDetailResponse(
         return new ArchiveDetailResponse(
                 archive.getTitle(),
                 archive.getDescription(),
+                archive.getIntroduction(),
                 owner.getName(),
                 archive.getType().name(),
                 archive.isCanComment(),

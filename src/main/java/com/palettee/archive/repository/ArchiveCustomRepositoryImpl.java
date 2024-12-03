@@ -4,7 +4,6 @@ import static com.palettee.archive.domain.QArchive.*;
 
 import com.palettee.archive.domain.*;
 import com.palettee.user.controller.dto.response.users.*;
-import com.palettee.user.domain.*;
 import com.querydsl.core.types.*;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.impl.*;
@@ -107,13 +106,10 @@ public class ArchiveCustomRepositoryImpl implements ArchiveCustomRepository{
     }
 
     private BooleanExpression archiveColorEquals(String color) {
-
+        if (color == null) return null;
         ArchiveType type = ArchiveType.findByInput(color);
-        if(color != null){
-            return archive.type.eq(type);
-        }
+        return archive.type.eq(type);
 
-        return null;
     }
 
     private OrderSpecifier<?> sortType(String type) {
