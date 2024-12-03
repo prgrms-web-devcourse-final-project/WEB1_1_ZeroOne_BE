@@ -110,7 +110,7 @@ public class ArchiveController {
             @RequestParam int page,
             @RequestParam int size
     ) {
-        User user = UserUtils.getContextUser();
+        User user = getContextUser();
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id").descending());
         return commentService.getCommentWithArchive(user, archiveId, pageRequest);
     }
@@ -127,4 +127,12 @@ public class ArchiveController {
         return commentService.deleteComment(commentId, user.getId());
     }
 
+    private User getContextUser() {
+        try {
+            return UserUtils.getContextUser();
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
 }
