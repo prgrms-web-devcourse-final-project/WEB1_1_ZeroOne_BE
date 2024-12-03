@@ -86,6 +86,7 @@ public class SecurityConfig {
                 /* <-------------- Archive API --------------> */
                 // 아카이브 전체 & 단건 조회
                 .byPassable(HttpMethod.GET, "/archive", "/archive/{archiveId}")
+                .conditionalByPassable(HttpMethod.GET, "/archive/*/comment")
 
                 // 아카이브 검색 & 댓글 조회
                 .byPassable(HttpMethod.GET,
