@@ -8,7 +8,7 @@ import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Status;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.*;
+import com.palettee.user.controller.dto.response.users.GetUserGatheringResponse;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -86,7 +86,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
 
         boolean hasNext = hasNextPage(pageable, targetIds);
 
-        Long nextId = hasNext ? results.get(results.size() -1).get(likes.likeId) : null;
+        Long nextId = hasNext ? results.get(results.size() - 1).get(likes.likeId) : null;
 
         List<GatheringResponse> list = queryFactory
                 .selectFrom(gathering)

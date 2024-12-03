@@ -55,6 +55,7 @@ public class PortFolioService {
 
         Boolean flag = redisService.likeExistInRedis("portFolio", portFolioId, user.getId());
 
+        // 이미 DB에 반영된 좋아요 디비에서 삭제
         if(!flag){
             cancelLike(portFolioId, user);
         }
