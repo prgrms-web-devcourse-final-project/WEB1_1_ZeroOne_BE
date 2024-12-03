@@ -95,7 +95,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         String requestUrl = req.getRequestURL().toString();
 
         log.error("Exception has been occurred on REQUEST ID [{}] - [{} \"{}\"] : {}, {}",
-                requestUUID != null ? requestUrl : "UNKNOWN",
+                requestUUID != null ? requestUUID : "UNKNOWN",
                 httpMethod, requestUrl,
                 status, msg, e);
     }
