@@ -31,3 +31,5 @@ server:
 
 sse:
   timeout: 3600000 # 1시간
+
+LOG_DIR: ./test-logs

@@ -40,4 +40,6 @@ redis:
   port: 6379
   password:
 
-  environment: local
+LOG_DIR: ./logs
+
+environment: local
