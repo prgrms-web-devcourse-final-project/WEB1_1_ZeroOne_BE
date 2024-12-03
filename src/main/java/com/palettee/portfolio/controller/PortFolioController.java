@@ -59,7 +59,7 @@ public class PortFolioController
         return portFolioService.likePortFolio(UserUtils.getContextUser(), portFolioId);
     }
 
-    @GetMapping("/popular")
+    @GetMapping("/main")
     public PortFolioWrapper findPopular(){
 
      return portFolioService.popularPortFolio();
