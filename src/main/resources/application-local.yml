@@ -33,6 +33,8 @@ spring:
           github:
             redirect-uri: http://localhost:8080/login/oauth2/code/github
 
+oauth-success-redirect-uri: /token/issue
+
 redis:
   host: localhost
   port: 6379
