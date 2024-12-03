@@ -46,7 +46,7 @@ public class ArchiveController {
 
     @GetMapping("/{archiveId}")
     public ArchiveDetailResponse getArchive(@PathVariable("archiveId") long archiveId) {
-        return archiveService.getArchiveDetail(archiveId, UserUtils.getContextUser());
+        return archiveService.getArchiveDetail(archiveId, getContextUser());
     }
 
     @GetMapping
