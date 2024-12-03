@@ -5,6 +5,7 @@ import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.service.*;
+import jakarta.servlet.http.*;
 import jakarta.validation.*;
 import jakarta.validation.constraints.*;
 import java.util.*;
@@ -19,6 +20,25 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    private static final String REFRESH_TOKEN_COOKIE_KEY = "refresh_token";
+
+    /**
+     * 자기 자신의 정보를 조회
+     */
+    @GetMapping("/my-info")
+    public SimpleUserResponse getMyInfo() {
+        return userService.getMyInfo(getUserFromContext());
+    }
+
+    /**
+     * 로그아웃
+     */
+    @PostMapping("/logout")
+    public UserResponse logout(HttpServletResponse resp) {
+        this.removeRefreshTokenOnCookie(resp);
+        return userService.logout(getUserFromContext());
+    }
 
     /**
      * 특정 유저의 프로필을 조회
@@ -96,5 +116,18 @@ public class UserController {
         }
 
         return Optional.ofNullable(user);
+    }
+
+    private void removeRefreshTokenOnCookie(HttpServletResponse resp) {
+
+        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_KEY, null);
+        cookie.setMaxAge(0);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+
+        resp.addCookie(cookie);
+
+        log.info("Refresh token in cookie were removed.");
     }
 }

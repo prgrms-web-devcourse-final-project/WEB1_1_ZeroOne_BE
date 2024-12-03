@@ -3,6 +3,7 @@ package com.palettee.user.service;
 import com.palettee.archive.domain.*;
 import com.palettee.archive.repository.*;
 import com.palettee.gathering.repository.*;
+import com.palettee.global.security.jwt.services.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
 import com.palettee.user.controller.dto.request.users.*;
@@ -30,6 +31,34 @@ public class UserService {
     private final StoredProfileImageUrlRepository storedProfileImageUrlRepo;
     private final ArchiveRepository archiveRepo;
     private final GatheringRepository gatheringRepo;
+    private final RefreshTokenRedisService refreshTokenRedisService;
+
+    /**
+     * 자신의 정보를 조회
+     *
+     * @param loggedInUser 로그인한 유저
+     */
+    public SimpleUserResponse getMyInfo(Optional<User> loggedInUser) {
+        return SimpleUserResponse.of(
+                loggedInUser.orElseThrow(() -> UserNotFoundException.EXCEPTION)
+        );
+    }
+
+    /**
+     * 유저 로그아웃
+     *
+     * @param loggedInUser 로그인한 유저
+     */
+    @Transactional
+    public UserResponse logout(Optional<User> loggedInUser) {
+
+        User userOnLogout = loggedInUser.orElseThrow(() -> UserNotFoundException.EXCEPTION);
+        refreshTokenRedisService.deleteRefreshToken(userOnLogout);
+
+        log.info("User {}'s refresh token in redis were removed.", userOnLogout.getId());
+
+        return UserResponse.of(userOnLogout);
+    }
 
     /**
      * 유저 프로필 정보 반환하는 메서드
