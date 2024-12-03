@@ -106,7 +106,7 @@ public class ArchiveController {
 
     @GetMapping("/{archiveId}/comment")
     public CommentListResponse getComments(
-            @PathVariable("archiveId") long archiveId,
+            @PathVariable("archiveId") Long archiveId,
             @RequestParam int page,
             @RequestParam int size
     ) {
