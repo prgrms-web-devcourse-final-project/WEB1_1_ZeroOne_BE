@@ -70,7 +70,7 @@ public class GatheringController {
     }
 
     @PostMapping("/{gatheringId}/like")
-    public GatheringLikeResponse createLike(@PathVariable Long gatheringId){
+    public boolean createLike(@PathVariable Long gatheringId){
         return gatheringService.createGatheringLike(gatheringId, UserUtils.getContextUser());
     }
 
