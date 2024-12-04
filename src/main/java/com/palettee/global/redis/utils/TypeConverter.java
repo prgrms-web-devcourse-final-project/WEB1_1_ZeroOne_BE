@@ -13,6 +13,7 @@ public class TypeConverter {
     }
 
     public static LocalDateTime StringToLocalDateTime(String timestamp) {
+        timestamp = timestamp.substring(0, 26);
         return LocalDateTime.parse(timestamp, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS"));
     }
 
