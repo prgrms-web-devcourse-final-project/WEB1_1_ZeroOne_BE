@@ -30,15 +30,16 @@ public class JwtExceptionHandlingFilter extends OncePerRequestFilter {
             log.warn("Jwt exception occurred at {}", request.getRequestURI());
 
             ErrorCode err = e.getErrorCode();
-            responseErr(err.getStatus(), err.getReason(), e, response);
+            responseErr(err.getStatus(), err.getReason(), e, response, request);
         } catch (Exception e) {
             log.error("Unexpected exception occurred at {}", request.getRequestURI());
 
-            responseErr(500, e.getMessage(), e, response);
+            responseErr(500, e.getMessage(), e, response, request);
         }
     }
 
-    private void responseErr(int status, String reason, Exception e, HttpServletResponse resp)
+    private void responseErr(int status, String reason, Exception e, HttpServletResponse resp,
+            HttpServletRequest req)
             throws IOException {
         resp.setContentType(MediaType.APPLICATION_JSON_VALUE);
         resp.setCharacterEncoding("UTF-8");
@@ -52,7 +53,9 @@ public class JwtExceptionHandlingFilter extends OncePerRequestFilter {
         objectMapper.registerModule(new JavaTimeModule());
         resp.getWriter().write(objectMapper.writeValueAsString(response));
 
-        log.error("JwtExceptionHandlingFilter handled exception: {}", e.getClass().getSimpleName());
-        log.error("Exception message: {}", e.getMessage());
+        Object requestUUID = req.getAttribute("custom-request-uuid");
+
+        log.error("On REQUEST [{}], JwtExceptionHandlingFilter handled exception : {}",
+                requestUUID, e.getClass().getSimpleName(), e);
     }
 }

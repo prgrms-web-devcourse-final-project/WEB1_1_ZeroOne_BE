@@ -47,7 +47,10 @@ public class OAuth2LoginFailureHandler
         objectMapper.registerModule(new JavaTimeModule());
         response.getWriter().write(objectMapper.writeValueAsString(body));
 
-        log.warn("Handled OAuth2 login failure.");
+        Object requestUUID = request.getAttribute("custom-request-uuid");
+
+        log.warn("Handled OAuth2 login failure on request [{}] : ",
+                requestUUID != null ? requestUUID : "UNKNOWN", exception);
         log.warn("Error status : {}", status);
         log.warn("Error msg : {}", reason);
     }

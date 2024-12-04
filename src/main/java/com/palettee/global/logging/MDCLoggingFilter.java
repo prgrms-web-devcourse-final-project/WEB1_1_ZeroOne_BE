@@ -29,17 +29,21 @@ public class MDCLoggingFilter extends OncePerRequestFilter {
         // 요청별 랜덤 uuid 생성 & 저장
         String requestUUID = UUID.randomUUID().toString();
         request.setAttribute("custom-request-uuid", requestUUID);
-        log.info("custom-request-uuid {} has been set to request {} \"{}\"",
-                requestUUID, request.getMethod(), request.getRequestURI());
+        log.info("REQUEST {} \"{}\" earned custom UUID : {}",
+                request.getMethod(), request.getRequestURI(), requestUUID);
 
         try {
 
             this.configureLogDirViaUri(request);
+
+            this.logNewLines();
             log.info("============== REQUEST [{}] START ==============", requestUUID);
             filterChain.doFilter(request, response);
 
         } finally {
             log.info("============== REQUEST [{}] END ==============", requestUUID);
+            this.logNewLines();
+
             MDC.clear();
         }
     }
@@ -52,5 +56,10 @@ public class MDCLoggingFilter extends OncePerRequestFilter {
         MDC.put("DOMAIN_LOG_DIR", domainType.getDomainLogDir());
 
         log.info("Domain logging directory has been set to : [{}]", domainType.getDomainLogDir());
+    }
+
+    private void logNewLines() {
+        log.info("");
+        log.info("");
     }
 }
