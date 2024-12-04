@@ -1,14 +1,11 @@
 package com.palettee.global.aop;
 
-import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.stereotype.Component;
-
-import java.lang.reflect.Proxy;
-import java.sql.Connection;
+import java.lang.reflect.*;
+import java.sql.*;
+import lombok.extern.slf4j.*;
+import org.aspectj.lang.*;
+import org.aspectj.lang.annotation.*;
+import org.springframework.stereotype.*;
 
 @Aspect
 @Component
@@ -21,6 +18,10 @@ public class PerformanceAspect {
     public void performancePointcut() {
     }
 
+    @Pointcut("@within(org.springframework.stereotype.Service)")
+    public void serviceExecutionPointcut() {
+    }
+
     @Around("performancePointcut()")
     public Object start(ProceedingJoinPoint joinPoint) throws Throwable {
         final Connection connection = (Connection) joinPoint.proceed();
@@ -30,6 +31,24 @@ public class PerformanceAspect {
         final Connection proxyConnection = getProxyConnection(connection, counter);
         queryCounter.remove();
         return proxyConnection;
+    }
+
+    @Around("serviceExecutionPointcut()")
+    public Object aroundServiceExecution(ProceedingJoinPoint joinPoint) throws Throwable {
+
+        long startTime = System.currentTimeMillis();
+
+        var joinPointSignature = joinPoint.getSignature();
+        String serviceName = joinPointSignature.getDeclaringType().getSimpleName();
+        String methodName = joinPointSignature.getName();
+        String pointcutDesignator = serviceName + "#" + methodName;
+
+        try {
+            return joinPoint.proceed();
+        } finally {
+            long endTime = System.currentTimeMillis();
+            log.debug("[{}] Executed in [{}] ms", pointcutDesignator, endTime - startTime);
+        }
     }
 
     private Connection getProxyConnection(Connection connection, QueryCounter counter) {

@@ -29,8 +29,8 @@ public class MDCLoggingFilter extends OncePerRequestFilter {
         // 요청별 랜덤 uuid 생성 & 저장
         String requestUUID = UUID.randomUUID().toString();
         request.setAttribute("custom-request-uuid", requestUUID);
-        log.info("custom-request-uuid {} has been set to request {} \"{}\"",
-                requestUUID, request.getMethod(), request.getRequestURI());
+        log.info("REQUEST {} \"{}\" earned custom UUID : {}",
+                request.getMethod(), request.getRequestURI(), requestUUID);
 
         try {
 
