@@ -53,7 +53,7 @@ public class GatheringService {
                 .deadLine(GatheringCommonRequest.getDeadLineLocalDate(request.deadLine()))
                 .personnel(request.personnel())
                 .gatheringImages(GatheringCommonRequest.getGatheringImage(request.gatheringImages()))
-                .position(Position.findPosition(request.position()))
+                .positions(GatheringCommonRequest.getPosition(request.positions()))
                 .title(request.title())
                 .content(request.content())
                 .url(request.url())

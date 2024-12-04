@@ -2,6 +2,7 @@ package com.palettee.gathering.controller.dto.Request;
 
 import com.palettee.gathering.domain.GatheringImage;
 import com.palettee.gathering.domain.GatheringTag;
+import com.palettee.gathering.domain.Position;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -31,9 +32,7 @@ public record GatheringCommonRequest(
         @NotBlank(message = "마감일을 입력해주세요.")
         String deadLine,
 
-        @NotBlank(message = "포지션을 입력해주세요.")
-        String position,
-
+        List<String> positions,
 
         List<String> gatheringTag ,
 
@@ -69,6 +68,15 @@ public record GatheringCommonRequest(
                     .map(GatheringImage :: new).toList();
         }
         return null;
+    }
+
+    public static List<Position> getPosition(List<String> positions){
+        if(positions != null && !positions.isEmpty()){
+            return positions.stream()
+                    .map(Position::new).toList();
+        }
+        return null;
+
     }
 
 }

@@ -2,6 +2,7 @@ package com.palettee.gathering.controller.dto.Response;
 
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.GatheringTag;
+import com.palettee.gathering.domain.Position;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,7 +18,7 @@ public record GatheringDetailsResponse(
         int personnel,
         String period,
         String deadLine,
-        String position,
+        List<String> positions,
         List<String> gatheringTag,
         String contactUrl,
         String title,
@@ -31,6 +32,11 @@ public record GatheringDetailsResponse(
         List<String> list = gathering.getGatheringTagList()
                 .stream()
                 .map(GatheringTag::getContent)
+                .toList();
+
+        List<String> positionList = gathering.getPositions()
+                .stream()
+                .map(Position::getContent)
                 .toList();
 
 
@@ -47,7 +53,7 @@ public record GatheringDetailsResponse(
                 gathering.getPersonnel(),
                 gathering.getPeriod(),
                 deadLine,
-                gathering.getPosition().getPosition(),
+                positionList,
                 list,
                 gathering.getUrl(),
                 gathering.getTitle(),

@@ -45,7 +45,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
-                .where(sortEq(sort),subjectEq(subject), periodEq(period), positionEq(position), statusEq(status), pageIdLoe(gatheringId))
+                .where(sortEq(sort),subjectEq(subject), periodEq(period), statusEq(status), pageIdLoe(gatheringId))
                 .orderBy(gathering.id.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
@@ -147,10 +147,10 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
     private BooleanExpression periodEq(String period) {
         return period != null ? gathering.period.eq(period) : null;
     }
-
-    private BooleanExpression positionEq(String position) {
-        return position != null ? gathering.position.eq(Position.findPosition(position)) : null;
-    }
+//
+//    private BooleanExpression positionEq(String position) {
+//        return position != null ? gathering.position.eq(Position.findPosition(position)) : null;
+//    }
 
     private BooleanExpression statusEq(String status) {
         return status != null ? gathering.status.eq(Status.findsStatus(status)) : null;

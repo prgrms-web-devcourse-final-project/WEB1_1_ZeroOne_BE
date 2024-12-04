@@ -38,9 +38,6 @@ public class Gathering extends BaseEntity {
     private int personnel; // 모집 인원
 
     @Enumerated(EnumType.STRING)
-    private Position position; // 모집 포지션
-
-    @Enumerated(EnumType.STRING)
     private Status status; // 현재 모집 상태
 
     @Column(name = "title", nullable = false, length = 50)
@@ -61,6 +58,9 @@ public class Gathering extends BaseEntity {
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GatheringImage> gatheringImages= new ArrayList<>();
 
+    @OneToMany(mappedBy = "gathering", cascade =  CascadeType.ALL, orphanRemoval = true)
+    private List<Position> positions = new ArrayList<>();
+
     @Builder
     public Gathering(
             Sort sort,
@@ -69,11 +69,11 @@ public class Gathering extends BaseEntity {
             Contact contact,
             LocalDateTime deadLine,
             int personnel,
-            Position position,
             String title,
             String content,
             String url,
             User user,
+            List<Position> positions,
             List<GatheringTag> gatheringTagList,
             List<GatheringImage> gatheringImages
     ) {
@@ -84,7 +84,6 @@ public class Gathering extends BaseEntity {
         this.deadLine = deadLine;
         this.url = url;
         this.personnel = personnel;
-        this.position = position;
         this.status = Status.ONGOING;
         this.title = title;
         this.content = content;
@@ -92,6 +91,7 @@ public class Gathering extends BaseEntity {
         user.addGathering(this);
        setGatheringTagList(gatheringTagList);
        setGatheringImages(gatheringImages);
+       setPositions(positions);
     }
 
     public void setGatheringTagList(List<GatheringTag> gatheringTagList) {
@@ -115,6 +115,15 @@ public class Gathering extends BaseEntity {
 
     }
 
+    public void setPositions(List<Position> positions) {
+        if(positions != null && !positions.isEmpty()){
+            for(Position position : positions){
+                position.setGathering(this);
+                this.positions.add(position);
+            }
+        }
+    }
+
     public void updateGathering(GatheringCommonRequest gathering){
         this.sort = Sort.findSort(gathering.sort());
         this.subject = Subject.finSubject(gathering.subject());
@@ -122,13 +131,14 @@ public class Gathering extends BaseEntity {
         this.period = gathering.period();
         this.deadLine = GatheringCommonRequest.getDeadLineLocalDate(gathering.deadLine());
         this.personnel = gathering.personnel();
-        this.position = Position.findPosition(gathering.position());
         this.title = gathering.title();
         this.content = gathering.content();
         this.url = gathering.url();
+        updateGatheringPosition(gathering);
         updateGatheringTag(gathering);
         updateGatheringImages(gathering);
     }
+
 
     // 이미지 태그 있을때만 교체
     private void updateGatheringTag(GatheringCommonRequest gathering) {
@@ -145,6 +155,15 @@ public class Gathering extends BaseEntity {
             this.gatheringImages.clear();
             List<GatheringImage> gatheringImage = GatheringCommonRequest.getGatheringImage(gathering.gatheringImages());
             setGatheringImages(gatheringImage);
+        }
+    }
+
+    // 포지션이 있을때만 교체
+    private void updateGatheringPosition(GatheringCommonRequest gathering){
+        if(gathering.positions() != null && !gathering.positions().isEmpty()){
+            this.positions.clear();
+            List<Position> position = GatheringCommonRequest.getPosition(gathering.positions());
+            setPositions(position);
         }
     }
 

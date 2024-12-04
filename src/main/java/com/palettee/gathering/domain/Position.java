@@ -1,27 +1,35 @@
 package com.palettee.gathering.domain;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Position {
 
-@RequiredArgsConstructor
-public enum Position {
-    DEVELOP("개발자"),
-    DESIGNER("디자이너"),
-    PLANNER("기획자");
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "position_id")
+    private Long id;
 
-    private final String position;
+    private String content;
 
-    public String getPosition() {
-        return position;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gathering_id")
+    private Gathering gathering;
+
+
+    @Builder
+    public Position(String content) {
+        this.content = content;
     }
 
-
-    public static Position findPosition(String input) {
-        return Arrays.stream(Position.values())
-                .filter(it -> it.position.equals(input))
-                .findFirst()
-                .orElse(null);
+    public void setGathering(Gathering gathering) {
+        this.gathering = gathering;
     }
 
 
