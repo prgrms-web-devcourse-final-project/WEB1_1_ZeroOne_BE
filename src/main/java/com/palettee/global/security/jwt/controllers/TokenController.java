@@ -101,11 +101,12 @@ public class TokenController {
     private String getRefreshTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
 
-        return Arrays.stream(cookies).parallel()
-                .filter(cookie -> cookie.getName().equals(REFRESH_TOKEN_COOKIE_KEY))
-                .map(Cookie::getValue)
-                .findFirst()
-                .orElse(null);
+        return cookies == null ? null :
+                Arrays.stream(cookies).parallel()
+                        .filter(cookie -> cookie.getName().equals(REFRESH_TOKEN_COOKIE_KEY))
+                        .map(Cookie::getValue)
+                        .findFirst()
+                        .orElse(null);
     }
 
 
