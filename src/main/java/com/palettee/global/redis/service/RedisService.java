@@ -183,10 +183,17 @@ public class RedisService {
 
         Set<ZSetOperations.TypedTuple<Long>> typedTuples = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, 4);
 
-        return  typedTuples.stream()
+        // 로그로 데이터 출력
+        typedTuples.forEach(tuple -> {
+            System.out.println("Value: " + tuple.getValue() + ", Score: " + tuple.getScore());
+        });
+
+        return typedTuples.stream()
                 .collect(Collectors.toMap(
                         ZSetOperations.TypedTuple::getValue,
-                        ZSetOperations.TypedTuple::getScore
+                        ZSetOperations.TypedTuple::getScore,
+                        (e1, e2) -> e1, // 중복된 key 처리 방식 (여기서는 충돌이 없을 것으로 가정)
+                        LinkedHashMap::new  // LinkedHashMap으로 반환하여 순서 유지
                 ));
 
     }
