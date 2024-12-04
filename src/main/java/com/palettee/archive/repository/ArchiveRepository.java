@@ -12,4 +12,8 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long>, Archive
 
     @Query("select a from Archive a where a.id in :ids order by a.archiveOrder desc")
     List<Archive> findAllInIds(@Param("ids") List<Long> ids);
+
+    @Query("select a from Archive a order by a.id desc limit 5")
+    List<Archive> getMainArchives();
+
 }

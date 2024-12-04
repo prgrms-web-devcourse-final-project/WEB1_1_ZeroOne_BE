@@ -65,6 +65,13 @@ public class ArchiveService {
         return new ArchiveListResponse(list, SliceInfo.of(archives));
     }
 
+    public ArchiveListResponse getMainArchive() {
+        List<ArchiveSimpleResponse> result = archiveRepository.getMainArchives().stream()
+                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .toList();
+        return new ArchiveListResponse(result, null);
+    }
+
     @Transactional
     public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);

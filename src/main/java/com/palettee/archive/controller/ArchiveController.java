@@ -49,6 +49,11 @@ public class ArchiveController {
         return archiveService.getArchiveDetail(archiveId, getContextUser());
     }
 
+    @GetMapping("/main")
+    public ArchiveListResponse getMainArchiveList() {
+        return archiveService.getMainArchive();
+    }
+
     @GetMapping
     public ArchiveListResponse getArchives(
             @RequestParam(required = false) String color,
