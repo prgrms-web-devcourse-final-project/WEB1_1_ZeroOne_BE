@@ -1,30 +1,21 @@
 package com.palettee.chat;
 
-import com.palettee.chat.controller.dto.request.ChatImgUrlRequest;
-import com.palettee.chat.controller.dto.request.ChatRequest;
-import com.palettee.chat.controller.dto.response.ChatResponse;
-import com.palettee.chat.repository.ChatRepository;
-import com.palettee.chat.service.ChatService;
-import com.palettee.chat_room.domain.ChatCategory;
-import com.palettee.chat_room.domain.ChatRoom;
-import com.palettee.chat_room.repository.ChatRoomRepository;
-import com.palettee.global.handler.exception.ChatContentNullException;
-import com.palettee.user.domain.MajorJobGroup;
-import com.palettee.user.domain.MinorJobGroup;
-import com.palettee.user.domain.User;
-import com.palettee.user.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.*;
+
+import com.palettee.chat.controller.dto.request.*;
+import com.palettee.chat.controller.dto.response.*;
+import com.palettee.chat.repository.*;
+import com.palettee.chat.service.*;
+import com.palettee.chat_room.domain.*;
+import com.palettee.chat_room.repository.*;
+import com.palettee.global.handler.exception.*;
+import com.palettee.user.domain.*;
+import com.palettee.user.repository.*;
+import java.util.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.transaction.annotation.*;
 
 @SpringBootTest
 @Transactional
@@ -40,7 +31,17 @@ public class ChatServiceTest {
 
     @BeforeEach
     void beforeEach() {
-        savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro", MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND));
+        savedUser = userRepository.save(
+                User.builder()
+                        .email("email")
+                        .imageUrl("imageUrl")
+                        .name("name")
+                        .briefIntro("briefIntro")
+                        .userRole(UserRole.USER)
+                        .majorJobGroup(MajorJobGroup.DEVELOPER)
+                        .minorJobGroup(MinorJobGroup.BACKEND)
+                        .build()
+        );
         savedChatRoom = chatRoomRepository.save(new ChatRoom(ChatCategory.COFFEE_CHAT));
     }
 

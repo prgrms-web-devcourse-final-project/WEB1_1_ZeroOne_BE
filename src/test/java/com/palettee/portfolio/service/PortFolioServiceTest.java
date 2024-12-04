@@ -1,35 +1,23 @@
 package com.palettee.portfolio.service;
 
-import com.palettee.global.cache.MemoryCache;
-import com.palettee.global.redis.service.RedisService;
-import com.palettee.likes.domain.LikeType;
-import com.palettee.likes.domain.Likes;
-import com.palettee.likes.repository.LikeRepository;
+import static com.palettee.global.Const.*;
+
+import com.palettee.global.cache.*;
+import com.palettee.global.redis.service.*;
+import com.palettee.likes.domain.*;
+import com.palettee.likes.repository.*;
 import com.palettee.portfolio.controller.dto.response.*;
-import com.palettee.portfolio.domain.PortFolio;
-import com.palettee.portfolio.repository.PortFolioRepository;
-import com.palettee.user.domain.MajorJobGroup;
-import com.palettee.user.domain.MinorJobGroup;
-import com.palettee.user.domain.User;
-import com.palettee.user.repository.UserRepository;
+import com.palettee.portfolio.domain.*;
+import com.palettee.portfolio.repository.*;
+import com.palettee.user.domain.*;
+import com.palettee.user.repository.*;
+import java.util.*;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.redis.core.RedisTemplate;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.palettee.global.Const.LIKE_PREFIX;
-import static com.palettee.global.Const.VIEW_PREFIX;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.data.domain.*;
+import org.springframework.data.redis.core.*;
 
 @SpringBootTest
 class PortFolioServiceTest {
@@ -63,6 +51,7 @@ class PortFolioServiceTest {
                 .email("hello")
                 .name("테스트")
                 .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
                 .majorJobGroup(MajorJobGroup.DEVELOPER)
                 .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
@@ -268,6 +257,7 @@ class PortFolioServiceTest {
                 .email("hellod")
                 .name("테스트")
                 .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
                 .majorJobGroup(MajorJobGroup.DEVELOPER)
                 .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
@@ -277,6 +267,7 @@ class PortFolioServiceTest {
                 .email("hellos")
                 .name("테스트")
                 .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
                 .majorJobGroup(MajorJobGroup.DEVELOPER)
                 .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
@@ -321,6 +312,7 @@ class PortFolioServiceTest {
                 .email("hellod")
                 .name("테스트")
                 .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
                 .majorJobGroup(MajorJobGroup.DEVELOPER)
                 .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
@@ -330,6 +322,7 @@ class PortFolioServiceTest {
                 .email("hellos")
                 .name("테스트")
                 .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
                 .majorJobGroup(MajorJobGroup.DEVELOPER)
                 .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
