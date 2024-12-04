@@ -16,11 +16,12 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3000", "https://palettee22.netlify.app", "https://palettee.site"));
+        config.setAllowedOrigins(List.of("http://localhost:3000", "https://palettee22.netlify.app", "https://www.palettee.site"));
         config.addAllowedMethod("*");
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("*"));
-
+        // 클라이언트에서 접근할 수 있도록 노출할 헤더를 명시
+        config.setExposedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
 
 
 
