@@ -22,6 +22,10 @@ public enum Subject {
 
     private final String subject;
 
+    public String getSubject(){
+        return subject;
+    }
+
     public static Subject finSubject(final String input) {
         return Arrays.stream(Subject.values())
                 .filter(it -> it.subject.equals(input))

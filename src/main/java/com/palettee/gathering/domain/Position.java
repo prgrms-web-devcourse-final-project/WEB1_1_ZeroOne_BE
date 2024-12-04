@@ -1,6 +1,5 @@
 package com.palettee.gathering.domain;
 
-import com.palettee.user.domain.MajorJobGroup;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
@@ -13,6 +12,9 @@ public enum Position {
 
     private final String position;
 
+    public String getPosition() {
+        return position;
+    }
 
 
     public static Position findPosition(String input) {
@@ -21,8 +23,6 @@ public enum Position {
                 .findFirst()
                 .orElse(null);
     }
-
-
 
 
 }

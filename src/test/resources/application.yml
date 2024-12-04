@@ -21,7 +21,7 @@ oauth-success-redirect-uri: /token/issue
 redis:
   host: localhost
   port: 6379
-  password: abcdefg
+  password:
 
 server:
   servlet:

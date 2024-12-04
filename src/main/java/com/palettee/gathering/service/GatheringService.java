@@ -5,7 +5,6 @@ import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.s3.service.ImageService;
@@ -22,7 +21,6 @@ import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,8 +63,9 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
     }
 
-    public Slice<GatheringResponse> findAll(
+    public CustomSliceResponse findAll(
             String sort,
+            String subject,
             String period,
             String position,
             String status,
@@ -75,6 +74,7 @@ public class GatheringService {
     ) {
         return gatheringRepository.pageGathering(
                 sort,
+                subject,
                 period,
                 position,
                 status,

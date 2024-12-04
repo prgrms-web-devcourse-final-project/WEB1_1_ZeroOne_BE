@@ -3,7 +3,6 @@ package com.palettee.portfolio.repository;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
-import com.palettee.portfolio.controller.dto.response.QPortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
@@ -47,16 +46,8 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
     public Slice<PortFolioResponse> PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
 
         List<PortFolioResponse> result = queryFactory
-                .select(new QPortFolioResponse(
-                        portFolio.portfolioId,
-                        user.id,
-                        portFolio.url,
-                        user.name,
-                        user.briefIntro,
-                        user.majorJobGroup,
-                        user.minorJobGroup,
-                        user.imageUrl
-                ))
+                .select(portFolio
+                )
                 .from(portFolio)
                 .leftJoin(portFolio.user, user)
                 .where(majorJobGroupEquals(majorJobGroup),
@@ -64,14 +55,15 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                 .orderBy(sortType(sort))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize() + 1)
-                .fetch();
+                .fetch()
+                .stream()
+                .map(PortFolioResponse::toDto).collect(Collectors.toList());
 
         // 페이지 존재 여부를 나타내기 위해 하나 더 가져온걸 삭제
         boolean hasNext = hasNextPage(pageable, result);
 
         return new SliceImpl<>(result, pageable, hasNext);
     }
-
 
     /*
     좋아요한 포트폴리오 조회(noOffSet)
@@ -109,20 +101,14 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
 
 
         List<PortFolioResponse> list = queryFactory
-                .select(new QPortFolioResponse(
-                        portFolio.portfolioId,
-                        user.id,
-                        portFolio.url,
-                        user.name,
-                        user.briefIntro,
-                        user.majorJobGroup,
-                        user.minorJobGroup,
-                        user.imageUrl
-                ))
+                .select(portFolio
+                )
                 .from(portFolio)
                 .leftJoin(portFolio.user, user)
                 .where(portFolio.portfolioId.in(targetIds))
-                .fetch();
+                .fetch()
+                .stream()
+                .map(PortFolioResponse::toDto).collect(Collectors.toList());
 
         list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.portFolioId())));
 
