@@ -68,7 +68,66 @@ public class ChatRedisService {
         return chatResponse;
     }
 
+    public ChatCustomResponse getChats(Long chatRoomId, int size, LocalDateTime lastSendAt) {
+        String chatRoomIdStr = TypeConverter.LongToString(chatRoomId);
 
+        long offset = 0;
+        LocalDateTime findSendAt = lastSendAt;
+
+        if (lastSendAt == null) {
+            log.info("Local = {}",LocalDateTime.now());
+            findSendAt = LocalDateTime.now();
+        } else {
+            offset = 1;
+        }
+
+        Double cursor = TypeConverter.LocalDateTimeToDouble(findSendAt);
+        log.info("cursor = {}", cursor);
+        Set<ChatResponse> objects
+                = zSetOperations.reverseRangeByScore(chatRoomIdStr, Double.NEGATIVE_INFINITY, cursor, offset, size+1);
+        List<ChatResponse> results = objects.stream().collect(Collectors.toList());
+
+        log.info("results size = {}", results.size());
+
+        if(results.size() <= size) {
+            ChatCustomResponse chatDataInDB = findOtherChatDataInDB(results, lastSendAt, chatRoomId, size - results.size());
+
+            if(!results.isEmpty()) {
+                for(ChatResponse chatResponse : chatDataInDB.getChats()) {
+                    results.add(chatResponse);
+                }
+                return ChatCustomResponse.toResponseFromDto(results, chatDataInDB.isHasNext(), chatDataInDB.getLastSendAt());
+            }
+
+            return chatDataInDB;
+        }
+
+        LocalDateTime nextSendAt = TypeConverter.StringToLocalDateTime(results.get(size - 1).getSendAt());
+        List<ChatResponse> chats = results.subList(0, size);
+        return ChatCustomResponse.toResponseFromDto(chats, true, nextSendAt);
+    }
+
+    public ChatCustomResponse findOtherChatDataInDB(List<ChatResponse> results, LocalDateTime lastSendAt,
+                                         Long chatRoomId, int size) {
+        if(!results.isEmpty()) {
+            lastSendAt = TypeConverter.StringToLocalDateTime(results.get(results.size() - 1).getSendAt());
+        }
+        ChatCustomResponse chatNoOffset = chatCustomRepository.findChatNoOffset(chatRoomId, size, lastSendAt);
+
+        if (!chatNoOffset.getChats().isEmpty()) {
+            cachingDBDataToRedis(chatNoOffset.getChats());
+        }
+        return chatNoOffset;
+    }
+
+    public void cachingDBDataToRedis(List<ChatResponse> chatsInDB) {
+        for(ChatResponse chatResponse : chatsInDB) {
+            LocalDateTime sendAt = TypeConverter.StringToLocalDateTime(chatResponse.getSendAt());
+            redisTemplate
+                    .opsForZSet()
+                    .add(TypeConverter.LongToString(chatResponse.getChatRoomId()), chatResponse, TypeConverter.LocalDateTimeToDouble(sendAt));
+        }
+    }
 
     private User getUser(String email) {
         return userRepository
