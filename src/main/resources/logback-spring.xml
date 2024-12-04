@@ -1,0 +1,25 @@
+<configuration>
+
+  <!-- xml 에서 appender 가져오기 -->
+  <include resource="logback-appender.xml"/>
+
+
+  <!-- ROOT 로그 찍히는거 reference. 솔직히 뭔지 잘 모르겠음. -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="PER-REQUEST"/>
+  </root>
+
+
+  <!-- 우리 모듈에서 error 나는거 reference -->
+  <logger name="com.palettee" level="ERROR" additivity="true">
+    <appender-ref ref="EXCEPTION"/>
+  </logger>
+
+
+  <!-- hibernate 쿼리도 도메인별 로그에 저장되도록 추가 -->
+  <logger name="org.hibernate.SQL" level="DEBUG">
+    <appender-ref ref="PER-REQUEST"/>
+  </logger>
+
+</configuration>

@@ -6,6 +6,8 @@ import com.palettee.archive.domain.*;
 import com.palettee.archive.repository.*;
 import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.*;
+import com.palettee.global.security.jwt.services.*;
+import com.palettee.global.security.jwt.utils.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
 import com.palettee.user.controller.dto.request.users.*;
@@ -49,6 +51,12 @@ class UserServiceTest {
 
     @Autowired
     GatheringRepository gatheringRepo;
+
+    @Autowired
+    JwtUtils jwtUtils;
+
+    @Autowired
+    RefreshTokenRedisService refreshTokenRedisService;
 
     @Autowired
     UserService userService;
@@ -131,6 +139,40 @@ class UserServiceTest {
         }) {
             repo.deleteAll();
         }
+    }
+
+    @Test
+    @DisplayName("자신의 정보를 조회")
+    void getMyInfo() {
+        var result = userService.getMyInfo(Optional.of(testUser));
+
+        assertThat(result).isNotNull().satisfies(
+                r -> assertThat(r.userId()).isEqualTo(testUser.getId()),
+                r -> assertThat(r.name()).isEqualTo(testUser.getName()),
+                r -> assertThat(r.imageUrl()).isEqualTo(testUser.getImageUrl()),
+                r -> assertThat(r.role()).isEqualTo(testUser.getUserRole())
+        );
+    }
+
+    @Test
+    @DisplayName("유저 로그아웃")
+    void logout() {
+
+        // RTT 만들어서 redis 에 저장된 상태
+        String refreshToken = jwtUtils.createRefreshToken(testUser);
+        refreshTokenRedisService.storeRefreshToken(testUser, refreshToken, 5);
+
+        // 로그아웃 처리로 RTT redis 에서 삭제
+        var result = userService.logout(Optional.of(testUser));
+
+        // 기본 응답 확인
+        assertThat(result).isNotNull().satisfies(
+                r -> assertThat(r.userId()).isEqualTo(testUser.getId())
+        );
+
+        // redis 에서도 없어졌는지 확인
+        var validate = refreshTokenRedisService.getRefreshToken(testUser);
+        assertThat(validate).isEmpty();
     }
 
     @Test

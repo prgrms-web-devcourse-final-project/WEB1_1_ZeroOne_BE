@@ -1,5 +1,6 @@
 package com.palettee.user.controller;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -11,6 +12,7 @@ import com.palettee.gathering.domain.*;
 import com.palettee.gathering.repository.*;
 import com.palettee.global.exception.*;
 import com.palettee.global.security.jwt.exceptions.*;
+import com.palettee.global.security.jwt.services.*;
 import com.palettee.global.security.jwt.utils.*;
 import com.palettee.portfolio.domain.*;
 import com.palettee.portfolio.repository.*;
@@ -18,6 +20,7 @@ import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.exception.*;
 import com.palettee.user.repository.*;
+import jakarta.servlet.http.*;
 import jakarta.transaction.*;
 import java.time.*;
 import java.util.*;
@@ -81,6 +84,8 @@ class UserControllerTest {
         case "POST" -> post(url);
         default -> throw new IllegalStateException("Unexpected value: " + method.name());
     };
+    @Autowired
+    private RefreshTokenRedisService refreshTokenRedisService;
 
 
     private List<Archive> genArchiveList(int size, ArchiveType color, User user) {
@@ -95,7 +100,7 @@ class UserControllerTest {
                 .map(i -> new Gathering(
                         Sort.ETC, Subject.ETC, "period? 이게 뭐지?", Contact.OFFLINE,
                         LocalDateTime.MAX, 3, Position.DEVELOP, "title" + i,
-                        "content", "url", user, null,null
+                        "content", "url", user, null, null
                 )).toList();
     }
 
@@ -153,6 +158,51 @@ class UserControllerTest {
         }) {
             repo.deleteAll();
         }
+    }
+
+    @Test
+    @DisplayName("자기 자신의 정보를 조회")
+    void getMyInfo() throws Exception {
+
+        // 정상 작동 확인
+        mvc.perform(get("/user/my-info")
+                        .header("Authorization", ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userId", is(
+                        Integer.parseInt(String.valueOf(testUser.getId()))
+                )))
+                .andExpect(jsonPath("$.data.name", is(testUser.getName())))
+                .andExpect(jsonPath("$.data.imageUrl", is(testUser.getImageUrl())))
+                .andExpect(jsonPath("$.data.role", is(
+                        testUser.getUserRole().toString()
+                )));
+
+        // jwt 에러 확인
+        this.checkJwtException(HttpMethod.GET, BASE_URL + "/my-info");
+    }
+
+    @Test
+    @DisplayName("로그아웃")
+    void logout() throws Exception {
+
+        String refreshToken = jwtUtils.createRefreshToken(testUser);
+        refreshTokenRedisService.storeRefreshToken(testUser, refreshToken, 2);
+
+        // 정상 작동 확인
+        MvcResult result = mvc.perform(post("/user/logout")
+                        .header("Authorization", ACCESS_TOKEN))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.userId", is(
+                        Integer.parseInt(String.valueOf(testUser.getId()))
+                )))
+                .andReturn();
+
+        Cookie refreshTokenCookie = result.getResponse().getCookie("refresh_token");
+        assertThat(refreshTokenCookie).isNotNull();
+        assertThat(refreshTokenCookie.getValue()).isNull();
+
+        // jwt 에러 확인
+        this.checkJwtException(HttpMethod.POST, BASE_URL + "/logout");
     }
 
     @Test
