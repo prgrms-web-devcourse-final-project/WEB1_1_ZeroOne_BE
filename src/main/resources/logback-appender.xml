@@ -1,18 +1,27 @@
 <configuration>
 
+  <!-- spring starter logging 에 있는 로깅 패턴 가져오기 -->
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
   <!-- property 에서 값 읽어오기 : 프로필별 로그 저장 위치 -->
   <!-- 로컬에서는 ./logs, EC2 에서는 ~/logs -->
   <springProperty name="LOG_DIR" source="LOG_DIR"/>
 
   <!-- 오늘 날짜, 로그 패턴 -->
   <timestamp key="TODAY" datePattern="yyyy-MM-dd"/>
-  <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+
+  <!-- ANSI 적용되는 콘솔용 로그 패턴 -->
+  <property name="LOG_PATTERN_CONSOLE"
+    value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"/>
+  <!-- ANSI 코드 없는 그냥 로그 패턴 -->
+  <property name="LOG_PATTERN_PLAIN"
+    value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID:- } [%t] %-40.40logger{39} : %m%n%wEx"/>
 
 
   <!-- 콘솔 로그 보이게 하는 appender -->
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>${LOG_PATTERN}</pattern>
+      <pattern>${LOG_PATTERN_CONSOLE}</pattern>
     </encoder>
   </appender>
 
@@ -28,7 +37,7 @@
       <appender name="FILE-${DOMAIN_LOG_DIR}"
         class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-          <fileNamePattern>${LOG_DIR}/${DOMAIN_LOG_DIR}/%d{yyyy-MM-dd}_%i.log
+          <fileNamePattern>${LOG_DIR}/${DOMAIN_LOG_DIR}/${DOMAIN_LOG_DIR}.%d{yyyy-MM-dd}_%i.log
           </fileNamePattern>
           <maxFileSize>10MB</maxFileSize>
           <maxHistory>14</maxHistory>
@@ -36,7 +45,7 @@
         </rollingPolicy>
 
         <encoder>
-          <pattern>${LOG_PATTERN}</pattern>
+          <pattern>${LOG_PATTERN_PLAIN}</pattern>
         </encoder>
       </appender>
     </sift>
@@ -52,8 +61,7 @@
       <cleanHistoryOnStart>true</cleanHistoryOnStart>
     </rollingPolicy>
     <encoder>
-      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %msg%n%ex
-      </pattern> <!-- '%ex' 는 stack trace 도 포함한다 캄 -->
+      <pattern>${LOG_PATTERN_PLAIN}</pattern>
     </encoder>
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
       <level>ERROR</level>
