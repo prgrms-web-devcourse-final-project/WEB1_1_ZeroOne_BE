@@ -90,4 +90,7 @@ jobs:
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
             docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }} palettee-server
             docker rm -f palettee-server || true
-            docker run -d --name palettee-server -e TZ=Asia/Seoul -e SPRING_PROFILES_ACTIVE=ec2-dev -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
+            docker run -d --name palettee-server \
+            -e TZ=Asia/Seoul -e SPRING_PROFILES_ACTIVE=ec2-dev \
+            -v ~/palettee-service-logs:/home/palettee-service-logs \
+            -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
