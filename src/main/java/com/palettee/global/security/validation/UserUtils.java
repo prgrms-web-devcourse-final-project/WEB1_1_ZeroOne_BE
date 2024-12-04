@@ -12,7 +12,8 @@ public class UserUtils {
 
     public static User getContextUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
+        System.out.println(authentication == null);
+        System.out.println(!(authentication.getPrincipal() instanceof CustomOAuth2User));
         // 인증 정보가 없으면 예외를 던집니다.
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomOAuth2User)) {
             throw UserNotFoundException.EXCEPTION;
