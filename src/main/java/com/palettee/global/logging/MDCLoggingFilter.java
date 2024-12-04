@@ -35,11 +35,15 @@ public class MDCLoggingFilter extends OncePerRequestFilter {
         try {
 
             this.configureLogDirViaUri(request);
+
+            this.logNewLines();
             log.info("============== REQUEST [{}] START ==============", requestUUID);
             filterChain.doFilter(request, response);
 
         } finally {
             log.info("============== REQUEST [{}] END ==============", requestUUID);
+            this.logNewLines();
+
             MDC.clear();
         }
     }
@@ -52,5 +56,10 @@ public class MDCLoggingFilter extends OncePerRequestFilter {
         MDC.put("DOMAIN_LOG_DIR", domainType.getDomainLogDir());
 
         log.info("Domain logging directory has been set to : [{}]", domainType.getDomainLogDir());
+    }
+
+    private void logNewLines() {
+        log.info("");
+        log.info("");
     }
 }
