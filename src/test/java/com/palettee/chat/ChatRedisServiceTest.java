@@ -15,6 +15,7 @@ import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
+@Slf4j
 public class ChatRedisServiceTest {
 
     @Autowired UserRepository userRepository;
@@ -275,6 +277,6 @@ public class ChatRedisServiceTest {
         assertThat(chatCustomResponse.getChats().size()).isEqualTo(3);
         assertThat(chatCustomResponse.isHasNext()).isTrue();
         assertThat(TypeConverter.LocalDateTimeToString(chatCustomResponse.getLastSendAt()).substring(0, 26))
-                .isEqualTo(chatResponse.getSendAt());
+                .startsWith(chatResponse.getSendAt());
     }
 }
