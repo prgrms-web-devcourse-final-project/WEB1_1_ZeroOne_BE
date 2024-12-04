@@ -14,6 +14,9 @@ public enum Status {
 
     private final String status;
 
+    public String getStatus(){
+        return status;
+    }
 
     public static Status findsStatus(final String input) {
         return Arrays.stream(Status.values())

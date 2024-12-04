@@ -25,7 +25,15 @@ public record GatheringResponse(
         List<String> gatheringTagList = checkGatheringTag(gathering);
 
 
-        return new GatheringResponse(gathering.getId(),gathering.getUser().getId(), gathering.getSort().name(), gathering.getSubject().name(), gathering.getTitle(), deadLine, gathering.getUser().getName(), gatheringTagList);
+        return new GatheringResponse(
+                gathering.getId(),
+                gathering.getUser().getId(),
+                gathering.getSort().getSort(),
+                gathering.getSubject().getSubject(),
+                gathering.getTitle(),
+                deadLine,
+                gathering.getUser().getName(),
+                gatheringTagList);
     }
 
 

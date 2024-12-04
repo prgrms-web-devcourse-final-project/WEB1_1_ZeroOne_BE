@@ -14,6 +14,10 @@ public enum Contact {
 
     private final String contact;
 
+    public String getContact(){
+        return contact;
+    }
+
 
     public static Contact findContact(final String input) {
         return Arrays.stream(Contact.values())

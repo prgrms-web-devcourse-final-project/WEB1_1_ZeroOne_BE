@@ -9,6 +9,7 @@ public interface GatheringRepositoryCustom {
 
     CustomSliceResponse pageGathering(
             String sort,
+            String subject,
             String period,
             String position,
             String status,

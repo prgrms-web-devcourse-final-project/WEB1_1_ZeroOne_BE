@@ -34,13 +34,14 @@ public class GatheringController {
     @GetMapping()
     public CustomSliceResponse findAll(
             @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String subject,
             @RequestParam(required = false) String period,
             @RequestParam(required = false) String position,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long gatheringId,
             Pageable pageable
     ) {
-        return gatheringService.findAll(sort, period, position, status, gatheringId, pageable);
+        return gatheringService.findAll(sort, subject, period, position, status, gatheringId, pageable);
     }
 
     @GetMapping("/{gatheringId}")

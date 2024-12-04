@@ -135,7 +135,7 @@ class GatheringServiceTest {
 
 
         for(int i = 0; i < 30; i++){
-            GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content", imageList);
+                GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content", imageList);
 
             gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
@@ -143,7 +143,7 @@ class GatheringServiceTest {
 
         //when
 
-        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "3개월", "개발자", "모집중", null, PageRequest.of(0, 10));
+        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "개발자", "모집중", null, PageRequest.of(0, 10));
 
 
         //then
@@ -176,7 +176,7 @@ class GatheringServiceTest {
         GatheringDetailsResponse byDetails = gatheringService.findByDetails(gathering.gatheringId());
 
         //then
-        Assertions.assertThat(byDetails.sort()).isEqualTo(Sort.PROJECT.name());
+        Assertions.assertThat(byDetails.sort()).isEqualTo(Sort.PROJECT.getSort());
     }
 
 

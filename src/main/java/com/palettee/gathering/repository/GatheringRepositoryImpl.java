@@ -2,10 +2,7 @@ package com.palettee.gathering.repository;
 
 
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
-import com.palettee.gathering.domain.Gathering;
-import com.palettee.gathering.domain.Position;
-import com.palettee.gathering.domain.Sort;
-import com.palettee.gathering.domain.Status;
+import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.controller.dto.response.users.GetUserGatheringResponse;
@@ -38,6 +35,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
     @Override
     public CustomSliceResponse pageGathering(
             String sort,
+            String subject,
             String period,
             String position,
             String status,
@@ -47,14 +45,14 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
-                .where(sortEq(sort), periodEq(period), positionEq(position), statusEq(status), pageIdLoe(gatheringId))
+                .where(sortEq(sort),subjectEq(subject), periodEq(period), positionEq(position), statusEq(status), pageIdLoe(gatheringId))
                 .orderBy(gathering.id.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
         boolean hasNext = hasNextPage(pageable, result);
 
-        Long nextId = result.get(result.size() - 1).getId();
+        Long nextId = hasNext ? result.get(result.size() - 1).getId() : null;
 
         List<GatheringResponse> list = result.stream()
                 .map(GatheringResponse::toDto)
@@ -140,6 +138,10 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
 
     private BooleanExpression sortEq(String sort) {
         return sort != null ? gathering.sort.eq(Sort.findSort(sort)) : null;
+    }
+
+    private BooleanExpression subjectEq(String subject){
+        return subject != null ? gathering.subject.eq(Subject.finSubject(subject)) : null;
     }
 
     private BooleanExpression periodEq(String period) {
