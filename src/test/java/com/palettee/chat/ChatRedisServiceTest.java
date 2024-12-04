@@ -274,7 +274,7 @@ public class ChatRedisServiceTest {
         //then
         assertThat(chatCustomResponse.getChats().size()).isEqualTo(3);
         assertThat(chatCustomResponse.isHasNext()).isTrue();
-        assertThat(TypeConverter.LocalDateTimeToString(chatCustomResponse.getLastSendAt()))
+        assertThat(TypeConverter.LocalDateTimeToString(chatCustomResponse.getLastSendAt()).substring(0, 26))
                 .isEqualTo(chatResponse.getSendAt());
     }
 }
