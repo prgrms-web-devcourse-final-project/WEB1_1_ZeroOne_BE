@@ -37,8 +37,7 @@ public record GatheringDetailsResponse(
 
         List<String> positionList = gatheringPositions(gathering);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
-        String deadLine = gathering.getDeadLine().format(formatter);
+        String deadLine = gathering.getDeadLine().toString();
 
         return new GatheringDetailsResponse(
                 gathering.getUser().getId(),

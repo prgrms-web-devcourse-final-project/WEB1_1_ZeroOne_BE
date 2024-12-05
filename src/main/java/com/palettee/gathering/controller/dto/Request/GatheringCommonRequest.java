@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -49,9 +50,8 @@ public record GatheringCommonRequest(
 
 ) {
 
-    public  static LocalDateTime getDeadLineLocalDate(String deadLine){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
-        return LocalDateTime.parse(deadLine, formatter);
+    public  static LocalDate getDeadLineLocalDate(String deadLine){
+      return LocalDate.parse(deadLine);
     }
 
     public static List<GatheringTag> getGatheringTag(List<String> gatheringTag){

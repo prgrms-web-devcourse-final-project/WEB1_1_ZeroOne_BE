@@ -2,11 +2,14 @@ package com.palettee.gathering.domain;
 
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.global.entity.BaseEntity;
-import com.palettee.user.domain.*;
+import com.palettee.user.domain.User;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +36,7 @@ public class Gathering extends BaseEntity {
 
     private String period; // 개발 기간
 
-    private LocalDateTime deadLine; //마감일
+    private LocalDate deadLine; //마감일
 
     private int personnel; // 모집 인원
 
@@ -67,7 +70,7 @@ public class Gathering extends BaseEntity {
             Subject subject,
             String period,
             Contact contact,
-            LocalDateTime deadLine,
+            LocalDate deadLine,
             int personnel,
             String title,
             String content,

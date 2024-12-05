@@ -5,7 +5,7 @@ import java.util.List;
 public record CustomSliceResponse(
         List<?> content,
         boolean hasNext,
-        Long nextLikeId
+        Long nextId
 ) {
 
     public static CustomSliceResponse toDTO(List<?> content, boolean hasNext, Long nextLikeId) {

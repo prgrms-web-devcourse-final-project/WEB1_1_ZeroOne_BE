@@ -99,7 +99,7 @@ class UserControllerTest {
         return IntStream.range(0, size).boxed()
                 .map(i -> new Gathering(
                         Sort.ETC, Subject.ETC, "period? 이게 뭐지?", Contact.OFFLINE,
-                        LocalDateTime.MAX, 3, "test", "title" + i,
+                        LocalDate.MAX, 3, "test", "title" + i,
                         "content", user,null, null, null
                 )).toList();
     }
