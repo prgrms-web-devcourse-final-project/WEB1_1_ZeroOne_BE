@@ -1,6 +1,7 @@
 package com.palettee.gathering.repository;
 
 
+import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.LikeType;
@@ -8,6 +9,7 @@ import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.controller.dto.response.users.GetUserGatheringResponse;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.ListPath;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.palettee.gathering.domain.QGathering.gathering;
+import static com.palettee.gathering.domain.QPosition.*;
 import static com.palettee.likes.domain.QLikes.likes;
 import static com.palettee.user.domain.QUser.user;
 
@@ -37,7 +40,8 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
             String sort,
             String subject,
             String period,
-            String position,
+            List<String> positions,
+            int personnel,
             String status,
             Long gatheringId,
             Pageable pageable) {
@@ -45,7 +49,8 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
-                .where(sortEq(sort),subjectEq(subject), periodEq(period), statusEq(status), pageIdLoe(gatheringId))
+                .leftJoin(gathering.positions, position).fetchJoin()
+                .where(sortEq(sort),subjectEq(subject), periodEq(period), statusEq(status), positionIn(positions),pageIdLoe(gatheringId), personnelEq(personnel))
                 .orderBy(gathering.id.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
@@ -147,10 +152,24 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
     private BooleanExpression periodEq(String period) {
         return period != null ? gathering.period.eq(period) : null;
     }
-//
-//    private BooleanExpression positionEq(String position) {
-//        return position != null ? gathering.position.eq(Position.findPosition(position)) : null;
-//    }
+
+    private BooleanExpression positionIn(List<String> position) {
+
+        List<PositionContent> list = position.stream()
+                .map(PositionContent::findPosition).toList();
+
+        if(position == null || position.isEmpty()){
+            return null;
+        }
+
+        return QPosition.position.positionContent.in(list);
+
+    }
+
+    private BooleanExpression personnelEq(int personnel){
+        return personnel != 0 ? gathering.personnel.eq(personnel) : null;
+    }
+
 
     private BooleanExpression statusEq(String status) {
         return status != null ? gathering.status.eq(Status.findsStatus(status)) : null;

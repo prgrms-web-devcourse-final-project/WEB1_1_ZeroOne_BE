@@ -5,13 +5,16 @@ import com.palettee.portfolio.controller.dto.response.*;
 import com.palettee.user.controller.dto.response.users.*;
 import org.springframework.data.domain.*;
 
+import java.util.List;
+
 public interface GatheringRepositoryCustom {
 
     CustomSliceResponse pageGathering(
             String sort,
             String subject,
             String period,
-            String position,
+            List<String> position,
+            int personnel,
             String status,
             Long gatheringId,
             Pageable pageable

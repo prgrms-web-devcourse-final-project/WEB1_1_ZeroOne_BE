@@ -74,8 +74,9 @@ public class GatheringService {
             String sort,
             String subject,
             String period,
-            String position,
+            List<String> positions,
             String status,
+            int personnel,
             Long gatheringId,
             Pageable pageable
     ) {
@@ -83,7 +84,8 @@ public class GatheringService {
                 sort,
                 subject,
                 period,
-                position,
+                positions,
+                personnel,
                 status,
                 gatheringId,
                 pageable

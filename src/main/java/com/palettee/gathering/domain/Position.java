@@ -16,7 +16,8 @@ public class Position {
     @Column(name = "position_id")
     private Long id;
 
-    private String content;
+    @Enumerated(EnumType.STRING)
+    private PositionContent positionContent;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gathering_id")
@@ -24,8 +25,8 @@ public class Position {
 
 
     @Builder
-    public Position(String content) {
-        this.content = content;
+    public Position(PositionContent positionContent) {
+        this.positionContent = positionContent;
     }
 
     public void setGathering(Gathering gathering) {

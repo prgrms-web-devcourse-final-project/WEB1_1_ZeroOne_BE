@@ -3,6 +3,7 @@ package com.palettee.gathering.controller.dto.Response;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.GatheringTag;
 import com.palettee.gathering.domain.Position;
+import com.palettee.gathering.domain.PositionContent;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -29,16 +30,10 @@ public record GatheringDetailsResponse(
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String createTime = gathering.getCreateAt().format(dateTimeFormatter);
 
-        List<String> list = gathering.getGatheringTagList()
-                .stream()
-                .map(GatheringTag::getContent)
-                .toList();
+        List<String> list = gatheringTagList(gathering);
 
-        List<String> positionList = gathering.getPositions()
-                .stream()
-                .map(Position::getContent)
-                .toList();
 
+        List<String> positionList = gatheringPositions(gathering);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
         String deadLine = gathering.getDeadLine().format(formatter);
@@ -59,6 +54,32 @@ public record GatheringDetailsResponse(
                 gathering.getTitle(),
                 gathering.getContent()
         );
+    }
+
+    private static List<String> gatheringPositions(Gathering gathering) {
+
+        if(gathering.getPositions() != null && !gathering.getPositions().isEmpty()) {
+            List<String> positionList = gathering.getPositions()
+                    .stream()
+                    .map(position -> position.getPositionContent().getPosition())
+                    .toList();
+            return positionList;
+        }
+        return null;
+    }
+
+    private static List<String> gatheringTagList(Gathering gathering) {
+
+        if(gathering.getGatheringTagList() != null && !gathering.getGatheringTagList().isEmpty()){
+            List<String> list = gathering.getGatheringTagList()
+                    .stream()
+                    .map(GatheringTag::getContent)
+                    .toList();
+            return list;
+        }
+
+        return null;
+
     }
 }
 

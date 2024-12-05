@@ -3,6 +3,7 @@ package com.palettee.gathering.controller.dto.Request;
 import com.palettee.gathering.domain.GatheringImage;
 import com.palettee.gathering.domain.GatheringTag;
 import com.palettee.gathering.domain.Position;
+import com.palettee.gathering.domain.PositionContent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -73,7 +74,7 @@ public record GatheringCommonRequest(
     public static List<Position> getPosition(List<String> positions){
         if(positions != null && !positions.isEmpty()){
             return positions.stream()
-                    .map(Position::new).toList();
+                    .map(position -> new Position(PositionContent.findPosition(position))).toList();
         }
         return null;
 
