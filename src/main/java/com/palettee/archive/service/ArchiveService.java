@@ -55,19 +55,22 @@ public class ArchiveService {
         return new ArchiveResponse(savedArchive.getId());
     }
 
-    public ArchiveListResponse getAllArchive(String color, String sort, Pageable pageable) {
+    public ArchiveListResponse getAllArchive(String color, String sort, Pageable pageable, User contextUser) {
         Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(color, sort, pageable);
 
+        Long myId = contextUser == null ? 0L : contextUser.getId();
+
         List<ArchiveSimpleResponse> list = archives
-                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
 
         return new ArchiveListResponse(list, SliceInfo.of(archives));
     }
 
-    public ArchiveListResponse getMainArchive() {
+    public ArchiveListResponse getMainArchive(User contextUser) {
+        Long myId = contextUser == null ? 0L : contextUser.getId();
         List<ArchiveSimpleResponse> result = archiveRepository.getMainArchives().stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
         return new ArchiveListResponse(result, null);
     }
@@ -81,6 +84,7 @@ public class ArchiveService {
                 user,
                 likeRepository.countArchiveLike(archiveId),
                 commentRepository.countArchiveComment(archiveId),
+                likeRepository.existByUserAndArchive(archiveId, user.getId()).isPresent(),
                 tagRepository.findByArchiveId(archiveId)
                         .stream().map(TagDto::new).toList(),
                 archiveImageRepository.findByArchiveId(archiveId)
@@ -89,37 +93,46 @@ public class ArchiveService {
     }
 
     public ArchiveListResponse getMyArchive(User user) {
-        List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(user.getId())
+
+        Long myId = user == null ? 0L : user.getId();
+        List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(myId)
                 .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
         return new ArchiveListResponse(result, null);
     }
 
     public ArchiveListResponse getLikeArchive(User user) {
-        List<Long> ids = likeRepository.findMyLikeList(user.getId());
-
+        Long myId = user == null ? 0L : user.getId();
+        List<Long> ids = likeRepository.findMyLikeList(myId);
         List<ArchiveSimpleResponse> result = archiveRepository.findAllInIds(ids)
                 .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
         return new ArchiveListResponse(result, null);
     }
 
-    public ArchiveListResponse searchArchive(String searchKeyword, Pageable pageable) {
+    public ArchiveListResponse searchArchive(String searchKeyword, Pageable pageable, User contextUser) {
         List<Long> ids = tagRepository.findAllArchiveIds(searchKeyword);
+        Long myId = contextUser == null ? 0L : contextUser.getId();
         Slice<Archive> archives = archiveRepository.searchArchive(searchKeyword, ids, pageable);
 
         List<ArchiveSimpleResponse> list = archives
-                .map(it -> ArchiveSimpleResponse.toResponse(it, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
 
         return new ArchiveListResponse(list, SliceInfo.of(archives));
     }
 
     @Transactional
-    public ArchiveResponse updateArchive(Long archiveId, ArchiveUpdateRequest archiveUpdateRequest) {
+    public ArchiveResponse updateArchive(Long archiveId, ArchiveUpdateRequest archiveUpdateRequest, User contextUser) {
         Archive archive = getArchive(archiveId);
+
+        Long myId = contextUser == null ? 0L : contextUser.getId();
+        if (!archive.getUser().getId().equals(myId)) {
+            throw NotArchiveOwner.EXCEPTION;
+        }
+
         Archive updatedArchive = archive.update(archiveUpdateRequest);
 
         deleteAllInfo(archiveId);
@@ -131,9 +144,9 @@ public class ArchiveService {
 
     @Transactional
     public ArchiveResponse deleteArchive(Long archiveId) {
-        tagRepository.deleteAllByArchiveId(archiveId);
-        archiveImageRepository.deleteAllByArchiveId(archiveId);
         Archive archive = getArchive(archiveId);
+        tagRepository.deleteByArchive(archive);
+        archiveImageRepository.deleteByArchive(archive);
         archiveRepository.delete(archive);
         return new ArchiveResponse(archiveId);
     }
