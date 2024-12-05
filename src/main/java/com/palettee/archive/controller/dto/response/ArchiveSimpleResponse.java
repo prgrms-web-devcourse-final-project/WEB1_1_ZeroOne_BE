@@ -18,6 +18,9 @@ public record ArchiveSimpleResponse(
 ) {
 
     public static ArchiveSimpleResponse toResponse(Archive archive, Long userId, LikeRepository likeRepository) {
+
+        String imageUrl = archive.getArchiveImages().isEmpty() ? "" : archive.getArchiveImages().get(0).getImageUrl();
+
         return new ArchiveSimpleResponse(
                 archive.getId(),
                 archive.getTitle(),
@@ -28,7 +31,7 @@ public record ArchiveSimpleResponse(
                 archive.isCanComment(),
                 likeRepository.countArchiveLike(archive.getId()),
                 likeRepository.existByUserAndArchive(archive.getId(), userId).isPresent(),
-                archive.getArchiveImages().get(0).getImageUrl(),
+                imageUrl,
                 archive.getCreateAt().toLocalDate().toString()
         );
     }
