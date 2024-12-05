@@ -1,23 +1,24 @@
 package com.palettee.gathering.repository;
 
 
-import static com.palettee.gathering.domain.QGathering.*;
-import static com.palettee.likes.domain.QLikes.*;
-import static com.palettee.user.domain.QUser.*;
-
-import com.palettee.gathering.controller.dto.Response.*;
-import com.palettee.gathering.domain.Sort;
+import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.*;
-import com.palettee.likes.domain.*;
-import com.palettee.portfolio.controller.dto.response.*;
-import com.palettee.user.controller.dto.response.users.*;
-import com.querydsl.core.*;
-import com.querydsl.core.types.dsl.*;
-import com.querydsl.jpa.impl.*;
-import java.util.*;
-import java.util.stream.*;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.*;
+import com.palettee.likes.domain.LikeType;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.user.controller.dto.response.users.GetUserGatheringResponse;
+import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.palettee.gathering.domain.QGathering.gathering;
+import static com.palettee.likes.domain.QLikes.likes;
+import static com.palettee.user.domain.QUser.user;
 
 @Repository
 public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
@@ -32,8 +33,9 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
     NoOffSet 방식울 활용한 포트폴리오 전체 조회
      */
     @Override
-    public Slice<GatheringResponse> pageGathering(
+    public CustomSliceResponse pageGathering(
             String sort,
+            String subject,
             String period,
             String position,
             String status,
@@ -43,18 +45,20 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
-                .where(sortEq(sort), periodEq(period), positionEq(position), statusEq(status), pageIdLt(gatheringId))
+                .where(sortEq(sort),subjectEq(subject), periodEq(period), positionEq(position), statusEq(status), pageIdLoe(gatheringId))
                 .orderBy(gathering.id.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
         boolean hasNext = hasNextPage(pageable, result);
 
+        Long nextId = hasNext ? result.get(result.size() - 1).getId() : null;
+
         List<GatheringResponse> list = result.stream()
                 .map(GatheringResponse::toDto)
                 .toList();
 
-        return new SliceImpl<>(list, pageable, hasNext);
+        return new CustomSliceResponse(list, hasNext, nextId);
     }
 
     @Override
@@ -80,7 +84,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
 
         boolean hasNext = hasNextPage(pageable, targetIds);
 
-        Long nextId = hasNext ? results.get(results.size() -1).get(likes.likeId) : null;
+        Long nextId = hasNext ? results.get(results.size() - 1).get(likes.likeId) : null;
 
         List<GatheringResponse> list = queryFactory
                 .selectFrom(gathering)
@@ -136,6 +140,10 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         return sort != null ? gathering.sort.eq(Sort.findSort(sort)) : null;
     }
 
+    private BooleanExpression subjectEq(String subject){
+        return subject != null ? gathering.subject.eq(Subject.finSubject(subject)) : null;
+    }
+
     private BooleanExpression periodEq(String period) {
         return period != null ? gathering.period.eq(period) : null;
     }
@@ -148,8 +156,8 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         return status != null ? gathering.status.eq(Status.findsStatus(status)) : null;
     }
 
-    private BooleanExpression pageIdLt(Long pageId) {
-        return pageId != null ? gathering.id.lt(pageId) : null;
+    private BooleanExpression pageIdLoe(Long pageId) {
+        return pageId != null ? gathering.id.loe(pageId) : null;
     }
 
     private BooleanExpression likeIdLoe(Long likeId) {

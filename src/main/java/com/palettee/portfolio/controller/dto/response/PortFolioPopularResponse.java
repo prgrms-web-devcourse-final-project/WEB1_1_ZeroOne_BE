@@ -5,24 +5,26 @@ import com.palettee.user.domain.RelatedLink;
 
 import java.util.List;
 
-public record PortFolioResponse(
+public record PortFolioPopularResponse(
         Long portFolioId,
         Long userId,
         String jobTitle,
         String portFolioUrl,
         String username,
         String introduction,
+        double score,
         String majorJobGroup,
         String minorJobGroup,
         String memberImageUrl,
         List<String> relatedUrl
 ) {
 
-    public static PortFolioResponse toDto(PortFolio portFolio){
+
+    public static PortFolioPopularResponse toDto(PortFolio portFolio, double score){
 
         List<String> relationUrl=  checkRelationUrl(portFolio);
 
-        return new PortFolioResponse(portFolio.getPortfolioId(),portFolio.getUser().getId(), portFolio.getUser().getJobTitle(), portFolio.getUrl(),portFolio.getUser().getName() , portFolio.getUser().getBriefIntro(), portFolio.getUser().getMajorJobGroup().name(), portFolio.getUser().getMinorJobGroup().name(), portFolio.getUser().getImageUrl(),relationUrl);
+        return new PortFolioPopularResponse(portFolio.getPortfolioId(),portFolio.getUser().getId(), portFolio.getUser().getJobTitle(), portFolio.getUrl(),portFolio.getUser().getName() , portFolio.getUser().getBriefIntro(),score, portFolio.getUser().getMajorJobGroup().name(), portFolio.getUser().getMinorJobGroup().name(), portFolio.getUser().getImageUrl(),relationUrl);
     }
 
     private static List<String> checkRelationUrl(PortFolio portFolio) {

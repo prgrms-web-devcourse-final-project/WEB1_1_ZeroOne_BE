@@ -15,6 +15,10 @@ public enum Sort {
 
     private final String sort;
 
+    public String getSort(){
+        return sort;
+    }
+
     public static Sort findSort(final String input) {
         return Arrays.stream(Sort.values())
                 .filter(it -> it.sort.equals(input))

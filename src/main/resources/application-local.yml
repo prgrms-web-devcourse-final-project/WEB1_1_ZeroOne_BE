@@ -2,17 +2,16 @@ logging:
   level:
     com.palettee: debug
     web: debug
-#    sql: debug
+    sql: debug
 
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: an902318
-    url: jdbc:mysql://localhost:3306/palette
+    password: 8112
+    url: jdbc:mysql://localhost:3306/final_project
 
   jpa:
-    show-sql: true
     hibernate:
       ddl-auto: update
     properties:

@@ -7,6 +7,8 @@
   <!-- ROOT 로그 찍히는거 reference. 솔직히 뭔지 잘 모르겠음. -->
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
+
+    <!--  SQL debug 둬서 쿼리도 잘 찍힘  -->
     <appender-ref ref="PER-REQUEST"/>
   </root>
 
@@ -16,10 +18,5 @@
     <appender-ref ref="EXCEPTION"/>
   </logger>
 
-
-  <!-- hibernate 쿼리도 도메인별 로그에 저장되도록 추가 -->
-  <logger name="org.hibernate.SQL" level="DEBUG">
-    <appender-ref ref="PER-REQUEST"/>
-  </logger>
 
 </configuration>

@@ -8,11 +8,11 @@ import org.hibernate.validator.constraints.*;
 public record EditUserInfoRequest(
 
         @NotBlank(message = "이름을 입력해 주세요.")
-        @Length(min = 1, max = 50, message = "이름은 최대 50자 까지 입니다.")
+        @Length(max = 50, message = "이름은 최대 50자 까지 입니다.")
         String name,
 
         @NotBlank(message = "자기소개를 입력해 주세요.")
-        @Length(min = 1, max = 100, message = "자기소개는 최대 100자 까지 가능합니다.")
+        @Length(max = 100, message = "자기소개는 최대 100자 까지 가능합니다.")
         String briefIntro,
 
         // URL 검증은 필요 없겠지?
