@@ -90,12 +90,12 @@ public class ArchiveController {
 
     @DeleteMapping("/{archiveId}")
     public ArchiveResponse deleteArchive(@PathVariable("archiveId") long archiveId) {
-        return archiveService.deleteArchive(archiveId);
+        return archiveService.deleteArchive(archiveId, UserUtils.getContextUser());
     }
 
     @PatchMapping
     public void updateOrder(@Valid @RequestBody ChangeOrderRequest changeOrderRequest) {
-        archiveService.changeArchiveOrder(changeOrderRequest);
+        archiveService.changeArchiveOrder(changeOrderRequest, UserUtils.getContextUser());
     }
 
     @PostMapping("/{archiveId}")

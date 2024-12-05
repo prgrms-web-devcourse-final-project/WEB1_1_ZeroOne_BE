@@ -241,7 +241,7 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //when
-        ArchiveResponse archiveResponse1 = archiveService.deleteArchive(archiveResponse.archiveId());
+        ArchiveResponse archiveResponse1 = archiveService.deleteArchive(archiveResponse.archiveId(), savedUser);
 
         //then
         assertThat(archiveResponse1.archiveId()).isNotNull();
