@@ -8,8 +8,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: 8112
-    url: jdbc:mysql://localhost:3306/final_project
+    password: an902318
+    url: jdbc:mysql://localhost:3306/palette
 
   jpa:
     hibernate:
