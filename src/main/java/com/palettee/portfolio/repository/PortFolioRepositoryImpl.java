@@ -49,7 +49,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                 .select(portFolio
                 )
                 .from(portFolio)
-                .leftJoin(portFolio.user, user)
+                .leftJoin(portFolio.user, user).fetchJoin()
                 .where(majorJobGroupEquals(majorJobGroup),
                         minorJobEquals(minorJobGroup))
                 .orderBy(sortType(sort))

@@ -74,6 +74,7 @@ public class GatheringService {
             String sort,
             String subject,
             String period,
+            String contact,
             List<String> positions,
             String status,
             int personnel,
@@ -84,6 +85,7 @@ public class GatheringService {
                 sort,
                 subject,
                 period,
+                contact,
                 positions,
                 personnel,
                 status,
@@ -95,7 +97,9 @@ public class GatheringService {
     public GatheringDetailsResponse findByDetails(Long gatheringId) {
         Gathering gathering = getFetchGathering(gatheringId);
 
-        return GatheringDetailsResponse.toDto(gathering);
+        long likeCounts = likeRepository.countByTargetId(gatheringId);
+
+        return GatheringDetailsResponse.toDto(gathering, likeCounts);
     }
 
     @Transactional

@@ -149,7 +149,7 @@ class GatheringServiceTest {
 
         //when
 
-        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", null, "모집중", 3,null, PageRequest.of(0, 10));
+        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "온라인" ,null, "모집중", 3,null, PageRequest.of(0, 10));
 
 
         //then

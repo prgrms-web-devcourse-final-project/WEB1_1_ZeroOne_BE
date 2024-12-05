@@ -13,6 +13,7 @@ public interface GatheringRepositoryCustom {
             String sort,
             String subject,
             String period,
+            String contact,
             List<String> position,
             int personnel,
             String status,

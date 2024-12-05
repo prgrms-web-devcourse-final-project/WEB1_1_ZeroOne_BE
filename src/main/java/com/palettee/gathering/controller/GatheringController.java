@@ -37,6 +37,7 @@ public class GatheringController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String subject,
             @RequestParam(required = false) String period,
+            @RequestParam(required = false) String contact,
             @RequestParam(required = false, defaultValue = "") List<String> positions,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long gatheringId,
@@ -44,7 +45,7 @@ public class GatheringController {
             Pageable pageable
     ) {
         log.info("positions.size = {}", positions.size());
-        return gatheringService.findAll(sort, subject, period, positions, status, personnel, gatheringId, pageable);
+        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable);
     }
 
     @GetMapping("/{gatheringId}")

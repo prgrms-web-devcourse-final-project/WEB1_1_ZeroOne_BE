@@ -19,6 +19,8 @@ public record GatheringDetailsResponse(
         int personnel,
         String period,
         String deadLine,
+        String status,
+        Long likeCounts,
         List<String> positions,
         List<String> gatheringTag,
         String contactUrl,
@@ -26,7 +28,7 @@ public record GatheringDetailsResponse(
         String content
 ) {
 
-    public static GatheringDetailsResponse toDto(Gathering gathering) {
+    public static GatheringDetailsResponse toDto(Gathering gathering, Long likeCounts) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String createTime = gathering.getCreateAt().format(dateTimeFormatter);
 
@@ -48,6 +50,8 @@ public record GatheringDetailsResponse(
                 gathering.getPersonnel(),
                 gathering.getPeriod(),
                 deadLine,
+                gathering.getStatus().getStatus(),
+                likeCounts,
                 positionList,
                 list,
                 gathering.getUrl(),
