@@ -1,7 +1,7 @@
 package com.palettee.chat.repository;
 
-import com.palettee.chat.domain.Chat;
-import com.palettee.chat.domain.ChatImage;
+import com.palettee.chat.service.dto.ChatImageSaveDto;
+import com.palettee.chat.service.dto.ChatSaveDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,19 +18,19 @@ public class ChatJdbcRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public void batchInsertChats(List<Chat> chats, List<ChatImage> chatImages) {
+    public void batchInsertChats(List<ChatSaveDto> chats, List<ChatImageSaveDto> chatImages) {
         String sql = "INSERT INTO chat"
                 + "(chat_id, user_id, chat_room_id, content, send_at) VALUE(?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                Chat chat = chats.get(i);
-                ps.setString(1, chat.getId());
-                ps.setLong(2, chat.getUser().getId());
-                ps.setLong(3, chat.getChatRoom().getId());
-                ps.setString(4, chat.getContent());
-                ps.setTimestamp(5, Timestamp.valueOf(chat.getSendAt()));
+                ChatSaveDto chat = chats.get(i);
+                ps.setString(1, chat.chatId());
+                ps.setLong(2, chat.userId());
+                ps.setLong(3, chat.chatRoomId());
+                ps.setString(4, chat.content());
+                ps.setTimestamp(5, Timestamp.valueOf(chat.sendAt()));
             }
 
             @Override
@@ -45,9 +45,9 @@ public class ChatJdbcRepository {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ChatImage chatImage = chatImages.get(i);
-                ps.setString(1, chatImage.getChat().getId());
-                ps.setString(2, chatImage.getImageUrl());
+                ChatImageSaveDto chatImage = chatImages.get(i);
+                ps.setString(1, chatImage.chatId());
+                ps.setString(2, chatImage.imgUrl());
             }
 
             @Override

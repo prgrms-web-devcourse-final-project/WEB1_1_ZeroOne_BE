@@ -3,7 +3,7 @@ package com.palettee.chat.service;
 import com.palettee.chat.controller.dto.request.ChatRequest;
 import com.palettee.chat.controller.dto.response.ChatCustomResponse;
 import com.palettee.chat.controller.dto.response.ChatResponse;
-import com.palettee.chat.repository.ChatCustomRepository;
+import com.palettee.chat.repository.ChatRepository;
 import com.palettee.chat_room.service.ChatRoomService;
 import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.user.domain.User;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class ChatRedisService {
 
     private final RedisTemplate<String, ChatResponse> redisTemplate;
-    private final ChatCustomRepository chatCustomRepository;
+    private final ChatRepository chatRepository;
     private final UserRepository userRepository;
     private final ChatRoomService chatRoomService;
     private ZSetOperations<String, ChatResponse> zSetOperations;
@@ -35,11 +35,11 @@ public class ChatRedisService {
 
     public ChatRedisService(
             @Qualifier("chatRedisTemplate") RedisTemplate<String, ChatResponse> redisTemplate,
-            ChatCustomRepository chatCustomRepository,
+            ChatRepository chatRepository,
             UserRepository userRepository,
             ChatRoomService chatRoomService) {
         this.redisTemplate = redisTemplate;
-        this.chatCustomRepository = chatCustomRepository;
+        this.chatRepository = chatRepository;
         this.userRepository = userRepository;
         this.chatRoomService = chatRoomService;
     }
@@ -54,6 +54,7 @@ public class ChatRedisService {
         chatRoomService.getChatRoom(chatRoomId);
 
         ChatResponse chatResponse = ChatResponse.toResponse(chatRoomId, user, chatRequest);
+        log.info("save chat sendAt = {}", chatResponse.getSendAt());
         LocalDateTime sendAt = chatResponse.getSendAt();
 
         redisTemplate
@@ -93,9 +94,7 @@ public class ChatRedisService {
             ChatCustomResponse chatDataInDB = findOtherChatDataInDB(results, lastSendAt, chatRoomId, size - results.size());
 
             if(!results.isEmpty()) {
-                for(ChatResponse chatResponse : chatDataInDB.getChats()) {
-                    results.add(chatResponse);
-                }
+                results.addAll(chatDataInDB.getChats());
                 return ChatCustomResponse.toResponseFromDto(results, chatDataInDB.isHasNext(), chatDataInDB.getLastSendAt());
             }
 
@@ -112,7 +111,7 @@ public class ChatRedisService {
         if(!results.isEmpty()) {
             lastSendAt = results.get(results.size() - 1).getSendAt();
         }
-        ChatCustomResponse chatNoOffset = chatCustomRepository.findChatNoOffset(chatRoomId, size, lastSendAt);
+        ChatCustomResponse chatNoOffset = chatRepository.findChatNoOffset(chatRoomId, size, lastSendAt);
 
         if (!chatNoOffset.getChats().isEmpty()) {
             cachingDBDataToRedis(chatNoOffset.getChats());
