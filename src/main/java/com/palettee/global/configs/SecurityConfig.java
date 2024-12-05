@@ -84,13 +84,14 @@ public class SecurityConfig {
                 .byPassable("/gathering", HttpMethod.GET)
 
                 /* <-------------- Archive API --------------> */
-                // 아카이브 전체 & 단건 조회
-                .byPassable(HttpMethod.GET, "/archive", "/archive/{archiveId}")
+                // 아카이브 전체 & 단건 조회 & 아카이브 검색 & 댓글 조회
+                .conditionalByPassable(HttpMethod.GET, "/archive/{archiveId}")
+                .conditionalByPassable(HttpMethod.GET, "/archive/main")
+                .conditionalByPassable(HttpMethod.GET, "/archive")
+                .conditionalByPassable(HttpMethod.GET, "/archive/search")
+                .conditionalByPassable(HttpMethod.GET, "/archive/search")
                 .conditionalByPassable(HttpMethod.GET, "/archive/{archiveId}/comment")
 
-                // 아카이브 검색 & 댓글 조회
-                .byPassable(HttpMethod.GET,
-                        "/archive/search")
                 .build();
     }
 

@@ -49,13 +49,18 @@ public class ArchiveController {
         return archiveService.getArchiveDetail(archiveId, getContextUser());
     }
 
+    @GetMapping("/main")
+    public ArchiveListResponse getMainArchiveList() {
+        return archiveService.getMainArchive(getContextUser());
+    }
+
     @GetMapping
     public ArchiveListResponse getArchives(
             @RequestParam(required = false) String color,
             @RequestParam String sort,
             Pageable pageable
     ) {
-        return archiveService.getAllArchive(color, sort, pageable);
+        return archiveService.getAllArchive(color, sort, pageable, getContextUser());
     }
 
     @GetMapping("/search")
@@ -63,7 +68,7 @@ public class ArchiveController {
             @RequestParam String searchKeyword,
             Pageable pageable
     ) {
-        return archiveService.searchArchive(searchKeyword, pageable);
+        return archiveService.searchArchive(searchKeyword, pageable, getContextUser());
     }
 
     @GetMapping("/me")
@@ -80,17 +85,17 @@ public class ArchiveController {
 
     @PutMapping("/{archiveId}")
     public ArchiveResponse updateArchive(@PathVariable("archiveId") long archiveId, @Valid @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
-        return archiveService.updateArchive(archiveId, archiveUpdateRequest);
+        return archiveService.updateArchive(archiveId, archiveUpdateRequest, UserUtils.getContextUser());
     }
 
     @DeleteMapping("/{archiveId}")
     public ArchiveResponse deleteArchive(@PathVariable("archiveId") long archiveId) {
-        return archiveService.deleteArchive(archiveId);
+        return archiveService.deleteArchive(archiveId, UserUtils.getContextUser());
     }
 
     @PatchMapping
     public void updateOrder(@Valid @RequestBody ChangeOrderRequest changeOrderRequest) {
-        archiveService.changeArchiveOrder(changeOrderRequest);
+        archiveService.changeArchiveOrder(changeOrderRequest, UserUtils.getContextUser());
     }
 
     @PostMapping("/{archiveId}")

@@ -14,6 +14,7 @@ public record ArchiveDetailResponse(
         String type,
         boolean canComment,
         boolean isMine,
+        boolean isLiked,
         String job,
         String userProfile,
         long likeCount,
@@ -28,6 +29,7 @@ public record ArchiveDetailResponse(
             User user,
             long likeCount,
             long count,
+            boolean isLiked,
             List<TagDto> tagDtoList,
             List<ImageUrlDto> urlDtoList
     ) {
@@ -42,6 +44,7 @@ public record ArchiveDetailResponse(
                 archive.getType().name(),
                 archive.isCanComment(),
                 owner.getId().equals(userId),
+                isLiked,
                 owner.getMinorJobGroup().name(),
                 userProfile,
                 likeCount,

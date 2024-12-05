@@ -10,6 +10,7 @@ import com.palettee.archive.repository.*;
 import com.palettee.archive.service.*;
 import com.palettee.user.domain.*;
 import com.palettee.user.repository.*;
+import jakarta.persistence.EntityManager;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.*;
@@ -26,6 +27,7 @@ public class ArchiveServiceTest {
     @Autowired ArchiveRepository archiveRepository;
     @Autowired TagRepository tagRepository;
     @Autowired ArchiveImageRepository archiveImageRepository;
+    @Autowired EntityManager em;
 
     private User savedUser;
 
@@ -41,13 +43,13 @@ public class ArchiveServiceTest {
         );
     }
 
-    @AfterEach
-    void afterEach() {
-        userRepository.deleteAll();
-        archiveRepository.deleteAll();
-        archiveImageRepository.deleteAll();
-        tagRepository.deleteAll();
-    }
+//    @AfterEach
+//    void afterEach() {
+//        userRepository.deleteAll();
+//        tagRepository.deleteAll();
+//        archiveImageRepository.deleteAll();
+//        archiveRepository.deleteAll();
+//    }
 
     @Test
     @DisplayName("정상적인 아카이브 등록 성공")
@@ -98,7 +100,7 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser);
         ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser);
 
-        ArchiveListResponse all = archiveService.getAllArchive("RED", "latest", PageRequest.of(0, 10));
+        ArchiveListResponse all = archiveService.getAllArchive("RED", "latest", PageRequest.of(0, 10), savedUser);
 
         //then
         assertThat(all.archives().size()).isEqualTo(3);
@@ -137,9 +139,9 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser);
         ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser);
 
-        ArchiveListResponse tag = archiveService.searchArchive("tag1", PageRequest.of(0, 10));
-        ArchiveListResponse title = archiveService.searchArchive("title", PageRequest.of(0, 10));
-        ArchiveListResponse description = archiveService.searchArchive("description", PageRequest.of(0, 10));
+        ArchiveListResponse tag = archiveService.searchArchive("tag1", PageRequest.of(0, 10), savedUser);
+        ArchiveListResponse title = archiveService.searchArchive("title", PageRequest.of(0, 10), savedUser);
+        ArchiveListResponse description = archiveService.searchArchive("description", PageRequest.of(0, 10), savedUser);
 
         //then
         assertThat(tag.archives().size()).isEqualTo(3);
@@ -184,6 +186,7 @@ public class ArchiveServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("정상적인 아카이브 수정 성공")
     void updateArchiveTest() {
         // given
@@ -199,7 +202,7 @@ public class ArchiveServiceTest {
                 List.of(new TagDto("tag11"), new TagDto("tag12")),
                 List.of(new ImageUrlDto("url11"), new ImageUrlDto("url12")));
         ArchiveResponse archiveResponse1 = archiveService.updateArchive(archiveResponse.archiveId(),
-                archiveUpdateRequest);
+                archiveUpdateRequest, savedUser);
 
         ArchiveDetailResponse archiveDetail = archiveService.getArchiveDetail(archiveResponse1.archiveId(), savedUser);
 
@@ -227,6 +230,7 @@ public class ArchiveServiceTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("정상적인 아카이브 삭제 성공")
     void deleteArchiveTest() {
         // given
@@ -237,15 +241,15 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse = archiveService.registerArchive(request, savedUser);
 
         //when
-        ArchiveResponse archiveResponse1 = archiveService.deleteArchive(archiveResponse.archiveId());
+        ArchiveResponse archiveResponse1 = archiveService.deleteArchive(archiveResponse.archiveId(), savedUser);
 
         //then
         assertThat(archiveResponse1.archiveId()).isNotNull();
 
-        List<Tag> allTags = tagRepository.findAll();
+        List<String> allTags = tagRepository.findByArchiveId(archiveResponse.archiveId());
         assertThat(allTags.size()).isEqualTo(0);
 
-        List<ArchiveImage> allImages = archiveImageRepository.findAll();
+        List<String> allImages = archiveImageRepository.findByArchiveId(archiveResponse.archiveId());
         assertThat(allImages.size()).isEqualTo(0);
 
     }

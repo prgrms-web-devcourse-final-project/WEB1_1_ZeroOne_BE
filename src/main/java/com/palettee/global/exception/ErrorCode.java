@@ -23,6 +23,8 @@ public enum ErrorCode {
 
     INVALID_REPORT_TYPE(400, "올바르지 않은 보고 타입입니다."),
 
+    NOT_ARCHIVE_OWNER(400, "나의 아카이브가 아닙니다."),
+
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     EXPIRED_TOKEN(401, "토큰이 만료되었습니다."),
