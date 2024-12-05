@@ -54,7 +54,7 @@ public class ChatRedisService {
         chatRoomService.getChatRoom(chatRoomId);
 
         ChatResponse chatResponse = ChatResponse.toResponse(chatRoomId, user, chatRequest);
-        LocalDateTime sendAt = TypeConverter.StringToLocalDateTime(chatResponse.getSendAt());
+        LocalDateTime sendAt = chatResponse.getSendAt();
 
         redisTemplate
                 .opsForZSet()
@@ -102,7 +102,7 @@ public class ChatRedisService {
             return chatDataInDB;
         }
 
-        LocalDateTime nextSendAt = TypeConverter.StringToLocalDateTime(results.get(size - 1).getSendAt());
+        LocalDateTime nextSendAt = results.get(size - 1).getSendAt();
         List<ChatResponse> chats = results.subList(0, size);
         return ChatCustomResponse.toResponseFromDto(chats, true, nextSendAt);
     }
@@ -110,7 +110,7 @@ public class ChatRedisService {
     public ChatCustomResponse findOtherChatDataInDB(List<ChatResponse> results, LocalDateTime lastSendAt,
                                          Long chatRoomId, int size) {
         if(!results.isEmpty()) {
-            lastSendAt = TypeConverter.StringToLocalDateTime(results.get(results.size() - 1).getSendAt());
+            lastSendAt = results.get(results.size() - 1).getSendAt();
         }
         ChatCustomResponse chatNoOffset = chatCustomRepository.findChatNoOffset(chatRoomId, size, lastSendAt);
 
@@ -122,7 +122,7 @@ public class ChatRedisService {
 
     public void cachingDBDataToRedis(List<ChatResponse> chatsInDB) {
         for(ChatResponse chatResponse : chatsInDB) {
-            LocalDateTime sendAt = TypeConverter.StringToLocalDateTime(chatResponse.getSendAt());
+            LocalDateTime sendAt = chatResponse.getSendAt();
             redisTemplate
                     .opsForZSet()
                     .add(TypeConverter.LongToString(chatResponse.getChatRoomId()), chatResponse, TypeConverter.LocalDateTimeToDouble(sendAt));

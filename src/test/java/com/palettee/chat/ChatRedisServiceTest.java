@@ -77,7 +77,7 @@ public class ChatRedisServiceTest {
 
         // when
         ChatResponse chatResponse = chatRedisService.addChat(userEmail, chatRoomId, chatRequest);
-        Double sendAt = TypeConverter.LocalDateTimeToDouble(TypeConverter.StringToLocalDateTime(chatResponse.getSendAt()));
+        Double sendAt = TypeConverter.LocalDateTimeToDouble(chatResponse.getSendAt());
         List<ChatResponse> results = zSetOperations.rangeByScore(String.valueOf(chatResponse.getChatRoomId()), sendAt, sendAt).stream().toList();
 
         // then
@@ -117,29 +117,9 @@ public class ChatRedisServiceTest {
     @DisplayName("redis에 전혀 없고 DB에만 있을 때")
     void getChatsSituation2() {
         //given
-        Chat chat1 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 12, 123_123_000))
-                .content("Hi1")
-                .build();
-
-        Chat chat2 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 13, 123_123_000))
-                .content("Hi2")
-                .build();
-
-        Chat chat3 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 14,  123_123_000))
-                .content("Hi3")
-                .build();
+        Chat chat1 = makeChat("Hi1");
+        Chat chat2 = makeChat("Hi2");
+        Chat chat3 = makeChat("Hi3");
 
         List<Chat> chats = new ArrayList<>();
         chats.add(chat1);
@@ -161,22 +141,8 @@ public class ChatRedisServiceTest {
     @DisplayName("redis에 1개 DB에 2개 있을 때")
     void getChatsSituation3() {
         //given
-        Chat chat1 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 12, 123_123_000))
-                .content("Hi1")
-                .build();
-
-        Chat chat2 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 13, 123_123_000))
-                .content("Hi2")
-                .build();
-
+        Chat chat1 = makeChat("Hi1");
+        Chat chat2 = makeChat("Hi2");
 
         List<Chat> chats = new ArrayList<>();
         chats.add(chat1);
@@ -185,7 +151,7 @@ public class ChatRedisServiceTest {
         chatRepository.saveAll(chats);
 
         List<ChatImgUrl> urls1 = new ArrayList<>();
-        ChatRequest chatRequest1 = new ChatRequest("Hi", urls1);
+        ChatRequest chatRequest1 = new ChatRequest("Hi3", urls1);
 
         chatRedisService.addChat(savedUser.getEmail(), savedChatRoom.getId(), chatRequest1);
 
@@ -202,30 +168,9 @@ public class ChatRedisServiceTest {
     @DisplayName("redis에 1개 DB에 3개 있을 때")
     void getChatsSituation4() {
         //given
-        Chat chat1 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 12, 123_123_000))
-                .content("Hi1")
-                .build();
-
-        Chat chat2 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 13, 123_123_000))
-                .content("Hi2")
-                .build();
-
-        Chat chat3 = Chat.builder()
-                .id(UUID.randomUUID().toString())
-                .user(savedUser)
-                .chatRoom(savedChatRoom)
-                .sendAt(LocalDateTime.of(2024, 12, 4, 11, 10, 14, 123_123_000))
-                .content("Hi3")
-                .build();
-
+        Chat chat1 = makeChat("Hi1");
+        Chat chat2 = makeChat("Hi2");
+        Chat chat3 = makeChat("Hi3");
 
         List<Chat> chats = new ArrayList<>();
         chats.add(chat1);
@@ -276,6 +221,16 @@ public class ChatRedisServiceTest {
         //then
         assertThat(chatCustomResponse.getChats().size()).isEqualTo(3);
         assertThat(chatCustomResponse.isHasNext()).isTrue();
-        assertThat(chatCustomResponse.getLastSendAt()).isEqualTo(chatResponse.getSendAt().substring(0,26));
+        assertThat(chatCustomResponse.getLastSendAt()).isEqualTo(chatResponse.getSendAt());
+    }
+
+    private Chat makeChat(String content) {
+        return Chat.builder()
+                .id(UUID.randomUUID().toString())
+                .user(savedUser)
+                .chatRoom(savedChatRoom)
+                .content(content)
+                .sendAt(LocalDateTime.now())
+                .build();
     }
 }

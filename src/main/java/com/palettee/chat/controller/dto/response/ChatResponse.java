@@ -1,5 +1,11 @@
 package com.palettee.chat.controller.dto.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.palettee.chat.controller.dto.request.ChatRequest;
 import com.palettee.chat.domain.Chat;
 import com.palettee.chat.domain.ChatImage;
@@ -19,11 +25,18 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ChatResponse {
     private Long chatRoomId;
+
     private String email;
+
     private String profileImg;
+
     private String content;
+
     private List<ChatImgUrl> imgUrls;
-    private String sendAt;
+
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime sendAt;
 
     public static ChatResponse toResponse(Long chatRoomId, User user, ChatRequest chatRequest) {
         if(chatRequest.imgUrls() == null && chatRequest.imgUrls().isEmpty()) {
@@ -33,7 +46,7 @@ public class ChatResponse {
                     user.getImageUrl(),
                     chatRequest.content(),
                     null,
-                    TypeConverter.LocalDateTimeToString(LocalDateTime.now())
+                    LocalDateTime.now()
             );
         }
 
@@ -43,7 +56,7 @@ public class ChatResponse {
                 user.getImageUrl(),
                 chatRequest.content(),
                 chatRequest.imgUrls(),
-                TypeConverter.LocalDateTimeToString(LocalDateTime.now())
+                LocalDateTime.now()
         );
     }
 
@@ -56,7 +69,7 @@ public class ChatResponse {
                 chat.getChatImages().stream()
                         .map(chatImage -> ChatImgUrl.toResponseFromEntity(chatImage))
                         .toList(),
-                TypeConverter.LocalDateTimeToString(chat.getSendAt())
+               chat.getSendAt()
         );
     }
 
@@ -66,7 +79,7 @@ public class ChatResponse {
                 .user(user)
                 .chatRoom(chatRoom)
                 .content(content)
-                .sendAt(TypeConverter.StringToLocalDateTime(sendAt))
+                .sendAt(sendAt)
                 .build();
     }
 
