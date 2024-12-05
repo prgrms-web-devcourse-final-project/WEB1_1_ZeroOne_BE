@@ -3,7 +3,6 @@ package com.palettee.gathering.controller;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
@@ -13,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,12 +37,15 @@ public class GatheringController {
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String subject,
             @RequestParam(required = false) String period,
-            @RequestParam(required = false) String position,
+            @RequestParam(required = false) String contact,
+            @RequestParam(required = false, defaultValue = "") List<String> positions,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long gatheringId,
+            @RequestParam(required = false, defaultValue = "0") int personnel,
             Pageable pageable
     ) {
-        return gatheringService.findAll(sort, subject, period, position, status, gatheringId, pageable);
+        log.info("positions.size = {}", positions.size());
+        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable);
     }
 
     @GetMapping("/{gatheringId}")
@@ -70,7 +74,7 @@ public class GatheringController {
     }
 
     @PostMapping("/{gatheringId}/like")
-    public GatheringLikeResponse createLike(@PathVariable Long gatheringId){
+    public boolean createLike(@PathVariable Long gatheringId){
         return gatheringService.createGatheringLike(gatheringId, UserUtils.getContextUser());
     }
 

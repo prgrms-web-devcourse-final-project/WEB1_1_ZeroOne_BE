@@ -75,7 +75,10 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content", imageList);
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content", imageList);
 
         //when
 
@@ -111,7 +114,7 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("테스트", "테스트", "온라인", 3, "3개월", "2024-11-24", "개발자", tagList, "testUrl", "제목", "content",imageList);
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("테스트", "테스트", "온라인", 3, "3개월", "2024-11-24", null, tagList, "testUrl", "제목", "content",imageList);
 
 
        //then
@@ -133,9 +136,12 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
 
         for(int i = 0; i < 30; i++){
-                GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content", imageList);
+                GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content", imageList);
 
             gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
@@ -143,7 +149,7 @@ class GatheringServiceTest {
 
         //when
 
-        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "개발자", "모집중", null, PageRequest.of(0, 10));
+        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "온라인" ,null, "모집중", 3,null, PageRequest.of(0, 10));
 
 
         //then
@@ -168,7 +174,11 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content", imageList);
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
+
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content", imageList);
         GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
         //when
@@ -195,7 +205,12 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content",null);
+
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
+
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content",null);
         GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
 
@@ -206,7 +221,7 @@ class GatheringServiceTest {
         updateList.add("tag4");
 
 
-        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("스터디", "취미", "오프라인", 3, "3개월", "2024-11-24-09-30", "개발자", updateList, "testUrl", "제목", "content", null);
+        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("스터디", "취미", "오프라인", 3, "3개월", "2024-11-24-09-30", null, updateList, "testUrl", "제목", "content", null);
 
         GatheringCommonResponse gatheringCreateResponse = gatheringService.updateGathering(gathering.gatheringId(), gatheringCreateRequest1, savedUser);
 
@@ -238,7 +253,13 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", "개발자", tagList, "testUrl", "제목", "content",  imageList);
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
+
+
+
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content",  imageList);
         GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
 
@@ -298,6 +319,10 @@ class GatheringServiceTest {
         imageList.add("URL1");
         imageList.add("URL2");
 
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
+
         Gathering gathering = Gathering.builder()
                 .user(savedUser)
                 .sort(Sort.PROJECT)
@@ -309,7 +334,7 @@ class GatheringServiceTest {
                 .period("zz")
                 .subject(Subject.HOBBY)
                 .personnel(4)
-                .position(Position.DEVELOP)
+                .positions(null)
                 .title("테스트")
                 .deadLine(LocalDateTime.now()).build();
 

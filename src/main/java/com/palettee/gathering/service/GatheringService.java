@@ -4,9 +4,12 @@ import com.palettee.gathering.GatheringNotFoundException;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringLikeResponse;
-import com.palettee.gathering.domain.*;
+import com.palettee.gathering.domain.Contact;
+import com.palettee.gathering.domain.Gathering;
+import com.palettee.gathering.domain.Sort;
+import com.palettee.gathering.domain.Subject;
 import com.palettee.gathering.repository.GatheringRepository;
+import com.palettee.global.redis.service.RedisService;
 import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
@@ -24,6 +27,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,6 +42,8 @@ public class GatheringService {
     private final ImageService imageService;
 
     private final NotificationService notificationService;
+
+    private final RedisService redisService;
 
 
     @Transactional
@@ -53,7 +60,7 @@ public class GatheringService {
                 .deadLine(GatheringCommonRequest.getDeadLineLocalDate(request.deadLine()))
                 .personnel(request.personnel())
                 .gatheringImages(GatheringCommonRequest.getGatheringImage(request.gatheringImages()))
-                .position(Position.findPosition(request.position()))
+                .positions(GatheringCommonRequest.getPosition(request.positions()))
                 .title(request.title())
                 .content(request.content())
                 .url(request.url())
@@ -67,8 +74,10 @@ public class GatheringService {
             String sort,
             String subject,
             String period,
-            String position,
+            String contact,
+            List<String> positions,
             String status,
+            int personnel,
             Long gatheringId,
             Pageable pageable
     ) {
@@ -76,7 +85,9 @@ public class GatheringService {
                 sort,
                 subject,
                 period,
-                position,
+                contact,
+                positions,
+                personnel,
                 status,
                 gatheringId,
                 pageable
@@ -86,7 +97,9 @@ public class GatheringService {
     public GatheringDetailsResponse findByDetails(Long gatheringId) {
         Gathering gathering = getFetchGathering(gatheringId);
 
-        return GatheringDetailsResponse.toDto(gathering);
+        long likeCounts = likeRepository.countByTargetId(gatheringId);
+
+        return GatheringDetailsResponse.toDto(gathering, likeCounts);
     }
 
     @Transactional
@@ -131,24 +144,21 @@ public class GatheringService {
     }
 
     @Transactional
-    public GatheringLikeResponse createGatheringLike(Long gatheringId, User user){
-
-        User findUser = getUser(user.getId());
+    public boolean createGatheringLike(Long gatheringId, User user){
         Gathering gathering = getGathering(gatheringId);
-        if(cancelLike(gatheringId, findUser)) {
-            return GatheringLikeResponse.toDto(null);
-        }
 
-        Likes likes = Likes.builder()
-                .likeType(LikeType.GATHERING)
-                .user(findUser)
-                .targetId(gatheringId)
-                .build();
+
+        Boolean flag = redisService.likeExistInRedis("gathering", gatheringId, user.getId());
+
+        // 이미 DB에 반영된 좋아요 디비에서 삭제
+        if(!flag){
+            cancelLike(gatheringId, user);
+        }
 
         Long targetId = gathering.getUser().getId();
         notificationService.send(NotificationRequest.like(targetId, user.getName()));
 
-        return GatheringLikeResponse.toDto(likeRepository.save(likes));
+        return redisService.likeCount(gatheringId, user.getId(),"gathering");
     }
 
     @Transactional
@@ -183,14 +193,14 @@ public class GatheringService {
 
 
     private boolean cancelLike(Long gatheringId, User user) {
-        Likes findByLikes = likeRepository.findByUserIdAndTargetId(user.getId(), gatheringId, LikeType.GATHERING);
+        List<Likes> findByLikes = likeRepository.findByList(user.getId(), gatheringId, LikeType.GATHERING);
+
         if(findByLikes != null) {
-            likeRepository.delete(findByLikes);
+            likeRepository.deleteAll(findByLikes);
             return true;
         }
         return false;
     }
-
     private User getUser(Long userId){
         return  userRepository.findById(userId).orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }

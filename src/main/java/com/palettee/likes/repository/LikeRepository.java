@@ -26,6 +26,11 @@ public interface LikeRepository extends JpaRepository<Likes, Long> {
     @Query("select l from Likes l where l.user.id = :userId and l.targetId = :targetId and l.likeType = :likeType")
     List<Likes> findByList(Long userId, Long targetId, LikeType likeType);
 
+    @Query("select count(l) from Likes l where l.targetId = :targetId and l.likeType = 'GATHERING'")
+    long countByTargetId(Long targetId);
+
+
+
     @Modifying
     @Query("delete from Likes l where l.likeId in :likeIds")
     void deleteAllBy(@Param("likeIds") List<Long> likeIds);
