@@ -1,6 +1,7 @@
 package com.palettee.global.exception;
 
 import com.palettee.global.logging.*;
+import com.palettee.global.slack.SlackNotification;
 import jakarta.servlet.http.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
@@ -32,6 +33,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // 예상치 못했던 예외들은 500에러
+    @SlackNotification
     @ExceptionHandler(Exception.class)
     protected ResponseEntity<ErrorResponse> handleException(
             Exception e, HttpServletRequest request

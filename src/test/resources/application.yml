@@ -3,6 +3,8 @@ logging:
     com.palettee: debug
     web: debug
     sql: debug
+  slack:
+    webhook-uri: fake-uri
 
 spring:
   datasource:
