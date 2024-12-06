@@ -1,14 +1,13 @@
-package com.palettee.global.aop;
+package com.palettee.global.aop.querycounter;
 
+import lombok.Getter;
+
+@Getter
 public class QueryCounter {
 
     private int count;
     public void increase() {
         count++;
-    }
-
-    public int getCount() {
-        return count;
     }
 
     public boolean isWarn() {

@@ -1,4 +1,4 @@
-package com.palettee.global.aop;
+package com.palettee.global.aop.querycounter;
 
 import lombok.extern.slf4j.Slf4j;
 
