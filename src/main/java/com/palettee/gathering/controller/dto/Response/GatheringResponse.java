@@ -21,8 +21,7 @@ public record GatheringResponse(
 
     public static GatheringResponse toDto(Gathering gathering) {
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
-        String deadLine = gathering.getDeadLine().format(formatter);
+        String deadLine = gathering.getDeadLine().toString();
 
         List<String> gatheringTagList = checkGatheringTag(gathering);
 

@@ -82,7 +82,7 @@ class UserServiceTest {
     private Gathering genGathering(String title, User user) {
         return new Gathering(
                 Sort.ETC, Subject.ETC, "period? 이게 뭐지?", Contact.OFFLINE,
-                LocalDateTime.MAX, 3, "test", "title",
+                LocalDate.MAX, 3, "test", "title",
                 "content", user,null, null, null
         );
     }
