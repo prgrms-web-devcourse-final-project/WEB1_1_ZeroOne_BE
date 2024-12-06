@@ -14,10 +14,27 @@ import com.palettee.user.repository.*;
 import java.time.*;
 import java.util.*;
 import org.assertj.core.api.Assertions;
+
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.boot.test.context.*;
 import org.springframework.data.domain.*;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 
 @SpringBootTest
 class GatheringServiceTest {
@@ -79,7 +96,7 @@ class GatheringServiceTest {
         List<String> positions = new ArrayList<>();
         positions.add("개발자");
         positions.add("기획자");
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content", imageList);
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content", imageList);
 
         //when
 
@@ -142,7 +159,7 @@ class GatheringServiceTest {
         positions.add("기획자");
 
         for(int i = 0; i < 30; i++){
-                GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content", imageList);
+                GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content", imageList);
 
             gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
@@ -179,7 +196,7 @@ class GatheringServiceTest {
         positions.add("개발자");
         positions.add("기획자");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content", imageList);
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content", imageList);
         GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
         //when
@@ -211,7 +228,7 @@ class GatheringServiceTest {
         positions.add("개발자");
         positions.add("기획자");
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content",null);
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content",null);
         GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
 
@@ -222,7 +239,7 @@ class GatheringServiceTest {
         updateList.add("tag4");
 
 
-        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("스터디", "취미", "오프라인", 3, "3개월", "2024-11-24-09-30", null, updateList, "testUrl", "제목", "content", null);
+        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("스터디", "취미", "오프라인", 3, "3개월", "2024-11-24", null, updateList, "testUrl", "제목", "content", null);
 
         GatheringCommonResponse gatheringCreateResponse = gatheringService.updateGathering(gathering.gatheringId(), gatheringCreateRequest1, savedUser);
 
@@ -260,7 +277,7 @@ class GatheringServiceTest {
 
 
 
-        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24-09-30", positions, tagList, "testUrl", "제목", "content",  imageList);
+        GatheringCommonRequest gatheringCreateRequest = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content",  imageList);
         GatheringCommonResponse gathering = gatheringService.createGathering(gatheringCreateRequest, savedUser);
 
 
@@ -337,7 +354,7 @@ class GatheringServiceTest {
                 .personnel(4)
                 .positions(null)
                 .title("테스트")
-                .deadLine(LocalDateTime.now()).build();
+                .deadLine(LocalDate.now()).build();
 
         Gathering save = gatheringRepository.save(gathering);
         gatheringRepository.save(gathering);
