@@ -1,4 +1,4 @@
-package com.palettee.global.aop;
+package com.palettee.global.aop.querycounter;
 
 import java.lang.reflect.*;
 import java.sql.*;
