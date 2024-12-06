@@ -11,9 +11,7 @@ import com.palettee.chat_room.domain.ChatCategory;
 import com.palettee.chat_room.domain.ChatRoom;
 import com.palettee.chat_room.repository.ChatRoomRepository;
 import com.palettee.global.redis.utils.TypeConverter;
-import com.palettee.user.domain.MajorJobGroup;
-import com.palettee.user.domain.MinorJobGroup;
-import com.palettee.user.domain.User;
+import com.palettee.user.domain.*;
 import com.palettee.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -53,7 +51,20 @@ public class ChatRedisServiceTest {
     void beforeEach() {
         zSetOperations = redisTemplate.opsForZSet();
 
-        savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro", MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND));
+        savedUser = userRepository.save(
+                User.builder()
+                        .minorJobGroup(MinorJobGroup.ANALYSIS)
+                        .majorJobGroup(MajorJobGroup.DESIGN)
+                        .division(Division.ETC)
+                        .jobTitle("aa")
+                        .briefIntro("briefIntro")
+                        .name("name")
+                        .imageUrl("imageUrl")
+                        .email("email")
+                        .userRole(UserRole.USER)
+                        .oauthIdentity("oauthIdentity")
+                        .id(1L)
+                        .build());
         savedChatRoom = chatRoomRepository.save(new ChatRoom(ChatCategory.COFFEE_CHAT));
     }
 
