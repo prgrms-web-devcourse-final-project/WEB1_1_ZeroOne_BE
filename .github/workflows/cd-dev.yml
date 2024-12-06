@@ -72,7 +72,7 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          DOCKER_IMAGE_TAG: palettee-server:${{ steps.short_sha.outputs.sha_short }}
+          DOCKER_IMAGE_TAG: palettee/palettee-server:latest
         run: |
           echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
           docker build -t $DOCKER_IMAGE_TAG .
