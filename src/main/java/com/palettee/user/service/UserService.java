@@ -140,7 +140,16 @@ public class UserService {
         // 자기 자신만 정보 변경할 수 있음.
         this.checkUsersAreSame(userOnTarget, loggedInUser);
 
-        userOnTarget.changeUserRole(UserRole.OLD_NEWBIE);
+        String portfolioLink = editUserInfoRequest.portfolioLink();
+
+        // 포폴 있으면 OLD_NEWBIE 로, 없으면 JUST_NEWBIE 까지 상승
+        UserRole targetRole = portfolioLink != null && !portfolioLink.isEmpty() ?
+                UserRole.OLD_NEWBIE : UserRole.JUST_NEWBIE;
+        userOnTarget.changeUserRole(targetRole);
+
+        log.debug("User {}'s role has been updated up to {}",
+                userOnTarget.getId(), targetRole);
+
         userOnTarget.update(editUserInfoRequest);
         log.debug("Edited basic user {}'s info", userOnTarget.getId());
 
@@ -164,10 +173,7 @@ public class UserService {
         portFolioRepo.deleteAllByUserId(userOnTarget.getId());
         log.debug("Deleted user {}'s all portfolio links", userOnTarget.getId());
 
-        // 포폴 정보 등록 -> validation 으로 빈 링크는 안들어옴.
-        String url = editUserInfoRequest.portfolioLink();
-        portFolioRepo.save(new PortFolio(userOnTarget, url));
-
+        portFolioRepo.save(new PortFolio(userOnTarget, portfolioLink));
         log.debug("Edited user {}'s portfolio link", userOnTarget.getId());
 
         // 사용자가 S3 에 업로드한 자원들 추가
