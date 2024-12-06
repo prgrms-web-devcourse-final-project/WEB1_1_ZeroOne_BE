@@ -4,7 +4,7 @@ logging:
     web: debug
     sql: debug
   slack:
-    webhook-uri: fake-uri
+    webhook-uri: https://hooks.slack.com/services/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
 
 spring:
   datasource:
