@@ -9,9 +9,15 @@ public record SimpleGatheringInfo(
 ) {
 
     public static SimpleGatheringInfo of(Gathering gathering) {
-        // TODO : gathering 이미 table, entity 생기면 썸네일 이미지 넣어주기
+
+        String thumbnailImage = gathering.getGatheringImages()
+                .stream()
+                .map(GatheringImage::getImageUrl)
+                .findFirst()
+                .orElse(null);
+
         return new SimpleGatheringInfo(
-                gathering.getId(), gathering.getTitle(), null
+                gathering.getId(), gathering.getTitle(), thumbnailImage
         );
     }
 }

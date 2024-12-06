@@ -55,7 +55,9 @@ public class JwtExceptionHandlingFilter extends OncePerRequestFilter {
 
         Object requestUUID = req.getAttribute("custom-request-uuid");
 
-        log.error("On REQUEST [{}], JwtExceptionHandlingFilter handled exception : {}",
+        log.error(
+                "On REQUEST [{} \"{}\"] - [{}], JwtExceptionHandlingFilter handled exception : {}",
+                req.getMethod(), req.getRequestURL(),
                 requestUUID, e.getClass().getSimpleName(), e);
     }
 }

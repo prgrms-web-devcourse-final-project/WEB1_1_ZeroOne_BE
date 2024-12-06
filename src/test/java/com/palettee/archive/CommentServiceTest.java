@@ -2,29 +2,20 @@ package com.palettee.archive;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.palettee.archive.controller.dto.request.CommentWriteRequest;
-import com.palettee.archive.controller.dto.response.CommentListResponse;
-import com.palettee.archive.controller.dto.response.CommentResponse;
-import com.palettee.archive.domain.Archive;
-import com.palettee.archive.domain.ArchiveType;
-import com.palettee.archive.domain.Comment;
-import com.palettee.archive.exception.CanNotCommentArchive;
-import com.palettee.archive.repository.ArchiveRepository;
-import com.palettee.archive.repository.CommentRepository;
-import com.palettee.archive.service.CommentService;
-import com.palettee.user.domain.MajorJobGroup;
-import com.palettee.user.domain.MinorJobGroup;
-import com.palettee.user.domain.User;
-import com.palettee.user.repository.UserRepository;
-import java.util.Optional;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.transaction.annotation.Transactional;
+import com.palettee.archive.controller.dto.request.*;
+import com.palettee.archive.controller.dto.response.*;
+import com.palettee.archive.domain.*;
+import com.palettee.archive.exception.*;
+import com.palettee.archive.repository.*;
+import com.palettee.archive.service.*;
+import com.palettee.user.domain.*;
+import com.palettee.user.repository.*;
+import java.util.*;
+import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.data.domain.*;
+import org.springframework.transaction.annotation.*;
 
 @SpringBootTest
 @Transactional
@@ -45,7 +36,17 @@ public class CommentServiceTest {
 
     @BeforeEach
     void beforeEach() {
-        savedUser = userRepository.save(new User("email", "imageUrl","name", "briefIntro", MajorJobGroup.DEVELOPER, MinorJobGroup.BACKEND));
+        savedUser = userRepository.save(
+                User.builder()
+                        .email("email")
+                        .imageUrl("imageUrl")
+                        .name("name")
+                        .briefIntro("briefIntro")
+                        .userRole(UserRole.USER)
+                        .majorJobGroup(MajorJobGroup.DEVELOPER)
+                        .minorJobGroup(MinorJobGroup.BACKEND)
+                        .build()
+        );
         savedArchiveCanComment = archiveRepository.save(new Archive("title", "description", "introduction", ArchiveType.RED, true, savedUser));
         savedArchiveNotComment = archiveRepository.save(new Archive("title", "description", "introduction", ArchiveType.RED, false, savedUser));
     }

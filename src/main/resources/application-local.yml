@@ -17,11 +17,11 @@ spring:
     hibernate:
       ddl-auto: update
     properties:
+      default_batch_fetch_size: 1000
       hibernate:
         jdbc:
           time_zone: UTC
         format_sql: true   # SQL 포맷팅을 활성화
-        default_batch_fetch_size: 1000
 
   # OAuth redirect URL for local dev
   security:

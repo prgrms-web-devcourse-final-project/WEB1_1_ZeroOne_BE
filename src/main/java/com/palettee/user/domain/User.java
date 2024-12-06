@@ -19,7 +19,6 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
-    // TODO : 나중에 userRole nullable = false 해두고 테코 바꿔놔야 됨.
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,7 +34,7 @@ public class User extends BaseEntity {
     private String oauthIdentity;
 
     @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
+    @Column(nullable = false)
     private UserRole userRole;
 
     @Column(name = "user_email", unique = true, nullable = false)

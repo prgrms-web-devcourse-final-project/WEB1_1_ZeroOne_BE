@@ -512,12 +512,20 @@ class UserServiceTest {
         assertThat(result.thumbnailImageUrl()).isEqualTo(thumbnailUrl);
     }
 
-    // TODO : 게더링 이미지 추가되면 썸네일 주소 검증도 필요함
     private void checkEquality(SimpleGatheringInfo result, Gathering origin) {
         assertThat(result).isNotNull().satisfies(
                 r -> assertThat(r.gatheringId()).isEqualTo(origin.getId()),
                 r -> assertThat(r.title()).isEqualTo(origin.getTitle())
         );
+
+        String thumbnail = result.thumbnailImageUrl();
+        String expectedThumbnail = origin.getGatheringImages()
+                .stream()
+                .map(GatheringImage::getImageUrl)
+                .findFirst()
+                .orElse(null);
+
+        assertThat(thumbnail).isEqualTo(expectedThumbnail);
     }
 
     private void checkException(Long userId) {

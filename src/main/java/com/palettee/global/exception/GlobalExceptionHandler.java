@@ -61,9 +61,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode status,
             WebRequest request) {
 
-        // TODO : 지금 validation 에러가 응답으로 보이긴 하는데 이상함.
-        // 동일한 invalid body 여도 getDefaultMessage 했을 때 오는 메시지가 랜덤함. 어케 고치지???
-        // invalid 한 필드까지는 고정적인 것 같은데 어떤 메시지가 선택되는지가 매번 다름..
         BindingResult bindingResult = ex.getBindingResult();
 
         if (!bindingResult.hasErrors()) {

@@ -50,6 +50,7 @@ class TokenControllerTest {
         try {
             testUser = userRepo.save(
                     User.builder()
+                            .userRole(UserRole.REAL_NEWBIE)
                             .email("test@test.com")
                             .build()
             );
