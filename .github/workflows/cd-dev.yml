@@ -98,7 +98,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          platforms: linux/x64
+          platforms: linux/arm64
           tags: dksxogh902318/palettee-server:latest
 
 
