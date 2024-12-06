@@ -49,7 +49,7 @@ public class BasicRegisterService {
             RegisterBasicInfoRequest registerBasicInfoRequest)
             throws InvalidDivisionException, InvalidJobGroupException, JobGroupMismatchException {
 
-        // url 제외 정보 등록
+        // 일단 기본 정보만 등록
         user = this.getUser(user.getEmail());
         user.update(registerBasicInfoRequest);
         user.changeUserRole(UserRole.JUST_NEWBIE);
@@ -58,15 +58,15 @@ public class BasicRegisterService {
 
         user = this.getUserByIdFetchWithRelatedLinks(user.getId());
 
-        // 이전 저장되 있던 url 제거
+        // 이전 저장되 있던 socials 제거
         relatedLinkRepo.deleteAllByUserId(user.getId());
 
         log.debug("Deleted user {}'s all social links", user.getId());
 
-        // url (linkedin, 블로그 등) 정보 등록
-        List<String> links = registerBasicInfoRequest.url();
-        // url 등록 되었으면 로그 찍기
-        if (this.registerUrlsOn(user, links, relatedLinkRepo::save, RelatedLink::new)) {
+        // socials (linkedin, 블로그 등) 정보 등록
+        List<String> socialLinks = registerBasicInfoRequest.socials();
+        // socials 등록 되었으면 로그 찍기
+        if (this.registerUrlsOn(user, socialLinks, relatedLinkRepo::save, RelatedLink::new)) {
             log.debug("Registered user {}'s social links", user.getId());
         }
 

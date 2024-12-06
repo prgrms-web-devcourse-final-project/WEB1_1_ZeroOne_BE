@@ -141,7 +141,7 @@ class BasicRegisterControllerTest {
 
         this.checkValidationException("/profile", jobGroupMismatch, divisionMismatch);
 
-        // url 5 개 초과 주어졌을 때
+        // socials 5 개 초과 주어졌을 때
         var tooManyUrl = gen("developer", "backend", "student",
                 List.of("111.com", "222.com", "333.com", "444.com", "555.com", "666.com"));
 

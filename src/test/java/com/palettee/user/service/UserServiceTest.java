@@ -495,7 +495,7 @@ class UserServiceTest {
         url = url.stream().sorted().toList();
         s3Urls = s3Urls.stream().sorted().toList();
 
-        assertThat(url).isEqualTo(request.url().stream().sorted().toList());
+        assertThat(url).isEqualTo(request.socials().stream().sorted().toList());
         assertThat(s3Urls).isEqualTo(request.s3StoredImageUrls().stream().sorted().toList());
 
         log.info("User info were successfully edited.");
