@@ -1,12 +1,13 @@
 package com.palettee.chat_room.domain;
 
+import com.palettee.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ChatRoom {
+public class ChatRoom extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chat_room_id", nullable = false)
     private Long id;

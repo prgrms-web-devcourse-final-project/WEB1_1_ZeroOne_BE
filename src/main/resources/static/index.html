@@ -119,7 +119,7 @@
 <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const token = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyRW1haWwiOiJodW5pbEBnbWFpbC5jb20iLCJyb2xlIjoiT0xEX05FV0JJRSIsImlhdCI6MTczMjcwNzcxOCwiZXhwIjoxNzMyNzc5NzE4fQ.P39KSm2NANbv9SG5IwqL5ow0681YRt8lxTAiwR8egK8"; // Replace with your actual token
+        const token = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyRW1haWwiOiJodW5pbDEyQGdtYWlsLmNvbSIsInJvbGUiOiJPTERfTkVXQklFIiwiaWF0IjoxNzMzMjIzNzY4LCJleHAiOjE3MzMyOTU3Njh9.Wmi6CxF0dPG8JpIukPv63b2yLKatXR_qLm3K4StptR4"; // Replace with your actual token
         const chatRoomId = 1;
 
         const socket = new WebSocket("ws://localhost:8080/ws");
@@ -178,8 +178,8 @@
                 .map(url => ({ imgUrl: url }));
 
             stompClient.send(`/pub/chat/${chatRoomId}`, headers, JSON.stringify({
-                content: message,
-                imgUrls: imgUrls
+                content: message || null,
+                imgUrls: imgUrls || null
             }));
 
             document.getElementById("message").value = "";
