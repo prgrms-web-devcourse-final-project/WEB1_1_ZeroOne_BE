@@ -22,7 +22,7 @@ public class PerformanceAspect {
     public void serviceExecutionPointcut() {
     }
 
-//    @Around("performancePointcut()")
+    @Around("performancePointcut()")
     public Object start(ProceedingJoinPoint joinPoint) throws Throwable {
         final Connection connection = (Connection) joinPoint.proceed();
         queryCounter.set(new QueryCounter());
@@ -33,7 +33,7 @@ public class PerformanceAspect {
         return proxyConnection;
     }
 
-//    @Around("serviceExecutionPointcut()")
+    @Around("serviceExecutionPointcut()")
     public Object aroundServiceExecution(ProceedingJoinPoint joinPoint) throws Throwable {
 
         long startTime = System.currentTimeMillis();
