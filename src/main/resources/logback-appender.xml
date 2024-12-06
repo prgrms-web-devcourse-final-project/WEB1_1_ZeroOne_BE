@@ -37,7 +37,7 @@
       <appender name="FILE-${DOMAIN_LOG_DIR}"
         class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-          <fileNamePattern>${LOG_DIR}/${DOMAIN_LOG_DIR}/${DOMAIN_LOG_DIR}.%d{yyyy-MM-dd}_%i.log
+          <fileNamePattern>${LOG_DIR}/${DOMAIN_LOG_DIR}/${DOMAIN_LOG_DIR}.%d{yyyy-MM-dd}_%02i.log
           </fileNamePattern>
           <maxFileSize>10MB</maxFileSize>
           <maxHistory>14</maxHistory>
@@ -55,7 +55,7 @@
   <!-- 에러난 부분만 편하게 볼 수 있도록 집계하는 appender -->
   <appender name="EXCEPTION" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-      <fileNamePattern>${LOG_DIR}/exceptions/%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+      <fileNamePattern>${LOG_DIR}/exceptions/%d{yyyy-MM-dd}-%02i.log</fileNamePattern>
       <maxFileSize>5MB</maxFileSize>
       <maxHistory>21</maxHistory>
       <cleanHistoryOnStart>true</cleanHistoryOnStart>
