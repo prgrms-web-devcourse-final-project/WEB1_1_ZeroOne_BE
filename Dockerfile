@@ -1,7 +1,5 @@
-FROM openjdk:17-jdk
-
-ARG JAR_FILE=build/libs/backend-0.0.1-SNAPSHOT.jar
-
-COPY ${JAR_FILE} palettee-server.jar
-
-CMD ["java", "-jar", "-Duser.timezone=Asia/Seoul", "palettee-server.jar"]
+FROM openjdk:17-jdk-alpine
+VOLUME /tmp
+COPY build/libs/*.jar palettee-server.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "/palettee-server.jar"]
