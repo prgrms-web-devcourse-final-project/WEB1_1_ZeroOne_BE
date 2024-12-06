@@ -155,12 +155,12 @@ public class UserService {
 
         userOnTarget = this.getUserByIdFetchWithRelatedLinks(userId);
 
-        // 이전 저장되 있던 url 제거
+        // 일단 기본 정보만 등록
         relatedLinkRepo.deleteAllByUserId(userOnTarget.getId());
         log.debug("Deleted user {}'s all social links", userOnTarget.getId());
 
-        // url (linkedin, 블로그 등) 정보 등록
-        List<String> links = editUserInfoRequest.url();
+        // socials (linkedin, 블로그 등) 정보 등록
+        List<String> links = editUserInfoRequest.socials();
         // 등록 되었다면 log 찍기
         if (this.registerUrlsOn(userOnTarget, links,
                 relatedLinkRepo::save, RelatedLink::new)) {

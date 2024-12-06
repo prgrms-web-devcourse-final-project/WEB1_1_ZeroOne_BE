@@ -159,13 +159,13 @@ class BasicRegisterServiceTest {
         assertThat(majorGroup).isEqualTo(user.getMajorJobGroup());
         assertThat(minorGroup).isEqualTo(user.getMinorJobGroup());
 
-        // url 도 변경 됐는지 확인
+        // socials 도 변경 됐는지 확인
         List<String> relatedLinks = user.getRelatedLinks()
                 .stream()
                 .map(RelatedLink::getLink)
                 .sorted()
                 .toList();
-        List<String> requestLinks = BasicRegisterServiceTest.registerBasicInfoRequest.url()
+        List<String> requestLinks = BasicRegisterServiceTest.registerBasicInfoRequest.socials()
                 .stream()
                 .sorted()
                 .toList();
