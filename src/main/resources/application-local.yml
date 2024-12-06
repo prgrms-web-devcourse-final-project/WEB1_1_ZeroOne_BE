@@ -3,6 +3,8 @@ logging:
     com.palettee: debug
     web: debug
     sql: debug
+  slack:
+    webhook-uri: fake-uri
 
 spring:
   datasource:
@@ -13,7 +15,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         jdbc:

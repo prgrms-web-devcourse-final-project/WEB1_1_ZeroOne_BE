@@ -78,6 +78,10 @@ dependencies {
 
     // prometheus
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    // Slack
+    implementation 'net.gpedro.integrations.slack:slack-webhook:1.4.0'
+    implementation 'com.slack.api:slack-api-client:1.40.3'
 }
 
 tasks.named('test') {

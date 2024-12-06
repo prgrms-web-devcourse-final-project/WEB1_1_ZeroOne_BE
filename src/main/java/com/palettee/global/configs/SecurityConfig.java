@@ -41,6 +41,7 @@ public class SecurityConfig {
     @Bean
     public BypassUrlHolder bypassUrlHolder() {
         return BypassUrlHolder.builder()
+                .byPassable("/test-ex")
                 .byPassable("/error")
                 .byPassable("/actuator/**")
 
