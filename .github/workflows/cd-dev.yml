@@ -101,6 +101,7 @@ jobs:
           platforms: linux/arm64
           tags: dksxogh902318/palettee-server:latest
 
+
 #      # Deploy to EC2
 #      - name: Deploy to EC2
 #        uses: appleboy/ssh-action@master

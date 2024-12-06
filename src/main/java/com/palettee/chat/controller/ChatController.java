@@ -2,7 +2,7 @@ package com.palettee.chat.controller;
 
 import com.palettee.chat.controller.dto.request.ChatRequest;
 import com.palettee.chat.controller.dto.response.ChatResponse;
-import com.palettee.chat.service.ChatService;
+import com.palettee.chat.service.ChatRedisService;
 import com.palettee.global.redis.pub.RedisPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ChatController {
 
-    private final ChatService chatService;
     private final RedisPublisher redisPublisher;
     private final ChannelTopic channelTopic;
+    private final ChatRedisService chatRedisService;
 
     @MessageMapping("/chat/{chatRoomId}")
     public void chatting(
@@ -28,7 +28,7 @@ public class ChatController {
     ) {
 
         String email = (String) accessor.getSessionAttributes().get("email");
-        ChatResponse response = chatService.saveChat(email, chatRoomId, chatRequest);
+        ChatResponse response = chatRedisService.addChat(email, chatRoomId, chatRequest);
         redisPublisher.publish(channelTopic, response);
     }
 }

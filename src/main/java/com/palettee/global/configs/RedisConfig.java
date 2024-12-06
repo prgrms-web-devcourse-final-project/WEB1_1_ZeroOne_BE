@@ -86,12 +86,21 @@ public class RedisConfig {
         return template;
     }
 
-    @Bean
-    public RedisTemplate<String, ChatResponse> chatRedisTemplate(RedisConnectionFactory connectionFactory,
+    @Bean("chatPubTemplate")
+    public RedisTemplate<String, ChatResponse> chatPubTemplate(RedisConnectionFactory connectionFactory,
                                                                  @Qualifier("redisObjectMapper") ObjectMapper objectMapper) {
         RedisTemplate<String, ChatResponse> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+
+    @Bean("chatRedisTemplate")
+    public RedisTemplate<String, ChatResponse> chatRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, ChatResponse> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setConnectionFactory(connectionFactory);
         return redisTemplate;
     }
