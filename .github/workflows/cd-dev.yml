@@ -79,18 +79,27 @@ jobs:
           docker tag $DOCKER_IMAGE_TAG $DOCKER_HUB_USERNAME/$DOCKER_IMAGE_TAG
           docker push $DOCKER_HUB_USERNAME/$DOCKER_IMAGE_TAG
 
-      # Deploy to EC2
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_IP }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.EC2_PEM_KEY }}
-          script: |
-            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
-            docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }} palettee-server
-            docker rm -f palettee-server || true
-            docker run -d --name palettee-server \
-            -e TZ=Asia/Seoul -e SPRING_PROFILES_ACTIVE=ec2-dev \
-            -v ~/palettee-service-logs:/home/palettee-service-logs \
-            -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
+#      # Deploy to EC2
+#      - name: Deploy to EC2
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.EC2_IP }}
+#          username: ${{ secrets.USERNAME }}
+#          key: ${{ secrets.EC2_PEM_KEY }}
+#          script: |
+#            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
+#            docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }} palettee-server
+#            docker rm -f palettee-server || true
+#            docker run -d --name palettee-server \
+#            -e TZ=Asia/Seoul -e SPRING_PROFILES_ACTIVE=ec2-dev \
+#            -v ~/palettee-service-logs:/home/palettee-service-logs \
+#            -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
+
+  backend-docker-pull-and-run:
+    runs-on: [self-hosted, dev]
+    if: ${{ needs.backend-docker-build-and-push.result == 'success' }}
+    needs: [ backend-docker-build-and-push ]
+    steps:
+      - name: ✨ 배포 스크립트 실행
+        run: |
+          sh /home/ubuntu/deploy.sh
