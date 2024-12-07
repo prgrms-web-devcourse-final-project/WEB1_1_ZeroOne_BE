@@ -97,9 +97,20 @@ public class GatheringService {
     public GatheringDetailsResponse findByDetails(Long gatheringId) {
         Gathering gathering = getFetchGathering(gatheringId);
 
-        long likeCounts = likeRepository.countByTargetId(gatheringId);
+        long likeCounts = calculateLikeCounts(gatheringId);
 
         return GatheringDetailsResponse.toDto(gathering, likeCounts);
+    }
+
+    private long calculateLikeCounts(Long gatheringId) {
+        long likeCounts = likeRepository.countByTargetId(gatheringId);
+
+        Long count = redisService.likeCountInRedis("gathering", gatheringId);
+
+        if(count == null){
+            count = 0L;
+        }
+        return likeCounts + count;
     }
 
     @Transactional

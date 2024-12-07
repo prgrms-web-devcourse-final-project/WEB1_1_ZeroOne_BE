@@ -296,6 +296,19 @@ public class RedisService {
     }
 
 
+    public Long likeCountInRedis(String category, Long targetId){
+        String key = LIKE_PREFIX + category + ": " + targetId;
+
+        Long likeCount = redisTemplate.opsForValue().get(key);
+
+        if(likeCount != null && likeCount > 0){
+            log.info("likeCount = {}", likeCount);
+            return likeCount;
+        }
+        return null;
+    }
+
+
     /**
      *
      * @param category
