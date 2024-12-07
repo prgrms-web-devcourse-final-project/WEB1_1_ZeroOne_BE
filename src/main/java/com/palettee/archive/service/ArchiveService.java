@@ -83,12 +83,13 @@ public class ArchiveService {
     public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);
         archive.hit();
+        Long userId = user == null ? 0L : user.getId();
         return ArchiveDetailResponse.toResponse(
                 archive,
-                user,
+                userId,
                 likeRepository.countArchiveLike(archiveId),
                 commentRepository.countArchiveComment(archiveId),
-                likeRepository.existByUserAndArchive(archiveId, user.getId()).isPresent(),
+                likeRepository.existByUserAndArchive(archiveId, userId).isPresent(),
                 tagRepository.findByArchiveId(archiveId)
                         .stream().map(TagDto::new).toList(),
                 archiveImageRepository.findByArchiveId(archiveId)
