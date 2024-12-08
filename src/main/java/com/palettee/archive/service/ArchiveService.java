@@ -57,14 +57,14 @@ public class ArchiveService {
 
     public ArchiveListResponse getAllArchive(String color, String sort, Pageable pageable, User optionalUser) {
         Slice<Archive> archives = archiveRepository.findAllArchiveWithCondition(color, sort, pageable);
-
+        List<ColorCount> colorCounts = archiveRepository.countByArchiveType();
         Long myId = getOptionalUserId(optionalUser);
 
         List<ArchiveSimpleResponse> list = archives
                 .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
 
-        return new ArchiveListResponse(list, SliceInfo.of(archives));
+        return new ArchiveListResponse(list, colorCounts, SliceInfo.of(archives));
     }
 
     private Long getOptionalUserId(User optionalUser) {
@@ -76,19 +76,20 @@ public class ArchiveService {
         List<ArchiveSimpleResponse> result = archiveRepository.getMainArchives().stream()
                 .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
-        return new ArchiveListResponse(result, null);
+        return new ArchiveListResponse(result,null, null);
     }
 
     @Transactional
     public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);
         archive.hit();
+        Long userId = user == null ? 0L : user.getId();
         return ArchiveDetailResponse.toResponse(
                 archive,
-                user,
+                userId,
                 likeRepository.countArchiveLike(archiveId),
                 commentRepository.countArchiveComment(archiveId),
-                likeRepository.existByUserAndArchive(archiveId, user.getId()).isPresent(),
+                likeRepository.existByUserAndArchive(archiveId, userId).isPresent(),
                 tagRepository.findByArchiveId(archiveId)
                         .stream().map(TagDto::new).toList(),
                 archiveImageRepository.findByArchiveId(archiveId)
@@ -96,21 +97,27 @@ public class ArchiveService {
         );
     }
 
-    public ArchiveListResponse getMyArchive(User user) {
-        List<ArchiveSimpleResponse> result = archiveRepository.getAllMyArchive(user.getId())
+    public ArchiveListResponse getMyArchive(User user, Pageable pageable) {
+
+        Slice<Archive> archives = archiveRepository.getAllMyArchive(user.getId(), pageable);
+
+        List<ArchiveSimpleResponse> result = archives
                 .stream()
                 .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository))
                 .toList();
-        return new ArchiveListResponse(result, null);
+        List<ColorCount> colorCounts = archiveRepository.countMyArchiveByArchiveType(user.getId());
+        return new ArchiveListResponse(result, colorCounts, SliceInfo.of(archives));
     }
 
-    public ArchiveListResponse getLikeArchive(User user) {
+    public ArchiveListResponse getLikeArchive(User user, Pageable pageable) {
         List<Long> ids = likeRepository.findMyLikeList(user.getId());
-        List<ArchiveSimpleResponse> result = archiveRepository.findAllInIds(ids)
+        List<ColorCount> colorCounts = archiveRepository.countLikeArchiveByArchiveType(ids);
+        Slice<Archive> archives = archiveRepository.findAllInIds(ids, pageable);
+        List<ArchiveSimpleResponse> result = archives
                 .stream()
                 .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository))
                 .toList();
-        return new ArchiveListResponse(result, null);
+        return new ArchiveListResponse(result, colorCounts, SliceInfo.of(archives));
     }
 
     public ArchiveListResponse searchArchive(String searchKeyword, Pageable pageable, User optionalUser) {
@@ -118,11 +125,16 @@ public class ArchiveService {
         Long myId = getOptionalUserId(optionalUser);
         Slice<Archive> archives = archiveRepository.searchArchive(searchKeyword, ids, pageable);
 
+//        List<Long> archiveIds = archives.stream()
+//                .map(Archive::getId)
+//                .toList();
+//        List<ColorCount> colorCounts = archiveRepository.countLikeArchiveByArchiveType(archiveIds);
+
         List<ArchiveSimpleResponse> list = archives
                 .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
 
-        return new ArchiveListResponse(list, SliceInfo.of(archives));
+        return new ArchiveListResponse(list, null, SliceInfo.of(archives));
     }
 
     @Transactional

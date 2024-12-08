@@ -26,7 +26,7 @@ public record ArchiveDetailResponse(
 
     public static ArchiveDetailResponse toResponse(
             Archive archive,
-            User user,
+            Long userId,
             long likeCount,
             long count,
             boolean isLiked,
@@ -34,7 +34,6 @@ public record ArchiveDetailResponse(
             List<ImageUrlDto> urlDtoList
     ) {
         User owner = archive.getUser();
-        Long userId = user == null ? 0L : user.getId();
         String userProfile = owner.getImageUrl();
         return new ArchiveDetailResponse(
                 archive.getTitle(),
