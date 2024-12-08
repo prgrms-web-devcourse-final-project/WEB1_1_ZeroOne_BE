@@ -64,7 +64,6 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
 
         return new SliceImpl<>(result, pageable, hasNext);
     }
-
     /*
     좋아요한 포트폴리오 조회(noOffSet)
      */
