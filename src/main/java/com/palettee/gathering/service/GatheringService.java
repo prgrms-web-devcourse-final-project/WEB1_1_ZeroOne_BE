@@ -94,13 +94,15 @@ public class GatheringService {
         );
     }
 
-    public GatheringDetailsResponse findByDetails(Long gatheringId) {
+    public GatheringDetailsResponse findByDetails(Long gatheringId, Long userId) {
         Gathering gathering = getFetchGathering(gatheringId);
 
         long likeCounts = calculateLikeCounts(gatheringId);
 
-        return GatheringDetailsResponse.toDto(gathering, likeCounts);
+        return GatheringDetailsResponse.toDto(gathering, likeCounts, isLikedUserGathering(gatheringId, userId));
     }
+
+
 
     private long calculateLikeCounts(Long gatheringId) {
         long likeCounts = likeRepository.countByTargetId(gatheringId);
@@ -200,6 +202,16 @@ public class GatheringService {
         if(!gathering.getUser().getId().equals(user.getId())){
             throw  UserAccessException.EXCEPTION;
         }
+    }
+
+    private boolean isLikedUserGathering(Long gatheringId, Long userId) {
+        Likes likeGathering= likeRepository.findByUserIdAndTargetId(userId, gatheringId, LikeType.GATHERING);
+
+        if(likeGathering != null){
+            log.info("유저 게더링 좋아요");
+            return true;
+        }
+        return redisService.redisInLikeUser("gathering", gatheringId, userId);
     }
 
 

@@ -31,6 +31,8 @@ public interface LikeRepository extends JpaRepository<Likes, Long> {
 
 
 
+
+
     @Modifying
     @Query("delete from Likes l where l.likeId in :likeIds")
     void deleteAllBy(@Param("likeIds") List<Long> likeIds);
