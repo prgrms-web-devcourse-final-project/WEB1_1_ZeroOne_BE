@@ -126,3 +126,4 @@ jobs:
       - name: ✨ 배포 스크립트 실행
         run: |
           bash /home/ubuntu/deploy.sh
+          sudo docker image prune -f 
