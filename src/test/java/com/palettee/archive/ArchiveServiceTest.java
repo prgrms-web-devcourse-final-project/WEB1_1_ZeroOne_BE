@@ -120,7 +120,7 @@ public class ArchiveServiceTest {
         ArchiveResponse archiveResponse2 = archiveService.registerArchive(request, savedUser);
         ArchiveResponse archiveResponse3 = archiveService.registerArchive(request, savedUser);
 
-        ArchiveListResponse all = archiveService.getMyArchive(savedUser);
+        ArchiveListResponse all = archiveService.getMyArchive(savedUser, Pageable.unpaged());
 
         //then
         assertThat(all.archives().size()).isEqualTo(3);
