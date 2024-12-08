@@ -107,9 +107,9 @@ public class UserController {
      *
      * @param id 조회하고자 하는 사용자의 id
      */
-    @GetMapping("/{id}/gatherings")
+    @GetMapping("/{userId}/gatherings")
     public GetUserGatheringResponse getUserGatherings(
-            @PathVariable("id") Long id,
+            @PathVariable("userId") Long id,
             @Min(1) @RequestParam("size") int size,
             @RequestParam(value = "nextGatheringId", required = false) Long nextGatheringId
     ) {
