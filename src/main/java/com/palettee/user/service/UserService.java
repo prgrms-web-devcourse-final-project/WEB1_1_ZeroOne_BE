@@ -31,6 +31,7 @@ public class UserService {
     private final StoredProfileImageUrlRepository storedProfileImageUrlRepo;
     private final ArchiveRepository archiveRepo;
     private final GatheringRepository gatheringRepo;
+    private final GatheringTagRepository gatheringTagRepo;
     private final RefreshTokenRedisService refreshTokenRedisService;
 
     /**
@@ -219,9 +220,11 @@ public class UserService {
     public GetUserGatheringResponse getUserGatherings(
             Long userId, int size, Long prevGatheringId
     ) {
-        return gatheringRepo.findGatheringsOnUserWithNoOffset(
+        GatheringPagingDTO pagingDTO = gatheringRepo.findGatheringsOnUserWithNoOffset(
                 userId, size, prevGatheringId
         );
+
+        return GetUserGatheringResponse.of(pagingDTO, gatheringTagRepo);
     }
 
 
