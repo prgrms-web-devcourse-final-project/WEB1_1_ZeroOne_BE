@@ -75,6 +75,7 @@ jobs:
           DOCKER_IMAGE_TAG: palettee-server:${{ github.sha }}
         run: |
           echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+          docker rmi -f $DOCKER_HUB_USERNAME/palettee-server:latest || true
           docker build --no-cache -t $DOCKER_IMAGE_TAG .
           docker tag $DOCKER_IMAGE_TAG $DOCKER_HUB_USERNAME/palettee-server:latest
           docker push $DOCKER_HUB_USERNAME/palettee-server:latest
