@@ -196,6 +196,19 @@ public class UserService {
     }
 
     /**
+     * 유저가 작성한 아카이브들의 색상 통계를 보여주는 메서드
+     *
+     * @param userId 아카이브 색상 통계 조회할 유저 id
+     */
+    public GetArchiveColorStatisticsResponse getArchiveColorStatistics(
+            Long userId
+    ) {
+        return GetArchiveColorStatisticsResponse.of(
+                archiveRepo.findAllByUserId(userId)
+        );
+    }
+
+    /**
      * 유저가 작성한 아카이브 목록 보여주는 메서드
      *
      * @param userId        아카이브 조회할 유저 id
