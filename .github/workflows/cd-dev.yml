@@ -72,7 +72,7 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          DOCKER_IMAGE_TAG: palettee-server:${{ github.sha }}
+          DOCKER_IMAGE_TAG: palettee-server:latest
         run: |
           echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
           docker rmi -f $DOCKER_HUB_USERNAME/palettee-server:latest || true
