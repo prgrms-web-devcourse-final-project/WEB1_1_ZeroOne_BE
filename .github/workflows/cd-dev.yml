@@ -72,7 +72,7 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          DOCKER_IMAGE_TAG: palettee-server:latest
+          DOCKER_IMAGE_TAG: palettee-server:recent
         run: |
           echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
           docker build -t $DOCKER_IMAGE_TAG .
@@ -126,4 +126,3 @@ jobs:
       - name: ✨ 배포 스크립트 실행
         run: |
           bash /home/ubuntu/deploy.sh
-          sudo docker image prune -f 
