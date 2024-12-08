@@ -112,6 +112,7 @@ public class PortFolioService {
 
 
 
+
     private boolean cancelLike(Long portfolioId, User user) {
         List<Likes> findByLikes = likeRepository.findByList(user.getId(), portfolioId, LikeType.PORTFOLIO);
 

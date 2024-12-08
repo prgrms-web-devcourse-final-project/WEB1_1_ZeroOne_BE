@@ -22,6 +22,7 @@ public class RedisScheduled {
     @Scheduled(cron = "0 * * * * *")
     public void updateRedisToDb(){
         redisService.categoryToDb("portFolio");
+        redisService.categoryToDb("gathering");
 
         //여기에 아카이빙이나 게더링 넣으시면 됩니다
     }

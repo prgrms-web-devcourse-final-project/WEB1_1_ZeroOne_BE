@@ -41,7 +41,7 @@ public class PortFolioController
             Pageable pageable ,
             @RequestParam(required = false) Long likeId){
 
-        return portFolioService.findListPortFolio(pageable,UserUtils.getContextUser().getId(), likeId, isLikedFirst(likeId));
+        return portFolioService.findListPortFolio(pageable,UserUtils.getContextUser().getId(), likeId);
 
     }
 
