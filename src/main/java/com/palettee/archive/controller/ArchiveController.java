@@ -72,15 +72,23 @@ public class ArchiveController {
     }
 
     @GetMapping("/me")
-    public ArchiveListResponse getMyArchives() {
+    public ArchiveListResponse getMyArchives(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "id");
         User user = UserUtils.getContextUser();
-        return archiveService.getMyArchive(user);
+        return archiveService.getMyArchive(user, pageable);
     }
 
     @GetMapping("/me/like")
-    public ArchiveListResponse getMyLikeArchives() {
+    public ArchiveListResponse getMyLikeArchives(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "id");
         User user = UserUtils.getContextUser();
-        return archiveService.getLikeArchive(user);
+        return archiveService.getLikeArchive(user, pageable);
     }
 
     @PutMapping("/{archiveId}")
