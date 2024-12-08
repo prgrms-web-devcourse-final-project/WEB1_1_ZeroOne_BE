@@ -47,7 +47,7 @@ public class SecurityConfig {
 
                 // webSocket
                 .byPassable("/index.html")
-                .byPassable("/ws")
+                .byPassable("/ws/**")
 
                 // swagger
                 .byPassable("/api-test")
