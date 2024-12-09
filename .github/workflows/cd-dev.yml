@@ -110,14 +110,5 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_PEM_KEY }}
           script: |
-            cd actions-runner
-            ./run.sh
+            bash /home/ubuntu/deploy.sh
 
-  backend-docker-pull-and-run:
-    runs-on: [self-hosted, dev]
-    if: ${{ needs.backend-docker-build-and-push.result == 'success' }}
-    needs: [ backend-docker-build-and-push ]
-    steps:
-      - name: ✨ 배포 스크립트 실행
-        run: |
-          bash /home/ubuntu/deploy.sh
