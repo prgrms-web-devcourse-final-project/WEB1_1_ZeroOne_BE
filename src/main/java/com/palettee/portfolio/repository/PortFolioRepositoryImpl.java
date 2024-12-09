@@ -64,7 +64,6 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
 
         return new SliceImpl<>(result, pageable, hasNext);
     }
-
     /*
     좋아요한 포트폴리오 조회(noOffSet)
      */
@@ -104,7 +103,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                 .select(portFolio
                 )
                 .from(portFolio)
-                .leftJoin(portFolio.user, user)
+                .leftJoin(portFolio.user, user).fetchJoin()
                 .where(portFolio.portfolioId.in(targetIds))
                 .fetch()
                 .stream()

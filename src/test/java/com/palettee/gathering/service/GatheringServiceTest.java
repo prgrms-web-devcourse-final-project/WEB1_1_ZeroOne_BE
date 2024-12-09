@@ -201,7 +201,7 @@ class GatheringServiceTest {
 
         //when
 
-        GatheringDetailsResponse byDetails = gatheringService.findByDetails(gathering.gatheringId());
+        GatheringDetailsResponse byDetails = gatheringService.findByDetails(gathering.gatheringId(), savedUser.getId());
 
         //then
         Assertions.assertThat(byDetails.sort()).isEqualTo(Sort.PROJECT.getSort());

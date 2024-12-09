@@ -1,18 +1,30 @@
 package com.palettee.user.service;
 
-import com.palettee.portfolio.domain.*;
-import com.palettee.portfolio.repository.*;
-import com.palettee.user.controller.dto.request.users.*;
-import com.palettee.user.controller.dto.response.users.*;
-import com.palettee.user.domain.*;
-import com.palettee.user.exception.*;
-import com.palettee.user.repository.*;
-import java.util.*;
-import java.util.function.*;
-import lombok.*;
-import lombok.extern.slf4j.*;
-import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
+import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.portfolio.repository.PortFolioRepository;
+import com.palettee.user.controller.dto.request.users.RegisterBasicInfoRequest;
+import com.palettee.user.controller.dto.request.users.RegisterPortfolioRequest;
+import com.palettee.user.controller.dto.response.users.BasicInfoResponse;
+import com.palettee.user.controller.dto.response.users.UserResponse;
+import com.palettee.user.domain.RelatedLink;
+import com.palettee.user.domain.StoredProfileImageUrl;
+import com.palettee.user.domain.User;
+import com.palettee.user.domain.UserRole;
+import com.palettee.user.exception.InvalidDivisionException;
+import com.palettee.user.exception.InvalidJobGroupException;
+import com.palettee.user.exception.JobGroupMismatchException;
+import com.palettee.user.exception.UserNotFoundException;
+import com.palettee.user.repository.RelatedLinkRepository;
+import com.palettee.user.repository.StoredProfileImageUrlRepository;
+import com.palettee.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * 유저 기본 정보 등록과 관련된 서비스
