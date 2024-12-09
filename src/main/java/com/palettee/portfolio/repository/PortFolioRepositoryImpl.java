@@ -1,6 +1,7 @@
 package com.palettee.portfolio.repository;
 
 import com.palettee.likes.domain.LikeType;
+import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
@@ -14,8 +15,6 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -43,7 +42,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
      *
      */
     @Override
-    public Slice<PortFolioResponse> PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
+    public CustomOffSetResponse PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
 
         List<PortFolioResponse> result = queryFactory
                 .select(portFolio
@@ -62,7 +61,8 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         // 페이지 존재 여부를 나타내기 위해 하나 더 가져온걸 삭제
         boolean hasNext = hasNextPage(pageable, result);
 
-        return new SliceImpl<>(result, pageable, hasNext);
+
+        return CustomOffSetResponse.toDto(result, hasNext, pageable.getOffset(), pageable.getPageSize());
     }
     /*
     좋아요한 포트폴리오 조회(noOffSet)

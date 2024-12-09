@@ -90,15 +90,16 @@ class PortFolioServiceTest {
         System.out.println(all.size());
 
         PageRequest pageRequest = PageRequest.of(0, 10);
-        Slice<PortFolioResponse> results = portFolioService.findAllPortFolio(
+        CustomOffSetResponse results = portFolioService.findAllPortFolio(
                 pageRequest,
                 MajorJobGroup.DEVELOPER.getMajorGroup(),
                 MinorJobGroup.BACKEND.getMinorJobGroup(),
                 "popularlity"
+                ,true
         );
 
         // then
-        Assertions.assertThat(results.getSize()).isEqualTo(10);
+        Assertions.assertThat(results.pageSize()).isEqualTo(10);
         Assertions.assertThat(results.hasNext()).isEqualTo(true);
     }
 

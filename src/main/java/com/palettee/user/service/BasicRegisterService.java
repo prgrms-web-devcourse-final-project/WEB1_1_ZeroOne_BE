@@ -19,6 +19,7 @@ import com.palettee.user.repository.StoredProfileImageUrlRepository;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,6 +103,7 @@ public class BasicRegisterService {
      * 유저 포폴 정보 (링크) 등록하기
      */
     @Transactional
+    @CacheEvict(value = "portFolio_", allEntries = true)
     public UserResponse registerPortfolio(
             User user,
             RegisterPortfolioRequest registerPortfolioRequest

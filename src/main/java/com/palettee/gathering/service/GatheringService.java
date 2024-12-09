@@ -49,7 +49,7 @@ public class GatheringService {
 
 
     @Transactional
-    @CacheEvict(value = "Gathering_Cache", allEntries = true)
+    @CacheEvict(value = "Gathering_", allEntries = true)
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
 
         User findByUser = getUser(user.getId());
@@ -73,7 +73,7 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
     }
 
-    @Cacheable(value = "Gathering_Cache", condition = "#isFirstTrue")
+    @Cacheable(value = "Gathering_", key = "'cache'", condition = "#isFirstTrue")
     public CustomSliceResponse findAll(
             String sort,
             String subject,

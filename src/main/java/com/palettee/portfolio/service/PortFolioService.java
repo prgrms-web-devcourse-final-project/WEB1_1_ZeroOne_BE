@@ -5,9 +5,9 @@ import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.service.NotificationService;
+import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.exception.PortFolioNotFoundException;
@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,11 +36,15 @@ public class PortFolioService {
     private final RedisService redisService;
 
 
-    public Slice<PortFolioResponse> findAllPortFolio(
+
+    @Cacheable(value = "portFolio_", key = "'cache'", condition = "#isFirstPage")
+    public CustomOffSetResponse findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,
             String minorJobGroup,
-            String sort
+            String sort,
+            boolean isFirstPage
+
     ) {
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
     }
