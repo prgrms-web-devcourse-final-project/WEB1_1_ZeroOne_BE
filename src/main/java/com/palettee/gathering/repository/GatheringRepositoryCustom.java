@@ -1,11 +1,9 @@
 package com.palettee.gathering.repository;
 
-import com.palettee.gathering.controller.dto.Response.*;
 import com.palettee.portfolio.controller.dto.response.*;
 import com.palettee.user.controller.dto.response.users.*;
+import java.util.*;
 import org.springframework.data.domain.*;
-
-import java.util.List;
 
 public interface GatheringRepositoryCustom {
 
@@ -33,7 +31,7 @@ public interface GatheringRepositoryCustom {
      * @param size            가져올 게더링 개수
      * @param gatheringOffset 이전 조회에서 제공된 {@code nextGatheringId}
      */
-    GetUserGatheringResponse findGatheringsOnUserWithNoOffset(
+    GatheringPagingDTO findGatheringsOnUserWithNoOffset(
             Long userId, int size,
             Long gatheringOffset
     );

@@ -31,6 +31,7 @@ public class UserService {
     private final StoredProfileImageUrlRepository storedProfileImageUrlRepo;
     private final ArchiveRepository archiveRepo;
     private final GatheringRepository gatheringRepo;
+    private final GatheringTagRepository gatheringTagRepo;
     private final RefreshTokenRedisService refreshTokenRedisService;
 
     /**
@@ -195,6 +196,19 @@ public class UserService {
     }
 
     /**
+     * 유저가 작성한 아카이브들의 색상 통계를 보여주는 메서드
+     *
+     * @param userId 아카이브 색상 통계 조회할 유저 id
+     */
+    public GetArchiveColorStatisticsResponse getArchiveColorStatistics(
+            Long userId
+    ) {
+        return GetArchiveColorStatisticsResponse.of(
+                archiveRepo.findAllByUserId(userId)
+        );
+    }
+
+    /**
      * 유저가 작성한 아카이브 목록 보여주는 메서드
      *
      * @param userId        아카이브 조회할 유저 id
@@ -219,9 +233,11 @@ public class UserService {
     public GetUserGatheringResponse getUserGatherings(
             Long userId, int size, Long prevGatheringId
     ) {
-        return gatheringRepo.findGatheringsOnUserWithNoOffset(
+        GatheringPagingDTO pagingDTO = gatheringRepo.findGatheringsOnUserWithNoOffset(
                 userId, size, prevGatheringId
         );
+
+        return GetUserGatheringResponse.of(pagingDTO, gatheringTagRepo);
     }
 
 
