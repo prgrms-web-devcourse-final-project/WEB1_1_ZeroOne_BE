@@ -83,7 +83,7 @@ class UserServiceTest {
         return new Gathering(
                 Sort.ETC, Subject.ETC, "period? 이게 뭐지?", Contact.OFFLINE,
                 LocalDate.MAX, 3, "test", "title",
-                "content", user,null, null, null
+                "content", user, null, null, null
         );
     }
 
@@ -272,6 +272,22 @@ class UserServiceTest {
 
         // 예외 검증
         this.checkException(testUser.getId(), req);
+    }
+
+    @Test
+    @DisplayName("유저가 작성한 아카이브들의 색상 통계를 조회")
+    void getArchiveColorStatistics() {
+
+        var result = userService.getArchiveColorStatistics(
+                testUser.getId());
+
+        assertThat(result).isNotNull().satisfies(
+                r -> assertThat(r.RED()).isEqualTo(RED_ARCHIVE_SIZE),
+                r -> assertThat(r.BLUE()).isEqualTo(BLUE_ARCHIVE_SIZE),
+                r -> assertThat(r.YELLOW()).isEqualTo(0),
+                r -> assertThat(r.GREEN()).isEqualTo(0),
+                r -> assertThat(r.PURPLE()).isEqualTo(0)
+        );
     }
 
     @Test
@@ -503,29 +519,32 @@ class UserServiceTest {
 
 
     private void checkEquality(SimpleArchiveInfo result, Archive origin, String thumbnailUrl) {
+        ArchiveType originType = origin.getType();
+
         assertThat(result).isNotNull().satisfies(
                 r -> assertThat(r.archiveId()).isNotNull().isEqualTo(origin.getId()),
                 r -> assertThat(r.title()).isNotNull().isEqualTo(origin.getTitle()),
-                r -> assertThat(r.color()).isNotNull().isEqualTo(origin.getType())
+                r -> assertThat(r.type()).isNotNull().isEqualTo(
+                        originType.equals(ArchiveType.NO_COLOR) ? "DEFAULT" : originType.toString()
+                ),
+                r -> assertThat(r.description()).isNotNull().isEqualTo(origin.getDescription()),
+                r -> assertThat(r.introduction()).isNotNull().isEqualTo(origin.getIntroduction()),
+                r -> assertThat(r.canComment()).isEqualTo(origin.isCanComment()),
+                r -> assertThat(r.createDate()).isNotNull()
+                        .isEqualTo(origin.getCreateAt().toString())
         );
 
-        assertThat(result.thumbnailImageUrl()).isEqualTo(thumbnailUrl);
+        assertThat(result.imageUrl()).isEqualTo(thumbnailUrl);
     }
 
     private void checkEquality(SimpleGatheringInfo result, Gathering origin) {
         assertThat(result).isNotNull().satisfies(
                 r -> assertThat(r.gatheringId()).isEqualTo(origin.getId()),
-                r -> assertThat(r.title()).isEqualTo(origin.getTitle())
+                r -> assertThat(r.title()).isEqualTo(origin.getTitle()),
+                r -> assertThat(r.sort()).isEqualTo(origin.getSort().toString()),
+                r -> assertThat(r.person()).isEqualTo(origin.getPersonnel()),
+                r -> assertThat(r.deadLine()).isEqualTo(origin.getDeadLine().toString())
         );
-
-        String thumbnail = result.thumbnailImageUrl();
-        String expectedThumbnail = origin.getGatheringImages()
-                .stream()
-                .map(GatheringImage::getImageUrl)
-                .findFirst()
-                .orElse(null);
-
-        assertThat(thumbnail).isEqualTo(expectedThumbnail);
     }
 
     private void checkException(Long userId) {

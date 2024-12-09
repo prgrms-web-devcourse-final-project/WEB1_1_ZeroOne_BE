@@ -1,12 +1,11 @@
 package com.palettee.archive.repository;
 
-import com.palettee.archive.controller.dto.response.ColorCount;
+import com.palettee.archive.controller.dto.response.*;
 import com.palettee.archive.domain.*;
-import java.util.List;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
+import java.util.*;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.*;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.repository.query.*;
 
 public interface ArchiveRepository extends JpaRepository<Archive, Long>, ArchiveCustomRepository {
 
@@ -28,4 +27,6 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long>, Archive
     @Query("SELECT a.type AS type, COUNT(a) AS count FROM Archive a where a.id in :ids GROUP BY a.type")
     List<ColorCount> countLikeArchiveByArchiveType(@Param("ids") List<Long> ids);
 
+    @Query("SELECT a FROM Archive a where a.user.id = :userId")
+    List<Archive> findAllByUserId(Long userId);
 }
