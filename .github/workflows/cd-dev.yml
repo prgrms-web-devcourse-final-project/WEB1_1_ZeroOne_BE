@@ -72,7 +72,7 @@ jobs:
         env:
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
-          DOCKER_IMAGE_TAG: palettee-server:recent
+          DOCKER_IMAGE_TAG: palettee-server:${{ steps.short_sha.outputs.sha_short }}
         run: |
           echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin
           docker build -t $DOCKER_IMAGE_TAG .
@@ -110,5 +110,19 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_PEM_KEY }}
           script: |
-            bash /home/ubuntu/deploy.sh
-
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
+            docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }} palettee-server
+            docker rm -f palettee-server || true
+            docker run -d --name palettee-server \
+            -e TZ=Asia/Seoul -e SPRING_PROFILES_ACTIVE=ec2-dev \
+            -v ~/palettee-service-logs:/home/palettee-service-logs \
+            -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/palettee-server:${{ steps.short_sha.outputs.sha_short }}
+#
+#  backend-docker-pull-and-run:
+#    runs-on: [self-hosted, dev]
+#    if: ${{ needs.backend-docker-build-and-push.result == 'success' }}
+#    needs: [ backend-docker-build-and-push ]
+#    steps:
+#      - name: ✨ 배포 스크립트 실행
+#        run: |
+#          bash /home/ubuntu/deploy.sh
