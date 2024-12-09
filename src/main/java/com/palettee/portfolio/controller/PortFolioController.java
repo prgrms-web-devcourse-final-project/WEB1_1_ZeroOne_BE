@@ -5,6 +5,8 @@ import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.service.PortFolioService;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +29,7 @@ public class PortFolioController
             @RequestParam(required = false) String majorJobGroup,
             @RequestParam(required = false) String minorJobGroup
             ){
-        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, isFirst(pageable));
+        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, isFirst(pageable,majorJobGroup,minorJobGroup));
     }
 
     @GetMapping("/{portFolioId}")
@@ -58,8 +60,8 @@ public class PortFolioController
     }
 
 
-    private static boolean isFirst(Pageable pageable) {
-        if(pageable.getOffset() == 0){
+    private static boolean isFirst(Pageable pageable, String majorJobGroup, String minorJobGroup) {
+        if(pageable.getOffset() == 0 && majorJobGroup == null && minorJobGroup == null){
             return true;
         }
         return false;

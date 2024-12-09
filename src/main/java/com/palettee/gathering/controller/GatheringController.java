@@ -26,10 +26,7 @@ public class GatheringController {
 
     @PostMapping()
     public GatheringCommonResponse create(@RequestBody @Valid GatheringCommonRequest request) {
-
-        GatheringCommonResponse gathering = gatheringService.createGathering(request, UserUtils.getContextUser());
-
-        return gathering;
+        return gatheringService.createGathering(request, UserUtils.getContextUser());
     }
 
     @GetMapping()
