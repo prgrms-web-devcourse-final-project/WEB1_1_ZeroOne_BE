@@ -10,6 +10,7 @@ import com.palettee.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,15 @@ public class GatheringController {
             Pageable pageable
     ) {
         log.info("positions.size = {}", positions.size());
-        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable);
+
+        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable, isFirstTrue(gatheringId));
+    }
+
+    private static boolean isFirstTrue(Long gatheringId) {
+        if(gatheringId != null){
+            return false;
+        }
+        return true;
     }
 
     @GetMapping("/{gatheringId}")

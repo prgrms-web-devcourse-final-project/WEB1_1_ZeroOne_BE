@@ -23,6 +23,7 @@ import com.palettee.user.exception.UserNotFoundException;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +71,7 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
     }
 
+    @Cacheable(value = "Gathering_Cache", condition = "#isFirstTrue")
     public CustomSliceResponse findAll(
             String sort,
             String subject,
@@ -79,7 +81,8 @@ public class GatheringService {
             String status,
             int personnel,
             Long gatheringId,
-            Pageable pageable
+            Pageable pageable,
+            boolean isFirstTrue
     ) {
         return gatheringRepository.pageGathering(
                 sort,
