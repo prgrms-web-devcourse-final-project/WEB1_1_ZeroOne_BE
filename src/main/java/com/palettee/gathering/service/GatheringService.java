@@ -23,6 +23,7 @@ import com.palettee.user.exception.UserNotFoundException;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,7 @@ public class GatheringService {
 
 
     @Transactional
+    @CacheEvict(value = "Gathering_Cache", allEntries = true)
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
 
         User findByUser = getUser(user.getId());
