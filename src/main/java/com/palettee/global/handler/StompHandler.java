@@ -3,14 +3,20 @@ package com.palettee.global.handler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palettee.chat.controller.dto.request.ChatRequest;
-import com.palettee.global.handler.exception.ChatContentNullException;
-import com.palettee.global.handler.exception.JSONMappingException;
-import com.palettee.global.handler.exception.WrongSubPathException;
+import com.palettee.chat.exception.ChatUserNotFoundException;
+import com.palettee.chat.repository.ChatRepository;
+import com.palettee.chat.service.ChatUserService;
+import com.palettee.chat_room.domain.ChatRoom;
+import com.palettee.chat_room.service.ChatRoomService;
+import com.palettee.global.handler.exception.*;
 import com.palettee.global.security.jwt.exceptions.ExpiredTokenException;
 import com.palettee.global.security.jwt.exceptions.InvalidTokenException;
 import com.palettee.global.security.jwt.exceptions.RoleMismatchException;
 import com.palettee.global.security.jwt.utils.JwtUtils;
+import com.palettee.user.domain.User;
 import com.palettee.user.domain.UserRole;
+import com.palettee.user.exception.UserNotFoundException;
+import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
@@ -25,15 +31,19 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class StompHandler implements ChannelInterceptor {
 
-    private static final String TOPIC_CHAT_ENDPOINT = "/sub/chat";
+    private static final String TOPIC_CHAT_ENDPOINT = "/sub/chat/";
     private final JwtUtils jwtUtils;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
+    private final ChatRoomService chatRoomService;
+    private final ChatUserService chatUserService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         // STOMP 프로토콜 메시지의 헤더와 관련된 정보를 쉽게 다룰 수 있도록 도와주는 유틸리티 객체 (헤더: 명령(COMMAND), 구독 정보, 세션 정보 등)
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         String token = accessor.getFirstNativeHeader("Authorization");
+        String destination = accessor.getDestination();
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             validateAuthorization(token);
@@ -43,9 +53,8 @@ public class StompHandler implements ChannelInterceptor {
         }
 
         else if(StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            String destination = accessor.getDestination();
             validateDestination(destination);
-            log.info("destination = {}", destination);
+            validateParticipation(accessor, destination);
         }
 
         else if(StompCommand.SEND.equals(accessor.getCommand())) {
@@ -87,7 +96,6 @@ public class StompHandler implements ChannelInterceptor {
 
     private void validateUserRole(String token) {
         UserRole userRole = jwtUtils.getUserRoleFromAccessToken(token);
-        log.info("userRole = {}", userRole);
 
         if (userRole.equals(UserRole.JUST_NEWBIE) || userRole.equals(UserRole.REAL_NEWBIE)) {
             log.error("Role is mismatch");
@@ -116,5 +124,36 @@ public class StompHandler implements ChannelInterceptor {
             log.error("채팅 내용 null 오류");
             throw ChatContentNullException.EXCEPTION;
         }
+
+        if(chatRequest.content() != null) {
+            if(chatRequest.content().length() > 500) {
+                log.error("채팅 내용 길이 Over 오류");
+                throw ChatContentOverLength.EXCEPTION;
+            }
+        }
+
+        if(chatRequest.imgUrls().size() > 3) {
+            log.error("채팅 이미지 개수 Over 오류");
+            throw ChatImageOverNumber.EXCEPTION;
+        }
+    }
+
+    private void validateParticipation(StompHeaderAccessor accessor, String destination) {
+        String email = (String) accessor.getSessionAttributes().get("email");
+        User user = getUser(email);
+
+        String chatRoomId = destination.substring(TOPIC_CHAT_ENDPOINT.length());
+        ChatRoom chatRoom = chatRoomService.getChatRoom(Long.valueOf(chatRoomId));
+
+        if(!chatUserService.isExist(chatRoom, user)) {
+            log.error("해당 채팅방에 참여자가 아닙니다.");
+            throw ChatUserNotFoundException.EXCEPTION;
+        }
+    }
+
+    private User getUser(String email) {
+        return userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
 }

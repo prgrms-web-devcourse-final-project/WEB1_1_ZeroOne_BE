@@ -1,25 +1,24 @@
 package com.palettee.gathering.repository;
 
 
-import com.palettee.gathering.controller.dto.Response.GatheringResponse;
+import static com.palettee.gathering.domain.QGathering.*;
+import static com.palettee.gathering.domain.QPosition.*;
+import static com.palettee.likes.domain.QLikes.*;
+import static com.palettee.user.domain.QUser.*;
+
+import com.palettee.gathering.controller.dto.Response.*;
+import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.*;
-import com.palettee.likes.domain.LikeType;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.user.controller.dto.response.users.GetUserGatheringResponse;
-import com.querydsl.core.Tuple;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.palettee.gathering.domain.QGathering.gathering;
-import static com.palettee.gathering.domain.QPosition.position;
-import static com.palettee.likes.domain.QLikes.likes;
-import static com.palettee.user.domain.QUser.user;
+import com.palettee.likes.domain.*;
+import com.palettee.portfolio.controller.dto.response.*;
+import com.palettee.user.controller.dto.response.users.*;
+import com.querydsl.core.*;
+import com.querydsl.core.types.dsl.*;
+import com.querydsl.jpa.impl.*;
+import java.util.*;
+import java.util.stream.*;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.*;
 
 @Repository
 public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
@@ -48,7 +47,6 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
-                .leftJoin(gathering.positions, position).fetchJoin()
                 .where(
                         sortEq(sort),
                         subjectEq(subject),
@@ -117,7 +115,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
      * {@inheritDoc}
      */
     @Override
-    public GetUserGatheringResponse findGatheringsOnUserWithNoOffset(
+    public GatheringPagingDTO findGatheringsOnUserWithNoOffset(
             Long userId, int size,
             Long gatheringOffset
     ) {
@@ -144,7 +142,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
                     .toList();
         }
 
-        return GetUserGatheringResponse.of(
+        return GatheringPagingDTO.of(
                 searchResult, hasNext, nextOffset
         );
     }

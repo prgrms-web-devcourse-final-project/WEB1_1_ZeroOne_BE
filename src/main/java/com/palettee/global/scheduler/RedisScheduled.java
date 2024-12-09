@@ -22,6 +22,7 @@ public class RedisScheduled {
     @Scheduled(cron = "0 * * * * *")
     public void updateRedisToDb(){
         redisService.categoryToDb("portFolio");
+        redisService.categoryToDb("gathering");
 
         //여기에 아카이빙이나 게더링 넣으시면 됩니다
     }
@@ -29,7 +30,7 @@ public class RedisScheduled {
     /**
      * 한식간 마다 로컬 캐시에 있는 가중치를 꺼내어 Zset에 반영
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "3 * * * * *")
     public void rankingRedis(){
 
         //랭킹 반영전에 랭킹 키 한번 비워주기
@@ -53,7 +54,7 @@ public class RedisScheduled {
     /**
      * 자정 시간 조회수 리셋 즉 하루에 한번은 카테고리를 조회 할 수 있음
      */
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "4 * * * * *", zone = "Asia/Seoul")
     public void hitsSet(){
         redisService.deleteKeyIncludePattern("View_*", "_user");
     }

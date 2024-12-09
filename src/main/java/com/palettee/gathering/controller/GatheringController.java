@@ -58,7 +58,7 @@ public class GatheringController {
 
     @GetMapping("/{gatheringId}")
     public GatheringDetailsResponse findByGatheringId(@PathVariable Long gatheringId) {
-        return gatheringService.findByDetails(gatheringId);
+        return gatheringService.findByDetails(gatheringId, UserUtils.getContextUser().getId());
     }
 
     @PutMapping("/{gatheringId}")

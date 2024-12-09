@@ -25,6 +25,9 @@ public enum ErrorCode {
 
     NOT_ARCHIVE_OWNER(400, "나의 아카이브가 아닙니다."),
 
+    CHAT_OVER_LENGTH(400, "채팅 가능 숫자를 넘었습니다."),
+    CHAT_IMAGE_NUMBER_OVER(400, "채팅 이미지 가능 숫자를 넘었습니다."),
+    DUPLICATE_PARTICIPATION(400, "중복 참여하였습니다."),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     EXPIRED_TOKEN(401, "토큰이 만료되었습니다."),

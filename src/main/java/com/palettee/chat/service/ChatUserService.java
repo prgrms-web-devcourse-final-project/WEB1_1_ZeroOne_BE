@@ -25,6 +25,10 @@ public class ChatUserService {
         chatUserRepository.delete(chatUser);
     }
 
+    public boolean isExist(ChatRoom chatRoom, User user) {
+        return chatUserRepository.existsByChatRoomAndUser(chatRoom, user);
+    }
+
     private ChatUser makeChatUser(ChatRoom chatRoom, User user) {
         return ChatUser.builder()
                 .chatRoom(chatRoom)

@@ -295,6 +295,26 @@ public class RedisService {
         return isUserLiked && (likeCount != null && likeCount > 0);
     }
 
+    public boolean redisInLikeUser(String category, Long targetId, Long userId) {
+        String baseKey = LIKE_PREFIX + category + ": " + targetId;
+        String userKey = baseKey + "_user";
+
+        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(userKey, userId));
+    }
+
+
+    public Long likeCountInRedis(String category, Long targetId){
+        String key = LIKE_PREFIX + category + ": " + targetId;
+
+        Long likeCount = redisTemplate.opsForValue().get(key);
+
+        if(likeCount != null && likeCount > 0){
+            log.info("likeCount = {}", likeCount);
+            return likeCount;
+        }
+        return null;
+    }
+
 
     /**
      *

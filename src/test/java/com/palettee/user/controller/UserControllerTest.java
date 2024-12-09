@@ -62,6 +62,8 @@ class UserControllerTest {
     ArchiveRepository archiveRepo;
     @Autowired
     GatheringRepository gatheringRepo;
+    @Autowired
+    RefreshTokenRedisService refreshTokenRedisService;
 
     @Autowired
     ObjectMapper mapper;
@@ -84,9 +86,6 @@ class UserControllerTest {
         case "POST" -> post(url);
         default -> throw new IllegalStateException("Unexpected value: " + method.name());
     };
-    @Autowired
-    private RefreshTokenRedisService refreshTokenRedisService;
-
 
     private List<Archive> genArchiveList(int size, ArchiveType color, User user) {
         return IntStream.range(0, size).boxed()
@@ -317,6 +316,27 @@ class UserControllerTest {
 
         this.checkValidationException(BASE_URL + "/edit", tooManyUrl);
 
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("유저가 작성한 아카이브들의 색상 통계를 조회")
+    void getArchiveColorStatistics() throws Exception {
+        mvc.perform(get(BASE_URL + "/archive-colors"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.BLUE", is(TEST_SIZE)))
+                .andExpect(jsonPath("$.data.RED", is(0)))
+                .andExpect(jsonPath("$.data.YELLOW", is(0)))
+                .andExpect(jsonPath("$.data.GREEN", is(0)))
+                .andExpect(jsonPath("$.data.PURPLE", is(0)));
+
+        mvc.perform(get("/user/" + Long.MAX_VALUE + "/archive-colors"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.BLUE", is(0)))
+                .andExpect(jsonPath("$.data.RED", is(0)))
+                .andExpect(jsonPath("$.data.YELLOW", is(0)))
+                .andExpect(jsonPath("$.data.GREEN", is(0)))
+                .andExpect(jsonPath("$.data.PURPLE", is(0)));
     }
 
     @Test

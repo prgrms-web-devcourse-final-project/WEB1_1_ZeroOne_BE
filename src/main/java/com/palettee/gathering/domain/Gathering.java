@@ -174,8 +174,5 @@ public class Gathering extends BaseEntity {
        this.status = Status.COMPLETE;
     }
 
-    public void expiredStatus(){
-        this.status = Status.EXPIRED;
-    }
 
 }

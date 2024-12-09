@@ -74,6 +74,17 @@ public class UserController {
         return userService.editUserInfo(editUserInfoRequest, id, getUserFromContext());
     }
 
+    /**
+     * 유저가 작성한 아카이브들의 색상 통계를 조회
+     *
+     * @param id 아카이브 색상 통계 조회할 유저 id
+     */
+    @GetMapping("/{userId}/archive-colors")
+    public GetArchiveColorStatisticsResponse getArchiveColorStatistics(
+            @PathVariable("userId") Long id
+    ) {
+        return userService.getArchiveColorStatistics(id);
+    }
 
     /**
      * 특정 유저의 {@code Archive} 를 조회
@@ -96,9 +107,9 @@ public class UserController {
      *
      * @param id 조회하고자 하는 사용자의 id
      */
-    @GetMapping("/{id}/gatherings")
+    @GetMapping("/{userId}/gatherings")
     public GetUserGatheringResponse getUserGatherings(
-            @PathVariable("id") Long id,
+            @PathVariable("userId") Long id,
             @Min(1) @RequestParam("size") int size,
             @RequestParam(value = "nextGatheringId", required = false) Long nextGatheringId
     ) {

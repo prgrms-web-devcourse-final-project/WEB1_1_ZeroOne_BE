@@ -6,6 +6,7 @@ import com.palettee.chat_room.controller.dto.response.ChatRoomResponse;
 import com.palettee.chat_room.domain.ChatCategory;
 import com.palettee.chat_room.domain.ChatRoom;
 import com.palettee.chat_room.exception.ChatRoomNotFoundException;
+import com.palettee.chat_room.exception.DuplicateParticipationException;
 import com.palettee.chat_room.repository.ChatRoomRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.domain.AlertType;
@@ -27,10 +28,16 @@ public class ChatRoomService {
     private final NotificationService notificationService;
 
     @Transactional
-    public ChatRoomResponse saveChatRoom(ChatRoomCreateRequest chatRoomCreateRequest) {
+    public ChatRoomResponse saveChatRoom(ChatRoomCreateRequest chatRoomCreateRequest,
+                                         User user) {
         ChatRoom chatRoom = chatRoomCreateRequest.toEntityChatRoom();
         ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+
+        User findUser = getUser(user.getId());
+        chatUserService.saveChatUser(savedChatRoom, findUser);
+
         sendNotification(chatRoomCreateRequest, savedChatRoom);
+
         return ChatRoomResponse.of(savedChatRoom);
     }
 
@@ -54,17 +61,23 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public void participation(Long chatRoomId, Long userId) {
+    public void participation(Long chatRoomId, User user) {
         ChatRoom chatRoom = getChatRoom(chatRoomId);
-        User user =  getUser(userId);
-        chatUserService.saveChatUser(chatRoom, user);
+        User findUser = getUser(user.getId());
+
+        validDuplicateParticipation(chatRoom, findUser);
+
+        chatUserService.saveChatUser(chatRoom, findUser);
     }
 
     @Transactional
-    public void leave(Long chatRoomId, Long userId) {
+    public void leave(Long chatRoomId, User user) {
         ChatRoom chatRoom = getChatRoom(chatRoomId);
-        User user = getUser(userId);
-        chatUserService.deleteChatUser(chatRoom, user);
+        User findUser = getUser(user.getId());
+
+        if(chatUserService.isExist(chatRoom, user)) {
+            chatUserService.deleteChatUser(chatRoom, findUser);
+        }
     }
 
     public ChatRoom getChatRoom(Long chatRoomId) {
@@ -73,10 +86,13 @@ public class ChatRoomService {
                 .orElseThrow(() -> ChatRoomNotFoundException.EXCEPTION);
     }
 
-    /**
-     * 추후에 토큰에서 user 정보 꺼낼 예정
-     */
     private User getUser(Long userId) {
         return userRepository.findById(userId).get();
+    }
+
+    private void validDuplicateParticipation(ChatRoom chatRoom, User user) {
+        if(chatUserService.isExist(chatRoom, user)) {
+            throw DuplicateParticipationException.EXCEPTION;
+        }
     }
 }

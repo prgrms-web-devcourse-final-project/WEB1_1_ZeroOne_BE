@@ -47,7 +47,7 @@ public class SecurityConfig {
 
                 // webSocket
                 .byPassable("/index.html")
-                .byPassable("/ws")
+                .byPassable("/ws/**")
 
                 // swagger
                 .byPassable("/api-test")
@@ -68,7 +68,8 @@ public class SecurityConfig {
 
                 // 유저의 프로필, 아카이브, 게더링 조회
                 .conditionalByPassable("/user/{id}/profile", HttpMethod.GET)
-                .byPassable(HttpMethod.GET, "/user/{id}/archives", "/user/{id}/gatherings")
+                .byPassable(HttpMethod.GET,
+                        "/user/{id}/archive-colors", "/user/{id}/archives", "/user/{id}/gatherings")
 
                 // 유저 제보 목록, 상세 내용, 댓글 조회
                 .byPassable(HttpMethod.GET, "/report", "/report/{reportId}",
