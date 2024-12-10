@@ -73,7 +73,7 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
     }
 
-    @Cacheable(value = "Gathering_", key = "'cache'", condition = "#isFirstTrue")
+//    @Cacheable(value = "Gathering_", key = "'cache'", condition = "#isFirstTrue")
     public CustomSliceResponse findAll(
             String sort,
             String subject,
