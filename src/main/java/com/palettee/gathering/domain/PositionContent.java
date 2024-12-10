@@ -9,6 +9,7 @@ public enum PositionContent {
 
     DEVELOP("개발자"),
     DESIGNER("디자이너"),
+    MARKETER("마케터"),
     PLANNER("기획자");
 
     private final String position;
