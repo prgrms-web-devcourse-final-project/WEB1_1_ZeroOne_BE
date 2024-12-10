@@ -47,6 +47,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
+                .join(gathering.positions, position).fetchJoin()
                 .where(
                         sortEq(sort),
                         subjectEq(subject),
