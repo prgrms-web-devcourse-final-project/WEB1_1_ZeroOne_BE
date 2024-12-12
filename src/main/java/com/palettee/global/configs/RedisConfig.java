@@ -7,10 +7,8 @@ import com.palettee.chat.controller.dto.response.ChatResponse;
 import com.palettee.global.redis.sub.RedisSubscriber;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -123,7 +121,6 @@ public class RedisConfig {
                 .cacheDefaults(redisCacheConfiguration)
                 .build();
     }
-
 
     @Bean(name = "redisObjectMapper") // LocalDateTime 직렬화 할 때 오류 발생 -> jsr310 Module 추가
     public ObjectMapper redisObjectMapper() {

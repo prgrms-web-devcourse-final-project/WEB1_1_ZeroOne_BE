@@ -36,8 +36,7 @@ public class PortFolioService {
     private final RedisService redisService;
 
 
-
-    @Cacheable(value = "portFolio_", key = "'cache'", condition = "#isFirstPage")
+    @Cacheable(value = "pagePortFolio_", key = "'cache'", condition = "#isFirstPage")
     public CustomOffSetResponse findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,

@@ -103,7 +103,7 @@ public class BasicRegisterService {
      * 유저 포폴 정보 (링크) 등록하기
      */
     @Transactional
-    @CacheEvict(value = "portFolio_", allEntries = true)
+    @CacheEvict(value = "pagePortFolio_", allEntries = true)
     public UserResponse registerPortfolio(
             User user,
             RegisterPortfolioRequest registerPortfolioRequest
@@ -115,7 +115,7 @@ public class BasicRegisterService {
         user = this.getUserByIdFetchWithPortfolio(user.getId());
 
         // 이전 포폴 정보 삭제
-        portFolioRepo.deleteAllByUserId(user.getId());
+//         portFolioRepo.deleteAllByUserId(user.getId());
 
         log.debug("Deleted user {}'s all portfolio links", user.getId());
 
