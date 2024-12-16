@@ -1,6 +1,7 @@
 package com.palettee.likes.domain;
 
 
+import com.palettee.global.entity.BaseEntity;
 import com.palettee.user.domain.*;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,9 +10,9 @@ import lombok.*;
 
 @Entity
 @Getter
-@Table(name = "likes")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Likes {
+
+public class Likes extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

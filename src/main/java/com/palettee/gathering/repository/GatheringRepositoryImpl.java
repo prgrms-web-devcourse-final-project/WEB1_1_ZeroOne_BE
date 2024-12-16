@@ -47,7 +47,6 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
-                .join(gathering.positions, position).fetchJoin()
                 .where(
                         sortEq(sort),
                         subjectEq(subject),
@@ -58,7 +57,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
                         positionIn(positions),
                         pageIdLoe(gatheringId)
                         )
-                .orderBy(gathering.id.desc())
+                .orderBy(gathering.createAt.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 

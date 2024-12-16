@@ -82,10 +82,10 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                 .where(
                         likes.user.id.eq(userId)
                                 .and(likes.likeType.eq(LikeType.PORTFOLIO))
-                                .and(likeIdLoe(likeId))
+                                .and(likeIdLoe(likeId)) 
                 )
                 .leftJoin(likes.user, user)
-                .orderBy(likes.likeId.desc())
+                .orderBy(likes.createAt.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
