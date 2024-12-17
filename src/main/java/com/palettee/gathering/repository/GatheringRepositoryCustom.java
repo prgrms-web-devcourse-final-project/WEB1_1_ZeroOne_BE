@@ -1,6 +1,6 @@
 package com.palettee.gathering.repository;
 
-import com.palettee.portfolio.controller.dto.response.*;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
 import com.palettee.user.controller.dto.response.users.*;
 import java.util.*;
 import org.springframework.data.domain.*;

@@ -2,7 +2,8 @@ package com.palettee.portfolio.repository;
 
 import com.palettee.likes.domain.LikeType;
 import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.user.domain.MajorJobGroup;
@@ -69,7 +70,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
      */
 
     @Override
-    public CustomSliceResponse PageFindLikePortfolio(Pageable pageable, Long userId, Long likeId) {
+    public CustomPortFolioResponse PageFindLikePortfolio(Pageable pageable, Long userId, Long likeId) {
 
         /*
         NoOffset으로 먼저 targetId 들 조회 -> 유저가 좋아요한 포트폴리오 아이디들 조회
@@ -112,7 +113,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.portFolioId())));
 
 
-        return new CustomSliceResponse(list, hasNext, nextId);
+        return new CustomPortFolioResponse(list, hasNext, nextId);
     }
 
     private BooleanExpression majorJobGroupEquals(String majorJobGroup) {

@@ -2,6 +2,7 @@ package com.palettee.portfolio.service;
 
 import static com.palettee.global.Const.*;
 
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
 import com.palettee.global.cache.*;
 import com.palettee.global.redis.service.*;
 import com.palettee.likes.domain.*;
@@ -124,7 +125,7 @@ class PortFolioServiceTest {
 
         // when
         PageRequest pageRequest = PageRequest.of(0, 10);
-        CustomSliceResponse customSliceResponse = portFolioService.findListPortFolio(pageRequest, user.getId(), null);
+        CustomPortFolioResponse customSliceResponse = portFolioService.findListPortFolio(pageRequest, user.getId(), null);
 
         // then
         Assertions.assertThat(customSliceResponse.content().size()).isEqualTo(10);

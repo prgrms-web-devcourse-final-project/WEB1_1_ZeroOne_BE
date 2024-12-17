@@ -2,7 +2,6 @@ package com.palettee.gathering.repository;
 
 
 import static com.palettee.gathering.domain.QGathering.*;
-import static com.palettee.gathering.domain.QPosition.*;
 import static com.palettee.likes.domain.QLikes.*;
 import static com.palettee.user.domain.QUser.*;
 
@@ -10,7 +9,6 @@ import com.palettee.gathering.controller.dto.Response.*;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.*;
-import com.palettee.portfolio.controller.dto.response.*;
 import com.palettee.user.controller.dto.response.users.*;
 import com.querydsl.core.*;
 import com.querydsl.core.types.dsl.*;

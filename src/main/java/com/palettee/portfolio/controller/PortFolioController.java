@@ -2,7 +2,8 @@ package com.palettee.portfolio.controller;
 
 import com.palettee.global.security.validation.UserUtils;
 import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.service.PortFolioService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class PortFolioController
     }
 
     @GetMapping("/my-page")
-    public CustomSliceResponse findLike(
+    public CustomPortFolioResponse findLike(
             Pageable pageable ,
             @RequestParam(required = false) Long likeId){
 

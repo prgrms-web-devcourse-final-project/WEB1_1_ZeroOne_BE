@@ -5,7 +5,7 @@ import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
 import com.palettee.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -6,7 +6,8 @@ import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.domain.PortFolio;
@@ -65,7 +66,7 @@ public class PortFolioService {
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
-    public CustomSliceResponse findListPortFolio(
+    public CustomPortFolioResponse findListPortFolio(
             Pageable pageable,
             Long userId,
             Long likeId
