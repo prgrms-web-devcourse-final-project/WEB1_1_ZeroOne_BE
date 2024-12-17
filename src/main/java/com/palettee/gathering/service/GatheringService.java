@@ -2,21 +2,23 @@ package com.palettee.gathering.service;
 
 import com.palettee.gathering.GatheringNotFoundException;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
+import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
 import com.palettee.user.exception.UserNotFoundException;
@@ -24,12 +26,14 @@ import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +49,15 @@ public class GatheringService {
 
     private final NotificationService notificationService;
 
+    private final RedisTemplate<String, GatheringResponse> redisTemplate;
+
     private final RedisService redisService;
+
+    private final static String zSetKey = "cache:firstPage:gatherings";
+
+    private static boolean hasNext;
+
+
 
 
     @Transactional
@@ -73,7 +85,6 @@ public class GatheringService {
         return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
     }
 
-//    @Cacheable(value = "Gathering_", key = "'cache'", condition = "#isFirstTrue")
     public CustomSliceResponse findAll(
             String sort,
             String subject,
@@ -86,6 +97,40 @@ public class GatheringService {
             Pageable pageable,
             boolean isFirstTrue
     ) {
+
+        if(isFirstTrue){
+
+            redisTemplate.delete(zSetKey);
+
+            Set<GatheringResponse> range = redisTemplate.opsForZSet().reverseRange(zSetKey, 0, pageable.getPageSize());
+
+            if(range != null && !range.isEmpty()){
+                List<GatheringResponse> gatheringResponses = new ArrayList<>(range);
+
+
+                Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
+
+
+                return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
+            }
+            else {
+                CustomSliceResponse customSliceResponse = gatheringRepository.pageGathering(sort,
+                        subject,
+                        period,
+                        contact,
+                        positions,
+                        personnel,
+                        status,
+                        gatheringId,
+                        pageable);
+
+                hasNext = customSliceResponse.hasNext();
+
+                List<GatheringResponse> results = customSliceResponse.content();
+
+                results.forEach(result-> redisTemplate.opsForZSet().add(zSetKey, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime())));
+            }
+        }
         return gatheringRepository.pageGathering(
                 sort,
                 subject,

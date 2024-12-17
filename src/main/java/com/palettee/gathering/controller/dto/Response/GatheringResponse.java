@@ -1,8 +1,12 @@
 package com.palettee.gathering.controller.dto.Response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.palettee.gathering.domain.Gathering;
 
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record GatheringResponse(
@@ -14,6 +18,9 @@ public record GatheringResponse(
         String title,
         String deadLine,
         String username,
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        LocalDateTime createDateTime,
         List<String> tags,
         List<String> positions
 
@@ -37,6 +44,7 @@ public record GatheringResponse(
                 gathering.getTitle(),
                 deadLine,
                 gathering.getUser().getName(),
+                gathering.getCreateAt(),
                 gatheringTagList,
                 positions
         );
