@@ -279,10 +279,16 @@ public class GatheringService {
         Set<GatheringResponse> range = redisTemplate.opsForZSet().reverseRange(zSetKey, 0, pageable.getPageSize());
 
         if(range != null && !range.isEmpty()){
-
             log.info("캐시에 값이 잇음");
             List<GatheringResponse> gatheringResponses = new ArrayList<>(range);
 
+            if(gatheringResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
+                log.info("range.size = {}", gatheringResponses.size());
+                log.info("pageable.getPageSize = {}", pageable.getPageSize());
+                log.info("사이즈가 다름");
+                redisTemplate.delete(zSetKey);
+                return null;
+            }
 
             Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
 
