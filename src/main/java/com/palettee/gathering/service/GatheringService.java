@@ -10,6 +10,7 @@ import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
+import com.palettee.gathering.event.GatheringEventListener;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.global.redis.utils.TypeConverter;
@@ -25,7 +26,7 @@ import com.palettee.user.exception.UserNotFoundException;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -52,9 +53,11 @@ public class GatheringService {
 
     private final RedisTemplate<String, GatheringResponse> redisTemplate;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     private final RedisService redisService;
 
-    private final static String zSetKey = "cache:firstPage:gatherings";
+    public final static String zSetKey = "cache:firstPage:gatherings";
 
     private static boolean hasNext;
 
@@ -62,7 +65,6 @@ public class GatheringService {
 
 
     @Transactional
-    @CacheEvict(value = "Gathering_", allEntries = true)
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
 
         User findByUser = getUser(user.getId());
@@ -83,7 +85,11 @@ public class GatheringService {
                 .gatheringTagList(GatheringCommonRequest.getGatheringTag(request.gatheringTag()))
                 .build();
 
-        return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
+        Gathering saveGathering = gatheringRepository.save(gathering);
+
+        eventPublisher.publishEvent(new GatheringEventListener(saveGathering.getId()));
+
+        return GatheringCommonResponse.toDTO(saveGathering);
     }
 
     public CustomSliceResponse findAll(
@@ -109,6 +115,7 @@ public class GatheringService {
             // 캐시가 비어 있는 경우 DB에서 데이터를 가져오고 캐시에 저장
             CustomSliceResponse customSliceResponse = gatheringRepository.pageGathering(
                     sort, subject, period, contact, positions, personnel, status, gatheringId, pageable);
+            hasNext = customSliceResponse.hasNext();
 
             List<GatheringResponse> results = customSliceResponse.content();
 
