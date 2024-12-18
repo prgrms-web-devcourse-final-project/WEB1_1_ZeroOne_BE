@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -98,50 +99,32 @@ public class GatheringService {
             boolean isFirstTrue
     ) {
 
-        if(isFirstTrue){
+        if(isFirstTrue){ // 첫 페이지 인지
+            CustomSliceResponse cachedFirstPage = getCachedFirstPage(pageable);
 
-            redisTemplate.delete(zSetKey);
-
-            Set<GatheringResponse> range = redisTemplate.opsForZSet().reverseRange(zSetKey, 0, pageable.getPageSize());
-
-            if(range != null && !range.isEmpty()){
-                List<GatheringResponse> gatheringResponses = new ArrayList<>(range);
-
-
-                Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
-
-
-                return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
+            if(cachedFirstPage != null){
+                return cachedFirstPage;
             }
-            else {
-                CustomSliceResponse customSliceResponse = gatheringRepository.pageGathering(sort,
-                        subject,
-                        period,
-                        contact,
-                        positions,
-                        personnel,
-                        status,
-                        gatheringId,
-                        pageable);
 
-                hasNext = customSliceResponse.hasNext();
+            // 캐시가 비어 있는 경우 DB에서 데이터를 가져오고 캐시에 저장
+            CustomSliceResponse customSliceResponse = gatheringRepository.pageGathering(
+                    sort, subject, period, contact, positions, personnel, status, gatheringId, pageable);
 
-                List<GatheringResponse> results = customSliceResponse.content();
+            List<GatheringResponse> results = customSliceResponse.content();
 
-                results.forEach(result-> redisTemplate.opsForZSet().add(zSetKey, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime())));
-            }
+            // 캐시에 저장
+            results.forEach(result ->
+                    redisTemplate.opsForZSet().add(zSetKey, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime()))
+            );
+
+            redisTemplate.expire(zSetKey, 6, TimeUnit.HOURS); // 6시간으로 고정
+
+            return customSliceResponse;
         }
+
+        // 첫 페이지가 아니면 DB에서 바로 가져옴
         return gatheringRepository.pageGathering(
-                sort,
-                subject,
-                period,
-                contact,
-                positions,
-                personnel,
-                status,
-                gatheringId,
-                pageable
-        );
+                sort, subject, period, contact, positions, personnel, status, gatheringId, pageable);
     }
 
     public GatheringDetailsResponse findByDetails(Long gatheringId, Long userId) {
@@ -282,6 +265,24 @@ public class GatheringService {
         if (!gathering.getGatheringImages().isEmpty()) {
             gathering.getGatheringImages().forEach(gatheringImage -> imageService.delete(gatheringImage.getImageUrl()));
         }
+    }
+
+    // 첫 페이지 이면서 캐시에 데이터가 있는지 검증
+    private CustomSliceResponse getCachedFirstPage(Pageable pageable){
+        Set<GatheringResponse> range = redisTemplate.opsForZSet().reverseRange(zSetKey, 0, pageable.getPageSize());
+
+        if(range != null && !range.isEmpty()){
+
+            log.info("캐시에 값이 잇음");
+            List<GatheringResponse> gatheringResponses = new ArrayList<>(range);
+
+
+            Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
+
+
+            return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
+        }
+        return null;
     }
 
 
