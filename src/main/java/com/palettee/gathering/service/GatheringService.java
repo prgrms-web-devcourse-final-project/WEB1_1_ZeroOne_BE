@@ -10,7 +10,8 @@ import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
-import com.palettee.gathering.event.GatheringEventListener;
+import com.palettee.gathering.event.GatheringAddEventListener;
+import com.palettee.gathering.event.GatheringPutEventListener;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.global.redis.utils.TypeConverter;
@@ -87,7 +88,7 @@ public class GatheringService {
 
         Gathering saveGathering = gatheringRepository.save(gathering);
 
-        eventPublisher.publishEvent(new GatheringEventListener(saveGathering.getId()));
+        eventPublisher.publishEvent(new GatheringAddEventListener(saveGathering.getId()));
 
         return GatheringCommonResponse.toDTO(saveGathering);
     }
@@ -166,6 +167,8 @@ public class GatheringService {
         gathering.updateGathering(request);
 
         if(request.gatheringImages()!= null) deleteImages(gathering);  // 업데이트시 이미지가 들어왓을시 본래 s3 이미지삭제
+
+        eventPublisher.publishEvent(new GatheringPutEventListener(gathering.getId()));
 
         return GatheringCommonResponse.toDTO(gathering);
     }

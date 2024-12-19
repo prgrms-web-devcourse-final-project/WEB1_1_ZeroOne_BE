@@ -1,6 +1,6 @@
 package com.palettee.gathering.event;
 
-public record GatheringEventListener(
+public record GatheringAddEventListener(
         Long gatheringId
 ) {
 
