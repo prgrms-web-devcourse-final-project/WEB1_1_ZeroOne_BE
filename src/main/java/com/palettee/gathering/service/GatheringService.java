@@ -11,6 +11,7 @@ import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
 import com.palettee.gathering.event.GatheringAddEventListener;
+import com.palettee.gathering.event.GatheringDeleteEventListener;
 import com.palettee.gathering.event.GatheringPutEventListener;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
@@ -185,6 +186,8 @@ public class GatheringService {
         deleteImages(gathering);
 
         gatheringRepository.delete(gathering);
+
+        eventPublisher.publishEvent(new GatheringDeleteEventListener(gathering));
 
         return GatheringCommonResponse.toDTO(gathering);
     }

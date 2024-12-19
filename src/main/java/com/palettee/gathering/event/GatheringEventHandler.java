@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.util.Set;
+
 import static com.palettee.gathering.service.GatheringService.zSetKey;
 
 
@@ -45,6 +47,20 @@ public class GatheringEventHandler {
 
         redisTemplate.opsForZSet().removeRangeByScore(zSetKey, score, score);
         redisTemplate.opsForZSet().add(zSetKey, gatheringResponse, TypeConverter.LocalDateTimeToDouble(gatheringResponse.createDateTime()));
+    }
+
+    @TransactionalEventListener
+    public void deleteRedisGathering(GatheringDeleteEventListener gatheringDeleteEventListener){
+        log.info("삭제 이벤트");
+        Double score = TypeConverter.LocalDateTimeToDouble(gatheringDeleteEventListener.gathering().getCreateAt());
+        Set<GatheringResponse> gatheringResponses = redisTemplate.opsForZSet().rangeByScore(zSetKey, score, score);
+
+        log.info("gatheringResponses.size: {}", gatheringResponses.size());
+
+        if(!gatheringResponses.isEmpty() && gatheringResponses.size() != 0){
+            log.info("Redis 내부에서 삭제");
+            redisTemplate.delete(zSetKey);
+        }
     }
 
 }

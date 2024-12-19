@@ -41,8 +41,6 @@ public class GatheringController {
             @RequestParam(required = false, defaultValue = "0") int personnel,
             Pageable pageable
     ) {
-        log.info("positions.size = {}", positions.size());
-
         return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable, isFirstTrue(gatheringId));
     }
 
