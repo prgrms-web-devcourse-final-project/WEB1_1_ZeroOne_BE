@@ -175,7 +175,6 @@ public class ArchiveServiceTest {
         assertThat(allImages.get(0).url()).isEqualTo("url1");
         assertThat(allImages.get(1).url()).isEqualTo("url2");
 
-        assertThat(archiveDetail.hits()).isEqualTo(1);
         assertThat(archiveDetail.title()).isEqualTo(request.title());
         assertThat(archiveDetail.description()).isEqualTo(request.description());
         assertThat(archiveDetail.type()).isEqualTo("RED");
@@ -219,7 +218,6 @@ public class ArchiveServiceTest {
         assertThat(allImages.get(0).url()).isEqualTo("url11");
         assertThat(allImages.get(1).url()).isEqualTo("url12");
 
-        assertThat(archiveDetail.hits()).isEqualTo(1);
         assertThat(archiveDetail.title()).isEqualTo(archiveUpdateRequest.title());
         assertThat(archiveDetail.description()).isEqualTo(archiveUpdateRequest.description());
         assertThat(archiveDetail.type()).isEqualTo("YELLOW");

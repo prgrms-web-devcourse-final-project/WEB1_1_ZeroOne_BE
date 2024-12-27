@@ -137,7 +137,18 @@ public class RedisConfig {
                 .build();
     }
 
+    @Bean(name = "redisTemplateForArchive")
+    public RedisTemplate<String, Object> redisTemplateForArchive(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(connectionFactory);
 
+        // Key Serializer
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        // Value Serializer
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        return redisTemplate;
+    }
 
 
     @Bean(name = "redisObjectMapper") // LocalDateTime 직렬화 할 때 오류 발생 -> jsr310 Module 추가
