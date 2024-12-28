@@ -19,6 +19,7 @@ public class RedisCleanUp {
     public void initRedisKey(){
         log.info("Redis GatheringKey삭제");
         redisTemplate.delete(zSetKey);
+        redisTemplate.delete("pagePortFolio_::cache");
     }
 
 }

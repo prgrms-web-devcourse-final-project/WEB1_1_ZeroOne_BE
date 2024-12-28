@@ -41,14 +41,7 @@ public class GatheringController {
             @RequestParam(required = false, defaultValue = "0") int personnel,
             Pageable pageable
     ) {
-        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable, isFirstTrue(gatheringId));
-    }
-
-    private static boolean isFirstTrue(Long gatheringId) {
-        if(gatheringId != null){
-            return false;
-        }
-        return true;
+        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable, isFirstTrue(gatheringId, sort, subject, period, contact, status, positions, personnel));
     }
 
     @GetMapping("/{gatheringId}")
@@ -89,6 +82,13 @@ public class GatheringController {
         User contextUser = UserUtils.getContextUser();
 
         return gatheringService.findLikeList(pageable, contextUser.getId(), likeId);
+    }
+
+    private static boolean isFirstTrue(Long gatheringId, String sort, String subject, String period, String contact,String status ,List<String> positions, int personnel) {
+        if(gatheringId != null || sort != null || subject != null || period != null || contact != null || !status.equals("모집중") || !positions.isEmpty() || personnel > 0){
+            return false;
+        }
+        return true;
     }
 
 }

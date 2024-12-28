@@ -2,6 +2,7 @@ package com.palettee.gathering.repository;
 
 
 import static com.palettee.gathering.domain.QGathering.*;
+import static com.palettee.gathering.domain.QPosition.*;
 import static com.palettee.likes.domain.QLikes.*;
 import static com.palettee.user.domain.QUser.*;
 
@@ -45,6 +46,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
+                .leftJoin(gathering.positions, position).fetchJoin()
                 .where(
                         sortEq(sort),
                         subjectEq(subject),
