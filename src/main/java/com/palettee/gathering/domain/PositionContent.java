@@ -1,5 +1,6 @@
 package com.palettee.gathering.domain;
 
+import com.palettee.global.exception.InvalidCategoryException;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
@@ -23,6 +24,6 @@ public enum PositionContent {
         return Arrays.stream(PositionContent.values())
                 .filter(it -> it.position.equals(input))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(()-> InvalidCategoryException.EXCEPTION);
     }
 }
