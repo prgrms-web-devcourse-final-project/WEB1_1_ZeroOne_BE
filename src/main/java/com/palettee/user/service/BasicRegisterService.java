@@ -115,13 +115,13 @@ public class BasicRegisterService {
         user = this.getUserByIdFetchWithPortfolio(user.getId());
 
         // 이전 포폴 정보 삭제
-//         portFolioRepo.deleteAllByUserId(user.getId());
+         portFolioRepo.deleteAllByUserId(user.getId());
 
         log.debug("Deleted user {}'s all portfolio links", user.getId());
 
         // 포폴 정보 등록 -> validation 으로 빈 링크는 안들어옴.
         String url = registerPortfolioRequest.portfolioUrl();
-        portFolioRepo.save(new PortFolio(user, url));
+        portFolioRepo.save(new PortFolio(user, url, user.getMajorJobGroup(), user.getMinorJobGroup()));
 
         log.info("Registered user portfolio info on id: {}",
                 user.getId());

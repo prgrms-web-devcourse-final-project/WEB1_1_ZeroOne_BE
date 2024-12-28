@@ -121,7 +121,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         MajorJobGroup majorGroup = MajorJobGroup.findMajorGroup(majorJobGroup);
 
         if(majorGroup != null){
-            return user.majorJobGroup.eq(majorGroup);
+            return portFolio.majorJobGroup.eq(majorGroup);
         }
 
         return null;
@@ -132,7 +132,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         MinorJobGroup findMinorJobGroup = MinorJobGroup.findMinorJobGroup(minorJobGroup);
 
         if(findMinorJobGroup != null){
-            return user.minorJobGroup.eq(findMinorJobGroup);
+            return portFolio.minorJobGroup.eq(findMinorJobGroup);
         }
         return null;
     }

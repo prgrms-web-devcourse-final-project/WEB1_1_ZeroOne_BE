@@ -102,7 +102,7 @@ class UserServiceTest {
                         .userRole(UserRole.REAL_NEWBIE)
                         .build()
         );
-        portFolioRepo.save(new PortFolio(testUser, "portfolioLink.com"));
+        portFolioRepo.save(new PortFolio(testUser, "portfolioLink.com", testUser.getMajorJobGroup(), testUser.getMinorJobGroup()));
         relatedLinkRepo.saveAll(List.of(
                 new RelatedLink("github", testUser),
                 new RelatedLink("blog", testUser)

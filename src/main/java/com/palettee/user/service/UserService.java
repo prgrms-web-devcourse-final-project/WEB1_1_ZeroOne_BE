@@ -174,7 +174,7 @@ public class UserService {
         portFolioRepo.deleteAllByUserId(userOnTarget.getId());
         log.debug("Deleted user {}'s all portfolio links", userOnTarget.getId());
 
-        portFolioRepo.save(new PortFolio(userOnTarget, portfolioLink));
+        portFolioRepo.save(new PortFolio(userOnTarget, portfolioLink,userOnTarget.getMajorJobGroup(), userOnTarget.getMinorJobGroup()));
         log.debug("Edited user {}'s portfolio link", userOnTarget.getId());
 
         // 사용자가 S3 에 업로드한 자원들 추가

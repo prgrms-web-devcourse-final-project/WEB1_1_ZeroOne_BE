@@ -15,8 +15,6 @@ import lombok.*;
 @Table(indexes = {
         @Index(name = "idx_email", columnList = "user_email"),
         @Index(name = "idx_oauth_identity", columnList = "oauth_identity"),
-        @Index(name = "portFolioMDuplexIndex", columnList = "major_job_Group, minor_job_Group"),   //복합인덱스를 사용하여 majorJobGruop
-        @Index(name = "portFolioMinorIndex", columnList = "minor_job_Group")
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

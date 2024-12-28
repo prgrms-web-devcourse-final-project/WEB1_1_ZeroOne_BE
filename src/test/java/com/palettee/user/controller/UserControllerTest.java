@@ -126,7 +126,7 @@ class UserControllerTest {
                         .userRole(UserRole.REAL_NEWBIE)
                         .build()
         );
-        testPortFolio = portFolioRepo.save(new PortFolio(testUser, "portfolioLink.com"));
+        testPortFolio = portFolioRepo.save(new PortFolio(testUser, "portfolioLink.com", testUser.getMajorJobGroup(), testUser.getMinorJobGroup()));
         testRelatedLinks = relatedLinkRepo.saveAll(List.of(
                 new RelatedLink("github", testUser),
                 new RelatedLink("blog", testUser)
