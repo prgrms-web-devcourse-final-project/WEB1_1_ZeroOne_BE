@@ -56,7 +56,7 @@ public class ArchiveRedisRepository {
         PageRequest pageRequest = PageRequest.of(0, 5);
         List<Archive> result = archiveRepository.findTopArchives(pageRequest);
         redisTemplateForArchive.opsForSet().remove(TOP_ARCHIVE);
-        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, result, 1, TimeUnit.HOURS);
+        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, result, 1, TimeUnit.MINUTES);
     }
 
     @SuppressWarnings("unchecked")

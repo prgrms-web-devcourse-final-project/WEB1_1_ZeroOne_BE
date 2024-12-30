@@ -15,9 +15,6 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long>, Archive
     @Query("select a from Archive a where a.id in :ids order by a.archiveOrder desc")
     Slice<Archive> findAllInIds(@Param("ids") List<Long> ids, Pageable pageable);
 
-    @Query("select a from Archive a order by a.hits desc, a.id desc limit 5")
-    List<Archive> getMainArchives();
-
     @Query("SELECT a.type AS type, COUNT(a) AS count FROM Archive a GROUP BY a.type")
     List<ColorCount> countByArchiveType();
 

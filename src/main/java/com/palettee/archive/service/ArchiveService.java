@@ -131,11 +131,6 @@ public class ArchiveService {
         Long myId = getOptionalUserId(optionalUser);
         Slice<Archive> archives = archiveRepository.searchArchive(searchKeyword, ids, pageable);
 
-//        List<Long> archiveIds = archives.stream()
-//                .map(Archive::getId)
-//                .toList();
-//        List<ColorCount> colorCounts = archiveRepository.countLikeArchiveByArchiveType(archiveIds);
-
         List<ArchiveSimpleResponse> list = archives
                 .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
                 .toList();
