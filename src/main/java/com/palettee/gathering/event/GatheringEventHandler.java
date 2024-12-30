@@ -27,7 +27,7 @@ public class GatheringEventHandler {
     @TransactionalEventListener
     public void addRedisGathering(GatheringAddEventListener gatheringEventListener){
         log.info("저장 이벤트");
-        Gathering gathering = gatheringService.getGathering(gatheringEventListener.gatheringId());
+        Gathering gathering = gatheringService.getGathering(gatheringEventListener.targetId());
 
         redisTemplate.opsForZSet().removeRange(zSetKey, 0, 0); //맨 마지막 요소 빼기 즉 score가 가장 낮은애를 빼줌
 
@@ -47,20 +47,6 @@ public class GatheringEventHandler {
 
         redisTemplate.opsForZSet().removeRangeByScore(zSetKey, score, score);
         redisTemplate.opsForZSet().add(zSetKey, gatheringResponse, TypeConverter.LocalDateTimeToDouble(gatheringResponse.createDateTime()));
-    }
-
-    @TransactionalEventListener
-    public void deleteRedisGathering(GatheringDeleteEventListener gatheringDeleteEventListener){
-        log.info("삭제 이벤트");
-        Double score = TypeConverter.LocalDateTimeToDouble(gatheringDeleteEventListener.gathering().getCreateAt());
-        Set<GatheringResponse> gatheringResponses = redisTemplate.opsForZSet().rangeByScore(zSetKey, score, score);
-
-        log.info("gatheringResponses.size: {}", gatheringResponses.size());
-
-        if(!gatheringResponses.isEmpty() && gatheringResponses.size() != 0){
-            log.info("Redis 내부에서 삭제");
-            redisTemplate.delete(zSetKey);
-        }
     }
 
 }

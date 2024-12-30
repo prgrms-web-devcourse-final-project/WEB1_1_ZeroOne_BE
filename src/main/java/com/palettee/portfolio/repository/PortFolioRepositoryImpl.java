@@ -62,6 +62,8 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         // 페이지 존재 여부를 나타내기 위해 하나 더 가져온걸 삭제
         boolean hasNext = hasNextPage(pageable, result);
 
+        log.info("offset ={}", pageable.getOffset());
+
 
         return CustomOffSetResponse.toDto(result, hasNext, pageable.getOffset(), pageable.getPageSize());
     }

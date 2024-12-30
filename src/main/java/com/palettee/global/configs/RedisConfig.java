@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.palettee.chat.controller.dto.response.ChatResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.global.redis.sub.RedisSubscriber;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -114,6 +115,15 @@ public class RedisConfig {
     @Bean
     public RedisTemplate<String, GatheringResponse> RedisGatheringTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, GatheringResponse> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+
+    @Bean
+    public RedisTemplate<String, PortFolioResponse> RedisPortFolioTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, PortFolioResponse> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setConnectionFactory(connectionFactory);

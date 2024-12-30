@@ -1,15 +1,12 @@
 package com.palettee.portfolio.service;
 
 import com.palettee.global.redis.service.RedisService;
+import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.service.NotificationService;
-import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
-import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
+import com.palettee.portfolio.controller.dto.response.*;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.exception.PortFolioNotFoundException;
 import com.palettee.portfolio.repository.PortFolioRepository;
@@ -18,10 +15,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,10 +33,17 @@ public class PortFolioService {
     private final LikeRepository likeRepository;
     private final NotificationService notificationService;
 
+    private final RedisTemplate<String, PortFolioResponse> redisTemplate;
+
+    public final static String zSetPfKey = "cache:firstPage:portFolios";
+
+    private static boolean hasNext;
+
     private final RedisService redisService;
 
 
-    @Cacheable(value = "pagePortFolio_", key = "'cache'", condition = "#isFirstPage")
+
+
     public CustomOffSetResponse findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,
@@ -46,6 +52,24 @@ public class PortFolioService {
             boolean isFirstPage
 
     ) {
+
+        if(isFirstPage){
+            CustomOffSetResponse cachedFirstPage = getCachedFirstPage(pageable);
+
+            if(cachedFirstPage != null){
+                return cachedFirstPage;
+            }
+            CustomOffSetResponse response = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
+            hasNext =  response.hasNext();
+            List<PortFolioResponse> results = response.content();
+
+            results.forEach(result ->
+                    redisTemplate.opsForZSet().add(zSetPfKey, result, TypeConverter.LocalDateTimeToDouble(result.createAt()))
+            );
+
+            redisTemplate.expire(zSetPfKey, 6, TimeUnit.HOURS); // 6시간으로 고정
+            return response;
+        }
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
     }
 
@@ -111,6 +135,27 @@ public class PortFolioService {
     public PortFolio getPortFolio(Long portFolioId){
        return portFolioRepository.findById(portFolioId)
               .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
+    }
+
+    private CustomOffSetResponse getCachedFirstPage(Pageable pageable){
+        Set<PortFolioResponse> range = redisTemplate.opsForZSet().reverseRange(zSetPfKey, 0, pageable.getPageSize());
+
+        if(range != null && !range.isEmpty()){
+            log.info("캐시에 값이 잇음");
+            List<PortFolioResponse> portFolioResponses= new ArrayList<>(range);
+
+            if(portFolioResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
+                log.info("range.size = {}", portFolioResponses.size());
+                log.info("pageable.getPageSize = {}", pageable.getPageSize());
+                log.info("사이즈가 다름");
+                redisTemplate.delete(zSetPfKey);
+                return null;
+            }
+
+
+            return new CustomOffSetResponse(portFolioResponses,hasNext,0L, portFolioResponses.size());
+        }
+        return null;
     }
 
 

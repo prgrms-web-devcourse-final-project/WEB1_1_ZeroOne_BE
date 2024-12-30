@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import static com.palettee.gathering.service.GatheringService.zSetKey;
+import static com.palettee.portfolio.service.PortFolioService.zSetPfKey;
 
 @Component
 @RequiredArgsConstructor
@@ -17,9 +18,9 @@ public class RedisCleanUp {
 
     @PostConstruct
     public void initRedisKey(){
-        log.info("Redis GatheringKey삭제");
+        log.info("Redis 서버 로딩 시 해당 캐시 키 삭제");
         redisTemplate.delete(zSetKey);
-        redisTemplate.delete("pagePortFolio_::cache");
+        redisTemplate.delete(zSetPfKey);
     }
 
 }
