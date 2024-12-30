@@ -5,6 +5,7 @@ import com.palettee.archive.repository.*;
 import com.palettee.gathering.repository.*;
 import com.palettee.global.security.jwt.services.*;
 import com.palettee.portfolio.domain.*;
+import com.palettee.portfolio.event.PortFolioUpdateEventListener;
 import com.palettee.portfolio.repository.*;
 import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.controller.dto.response.users.*;
@@ -16,6 +17,7 @@ import java.util.function.*;
 import java.util.stream.*;
 import lombok.*;
 import lombok.extern.slf4j.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
@@ -33,6 +35,8 @@ public class UserService {
     private final GatheringRepository gatheringRepo;
     private final GatheringTagRepository gatheringTagRepo;
     private final RefreshTokenRedisService refreshTokenRedisService;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
      * 자신의 정보를 조회
@@ -174,7 +178,9 @@ public class UserService {
         portFolioRepo.deleteAllByUserId(userOnTarget.getId());
         log.debug("Deleted user {}'s all portfolio links", userOnTarget.getId());
 
-        portFolioRepo.save(new PortFolio(userOnTarget, portfolioLink,userOnTarget.getMajorJobGroup(), userOnTarget.getMinorJobGroup()));
+        PortFolio portFolio = new PortFolio(userOnTarget, portfolioLink, userOnTarget.getMajorJobGroup(), userOnTarget.getMinorJobGroup());
+
+        portFolioRepo.save(portFolio);
         log.debug("Edited user {}'s portfolio link", userOnTarget.getId());
 
         // 사용자가 S3 에 업로드한 자원들 추가
@@ -191,6 +197,8 @@ public class UserService {
         }
 
         log.info("Edited user {}'s info successfully", userOnTarget.getId());
+
+        applicationEventPublisher.publishEvent(new PortFolioUpdateEventListener(portFolio.getPortfolioId()));
 
         return UserResponse.of(userOnTarget);
     }

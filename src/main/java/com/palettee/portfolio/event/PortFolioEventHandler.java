@@ -21,7 +21,7 @@ public class PortFolioEventHandler {
     private final RedisTemplate<String, PortFolioResponse> redisTemplate;
 
     @TransactionalEventListener
-    public void addRedisGathering(PortFolioAddEventListener portFolioAddEventListener){
+    public void addRedisPortFolio(PortFolioAddEventListener portFolioAddEventListener){
         log.info("저장 이벤트");
         PortFolio portFolio = portFolioService.getPortFolio(portFolioAddEventListener.portFolioId());
         Long preSize = redisTemplate.opsForZSet().size(zSetPfKey);
@@ -51,6 +51,30 @@ public class PortFolioEventHandler {
 
         PortFolioResponse portFolioResponse = PortFolioResponse.toDto(portFolio);
         redisTemplate.opsForZSet().add(zSetPfKey, portFolioResponse, TypeConverter.LocalDateTimeToDouble(portFolioResponse.createAt()));
+    }
+
+    @TransactionalEventListener
+    public void updatePortFolio(PortFolioUpdateEventListener portFolioUpdateEventListener){
+        log.info("수정 이벤트");
+        PortFolio portFolio = portFolioService.getPortFolio(portFolioUpdateEventListener.portFolioId());
+
+        redisTemplate.opsForZSet().range(zSetPfKey, 0, -1) // 전체 범위 조회
+                .stream()
+                .filter(portFolioResponse -> {
+                    // `portFolioResponse`의 userId와 `portFolio`의 userId를 비교
+                    return portFolioResponse.userId().equals(portFolio.getUser().getId());
+                })
+                .findFirst() // 조건에 맞는 첫 번째 항목만 처리 (유일한 항목이라고 가정)
+                .ifPresent(matchingResponse -> {
+                    log.info("같은 포트폴리오 Redis 캐시에 존재");
+                    log.info("삭제된 Redis PortFolioId ={}", matchingResponse.portFolioId());
+                    // 조건에 맞는 항목을 ZSet에서 제거
+                    redisTemplate.opsForZSet().remove(zSetPfKey, matchingResponse);
+                });
+
+        PortFolioResponse portFolioResponse = PortFolioResponse.toDto(portFolio);
+        redisTemplate.opsForZSet().add(zSetPfKey, portFolioResponse, TypeConverter.LocalDateTimeToDouble(portFolioResponse.createAt()));
+
     }
 
 
