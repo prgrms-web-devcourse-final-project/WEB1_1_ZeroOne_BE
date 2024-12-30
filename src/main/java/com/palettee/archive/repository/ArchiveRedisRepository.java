@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class ArchiveRedisRepository {
 
     private final ArchiveRepository archiveRepository;
 
+    @Transactional
     public void settleHits() {
         Set<String> incrKeys = redisTemplate.keys(INCR_PATTERN);
         if (incrKeys == null || incrKeys.isEmpty()) {
@@ -49,6 +51,7 @@ public class ArchiveRedisRepository {
         }
     }
 
+    @Transactional(readOnly = true)
     public void updateArchiveList() {
         PageRequest pageRequest = PageRequest.of(0, 5);
         List<Archive> result = archiveRepository.findTopArchives(pageRequest);
