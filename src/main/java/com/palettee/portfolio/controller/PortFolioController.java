@@ -5,11 +5,14 @@ import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.service.PortFolioService;
+import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,7 +31,7 @@ public class PortFolioController
             @RequestParam(required = false) String majorJobGroup,
             @RequestParam(required = false) String minorJobGroup
             ){
-        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort);
+        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, getUserFromContext());
     }
 
     @GetMapping("/{portFolioId}")
@@ -58,10 +61,18 @@ public class PortFolioController
      return portFolioService.popularPortFolio();
     }
 
-//    private static boolean firstPage(Pageable pageable) {
-//        boolean isFirst =  pageable.getPageNumber() == 0;
-//        return isFirst;
-//    }
+    private Optional<User> getUserFromContext() {
+        User user = null;
+        try {
+            user = UserUtils.getContextUser();
+        } catch (Exception e) {
+            log.info("Current user is not logged in");
+        }
+
+        return Optional.ofNullable(user);
+    }
+
+
 
     private static boolean isLikedFirst(Long likeId) {
         if(likeId == null){

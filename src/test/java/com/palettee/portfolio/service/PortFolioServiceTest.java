@@ -94,7 +94,8 @@ class PortFolioServiceTest {
                 pageRequest,
                 MajorJobGroup.DEVELOPER.getMajorGroup(),
                 MinorJobGroup.BACKEND.getMinorJobGroup(),
-                "popularlity"
+                "popularlity",
+                null
         );
 
         // then

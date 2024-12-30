@@ -77,10 +77,10 @@ public class SecurityConfig {
 
                 /* <-------------- Portfolio API --------------> */
                 // 포트폴리오 전체 조회
-                .byPassable("/portFolio", HttpMethod.GET)
+                .conditionalByPassable("/portFolio", HttpMethod.GET)
 
                 // 메인 인기 포트폴리오 페이지
-                .byPassable("/portFolio/main", HttpMethod.GET)
+                .conditionalByPassable("/portFolio/main", HttpMethod.GET)
 
                 // 소모임 전체 조회
                 .byPassable("/gathering", HttpMethod.GET)

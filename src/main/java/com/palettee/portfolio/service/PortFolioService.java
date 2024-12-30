@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,13 +38,31 @@ public class PortFolioService {
     private final RedisService redisService;
 
 
+
     public Slice<PortFolioResponse> findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,
             String minorJobGroup,
-            String sort
+            String sort,
+            Optional<User> user
     ) {
-        return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
+
+        Slice<PortFolioResponse> portFolioResponses = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
+
+        if(user.isPresent()){
+            List<Long> longs = portFolioResponses.stream()
+                    .map(PortFolioResponse::getPortFolioId).toList();
+
+            // 유저가 누른 좋아요들의 포트폴리오 아이디들을 DB에서 조회
+            List<Long> portFolioIds = likeRepository.findByTargetIdAndPortFolio(user.get().getId(), longs);
+
+            portFolioResponses.forEach(portFolios -> {
+                boolean isLiked = portFolioIds.contains(portFolios.getPortFolioId());
+                portFolios.setLiked(isLiked);
+            });
+
+        }
+        return portFolioResponses;
     }
 
 

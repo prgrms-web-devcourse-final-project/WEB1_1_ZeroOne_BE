@@ -29,6 +29,9 @@ public interface LikeRepository extends JpaRepository<Likes, Long> {
     @Query("select count(l) from Likes l where l.targetId = :targetId and l.likeType = 'GATHERING'")
     long countByTargetId(Long targetId);
 
+    @Query("SELECT l.targetId FROM Likes l WHERE l.targetId IN :targetIds and l.likeType = 'PORTFOLIO' and l.user.id = :userId")
+    List<Long> findByTargetIdAndPortFolio(Long userId, List<Long> targetIds);
+
 
 
 
