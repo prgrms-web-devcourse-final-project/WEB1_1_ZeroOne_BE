@@ -20,7 +20,6 @@ import com.palettee.user.repository.StoredProfileImageUrlRepository;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -118,7 +117,7 @@ public class BasicRegisterService {
         user = this.getUserByIdFetchWithPortfolio(user.getId());
 
         // 이전 포폴 정보 삭제
-//         portFolioRepo.deleteAllByUserId(user.getId());
+         portFolioRepo.deleteAllByUserId(user.getId());
 
         log.debug("Deleted user {}'s all portfolio links", user.getId());
 

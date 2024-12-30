@@ -60,7 +60,9 @@ public class PortFolioService {
                 return cachedFirstPage;
             }
             CustomOffSetResponse response = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
+            log.info("캐시에 데이터 없음");
             hasNext =  response.hasNext();
+            log.info("hasNext ={} ", hasNext);
             List<PortFolioResponse> results = response.content();
 
             results.forEach(result ->

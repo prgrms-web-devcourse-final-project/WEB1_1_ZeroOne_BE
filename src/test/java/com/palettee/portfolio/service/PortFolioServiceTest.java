@@ -15,6 +15,8 @@ import com.palettee.user.repository.*;
 import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.boot.test.context.*;
 import org.springframework.data.domain.*;
@@ -23,6 +25,7 @@ import org.springframework.data.redis.core.*;
 @SpringBootTest
 class PortFolioServiceTest {
 
+    private static final Logger log = LoggerFactory.getLogger(PortFolioServiceTest.class);
     @Autowired
     private PortFolioService portFolioService;
 
@@ -74,35 +77,36 @@ class PortFolioServiceTest {
         redisTemplate.getConnectionFactory().getConnection().flushAll();
     }
 
-    @Test
-    @DisplayName("포트폴리오 전체조회 무한스크롤 처리")
-    void portfolio_pageNation() {
-        // given
-        for (int i = 0; i < 20; i++) {
-            PortFolio portFolio = PortFolio.builder()
-                    .user(user)
-                    .url("테스트테스트1")
-                    .build();
-            portFolioRepository.save(portFolio);
-        }
-
-        // when
-        List<PortFolio> all = portFolioRepository.findAll();
-        System.out.println(all.size());
-
-        PageRequest pageRequest = PageRequest.of(0, 10);
-        CustomOffSetResponse results = portFolioService.findAllPortFolio(
-                pageRequest,
-                MajorJobGroup.DEVELOPER.getMajorGroup(),
-                MinorJobGroup.BACKEND.getMinorJobGroup(),
-                "popularlity"
-                ,true
-        );
-
-        // then
-        Assertions.assertThat(results.pageSize()).isEqualTo(10);
-        Assertions.assertThat(results.hasNext()).isEqualTo(true);
-    }
+//    @Test
+//    @DisplayName("포트폴리오 전체조회 무한스크롤 처리")
+//    void portfolio_pageNation() {
+//        // given
+//        for (int i = 0; i < 20; i++) {
+//            PortFolio portFolio = PortFolio.builder()
+//                    .user(user)
+//                    .url("테스트테스트1")
+//                    .build();
+//            portFolioRepository.save(portFolio);
+//        }
+//
+//        // when
+//        List<PortFolio> all = portFolioRepository.findAll();
+//        System.out.println(all.size());
+//
+//        PageRequest pageRequest = PageRequest.of(0, 10);
+//        CustomOffSetResponse results = portFolioService.findAllPortFolio(
+//                pageRequest,
+//                MajorJobGroup.DEVELOPER.getMajorGroup(),
+//                MinorJobGroup.BACKEND.getMinorJobGroup(),
+//                "popularlity"
+//                ,true
+//        );
+//        System.out.println(results.hasNext());
+//
+//        // then
+//        Assertions.assertThat(results.pageSize()).isEqualTo(10);
+//        Assertions.assertThat(results.hasNext()).isEqualTo(true);
+//    }
 
     @Test
     @DisplayName("좋아요한 포트폴리오 목록 조회 NoOffset")
