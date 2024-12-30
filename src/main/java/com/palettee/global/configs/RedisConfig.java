@@ -142,11 +142,18 @@ public class RedisConfig {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
 
-        // Key Serializer
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        // Value Serializer
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        // ObjectMapper에 JavaTimeModule 등록
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // ISO-8601 포맷 사용
 
+        // Generic JSON Serializer에 ObjectMapper 등록
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(serializer);
+
+        redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }
 

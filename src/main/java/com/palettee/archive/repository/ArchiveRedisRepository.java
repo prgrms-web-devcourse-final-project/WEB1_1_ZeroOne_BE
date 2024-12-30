@@ -1,7 +1,6 @@
 package com.palettee.archive.repository;
 
-import com.palettee.archive.controller.dto.response.ArchiveSimpleResponse;
-import com.palettee.likes.repository.LikeRepository;
+import com.palettee.archive.domain.Archive;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +23,6 @@ public class ArchiveRedisRepository {
     private final RedisTemplate<String, Object> redisTemplateForArchive;
 
     private final ArchiveRepository archiveRepository;
-    private final LikeRepository likeRepository;
 
     public void settleHits() {
         Set<String> incrKeys = redisTemplate.keys(INCR_PATTERN);
@@ -53,16 +51,14 @@ public class ArchiveRedisRepository {
 
     public void updateArchiveList() {
         PageRequest pageRequest = PageRequest.of(0, 5);
-        List<ArchiveSimpleResponse> result = archiveRepository.findTopArchives(pageRequest)
-                .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, 0L, likeRepository))
-                .toList();
+        List<Archive> result = archiveRepository.findTopArchives(pageRequest);
         redisTemplateForArchive.opsForSet().remove(TOP_ARCHIVE);
         redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, result, 1, TimeUnit.HOURS);
     }
 
-    public List<ArchiveSimpleResponse> getTopArchives() {
-        List<ArchiveSimpleResponse> result = (List<ArchiveSimpleResponse>) redisTemplateForArchive.opsForValue().get("top_archives");
+    @SuppressWarnings("unchecked")
+    public List<Archive> getTopArchives() {
+        List<Archive> result = (List<Archive>) redisTemplateForArchive.opsForValue().get(TOP_ARCHIVE);
         return result == null ? new ArrayList<>() : result;
     }
 }

@@ -75,8 +75,12 @@ public class ArchiveService {
         return optionalUser == null ? 0L : optionalUser.getId();
     }
 
-    public ArchiveListResponse getMainArchive() {
-        List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives();
+    public ArchiveListResponse getMainArchive(User contextUser) {
+        Long userId = contextUser == null ? 0L : contextUser.getId();
+        List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives()
+                .stream()
+                .map(it -> ArchiveSimpleResponse.toResponse(it, userId, likeRepository))
+                .toList();
         return new ArchiveListResponse(result,null, null);
     }
 

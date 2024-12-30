@@ -51,7 +51,7 @@ public class ArchiveController {
 
     @GetMapping("/main")
     public ArchiveListResponse getMainArchiveList() {
-        return archiveService.getMainArchive();
+        return archiveService.getMainArchive(getContextUser());
     }
 
     @GetMapping
