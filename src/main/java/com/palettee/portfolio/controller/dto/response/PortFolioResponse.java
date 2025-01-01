@@ -3,12 +3,14 @@ package com.palettee.portfolio.controller.dto.response;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.user.domain.RelatedLink;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
 @Setter
 @Getter
+@NoArgsConstructor
 public class PortFolioResponse {
     private Long portFolioId;
     private Long userId;

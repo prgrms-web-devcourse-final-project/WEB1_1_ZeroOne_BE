@@ -58,7 +58,7 @@ public class PortFolioController
     @GetMapping("/main")
     public PortFolioWrapper findPopular(){
 
-     return portFolioService.popularPortFolio();
+     return portFolioService.popularPortFolio(getUserFromContext());
     }
 
     private Optional<User> getUserFromContext() {

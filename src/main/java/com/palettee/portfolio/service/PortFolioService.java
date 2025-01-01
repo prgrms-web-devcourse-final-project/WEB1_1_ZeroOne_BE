@@ -15,15 +15,16 @@ import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -37,6 +38,8 @@ public class PortFolioService {
 
     private final RedisService redisService;
 
+    private final RedisTemplate<String, PortFolioPopularResponse> responseRedisTemplate;
+
 
 
     public Slice<PortFolioResponse> findAllPortFolio(
@@ -49,19 +52,20 @@ public class PortFolioService {
 
         Slice<PortFolioResponse> portFolioResponses = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
 
-        if(user.isPresent()){
+        user.ifPresent(u-> {
+            log.info("유저가 있습니다");
+
             List<Long> longs = portFolioResponses.stream()
                     .map(PortFolioResponse::getPortFolioId).toList();
 
             // 유저가 누른 좋아요들의 포트폴리오 아이디들을 DB에서 조회
-            List<Long> portFolioIds = likeRepository.findByTargetIdAndPortFolio(user.get().getId(), longs);
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndPortFolio(user.get().getId(), longs);
 
-            portFolioResponses.forEach(portFolios -> {
-                boolean isLiked = portFolioIds.contains(portFolios.getPortFolioId());
-                portFolios.setLiked(isLiked);
-            });
+//            redisService.getLikedTargetId(user.get().getId(), "portFolio")
+//                    .forEach(id -> portFolioIds.add(id));
 
-        }
+            portFolioResponses.forEach(portFolios -> portFolios.setLiked(portFolioIds.contains(portFolios.getPortFolioId())));
+        });
         return portFolioResponses;
     }
 
@@ -90,38 +94,51 @@ public class PortFolioService {
         return portFolioRepository.PageFindLikePortfolio(pageable, userId, likeId);
     }
 
+//    public PortFolioWrapper popularPf(Optional<User> user){
+//        PortFolioWrapper portFolioWrapper = popularPortFolio();
+//        if(user.isPresent()){
+//            log.info("user가 들어옴");
+//            Set<Long> portFolioIds = redisService.getLikeTargetIds(user.get().getId(), "portFolio");
+//
+//            if(portFolioIds.isEmpty()){
+//                log.info("유저가 누른 아이디가 없음");
+//            }
+//
+//            portFolioWrapper.portfolioResponses()
+//                    .stream()
+//                    .forEach(portFolioPopularResponse -> {
+//                        boolean isLiked = portFolioIds != null && portFolioIds.contains(portFolioPopularResponse.getPortFolioId());
+//                        portFolioPopularResponse.setLiked(isLiked);
+//                    });
+//
+//            return portFolioWrapper;
+//        }
+//        return portFolioWrapper;
+//    }
+
     /**
      * 상위 5개 레디스에 캐싱
      * @return
      */
-    @Cacheable(value = "pf_cache", key = "'cache'")
-    public PortFolioWrapper popularPortFolio(){
+    public PortFolioWrapper popularPortFolio(Optional<User> user) {
+        log.info("호출");
+        String zSetKey = "portFolio_Ranking";
 
-        Map<Long, Double> portFolioMap = redisService.getZSetPopularity("portFolio");
+        List<PortFolioPopularResponse> list = new ArrayList<>(responseRedisTemplate.opsForZSet().reverseRange(zSetKey, 0, 4));
 
-        Set<Long> longs = portFolioMap.keySet();
+        user.ifPresent(u -> {
+            Set<Long> portFolioIds = redisService.getLikeTargetIds(u.getId(), "portFolio");
 
-        List<Long> sortedPortFolio = new ArrayList<>(longs);
+            if (portFolioIds.isEmpty()) {
+                log.info("유저가 누른 아이디가 없음");
+            }
 
-        List<PortFolio> portfolios = portFolioRepository.findAllByPortfolioIdIn(sortedPortFolio);
-
-
-        // in 절을 사용하면 정렬 순서가 바뀌기 때문에 Map으로 순서를 맞춰줌
-        Map<Long, PortFolio> portfoliosMap = portfolios.stream()
-                .collect(Collectors.toMap(PortFolio::getPortfolioId, portfolio -> portfolio));
-
-        // 본 List의 본 순서와 맞는 점수 대응
-        List<PortFolioPopularResponse> list = sortedPortFolio.stream()
-                .map(portFolioId -> {
-                    Double score = portFolioMap.get(portFolioId);
-                    PortFolio portFolio = portfoliosMap.get(portFolioId);
-                    return portFolio != null ? PortFolioPopularResponse.toDto(portFolio, score) : null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
+            list.forEach(response -> response.setLiked(portFolioIds.contains(response.getPortFolioId())));
+        });
         return new PortFolioWrapper(list);
-    }
+        }
+
+
 
 
     public PortFolio getPortFolio(Long portFolioId){

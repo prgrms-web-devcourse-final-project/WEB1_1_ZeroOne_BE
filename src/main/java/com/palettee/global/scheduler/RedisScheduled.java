@@ -24,7 +24,8 @@ public class RedisScheduled {
         redisService.categoryToDb("portFolio");
         redisService.categoryToDb("gathering");
 
-        //여기에 아카이빙이나 게더링 넣으시면 됩니다
+//        //여기에 아카이빙이나 게더링 넣으시면 됩니다
+//        redisService.deleteKeyIncludePattern("Like_*", "_targetCount");
     }
 
     /**
@@ -37,7 +38,7 @@ public class RedisScheduled {
         redisRankingZset();
 
         //순위 여부 확인 후 비우기
-        redisCacheDelete();
+//        redisCacheDelete();
 
         // 여기에 아카이브 넣으시면 됩니다.
 
@@ -48,7 +49,7 @@ public class RedisScheduled {
 
         //카운트 redis 한번 비우기
         redisService.deleteKeyExceptionPattern("View_*", "_user");
-        redisService.deleteKeyExceptionPattern("Like_*", "_user");
+        redisService.deleteKeyExceptionPatterns("Like_*", "_user","_targets");
     }
 
     /**
@@ -63,7 +64,7 @@ public class RedisScheduled {
      * ZSET 한번 비우고 새로운 가중치 ZSET 반영
      */
     private void redisRankingZset() {
-        redisService.deleteKeyExceptionPattern("portFolio_*", null);
+//        redisService.deleteKeyExceptionPattern("portFolio_*", null);
 
         redisService.rankingCategory("portFolio");
     }

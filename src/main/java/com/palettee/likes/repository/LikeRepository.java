@@ -3,6 +3,8 @@ package com.palettee.likes.repository;
 import com.palettee.likes.domain.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
@@ -30,7 +32,7 @@ public interface LikeRepository extends JpaRepository<Likes, Long> {
     long countByTargetId(Long targetId);
 
     @Query("SELECT l.targetId FROM Likes l WHERE l.targetId IN :targetIds and l.likeType = 'PORTFOLIO' and l.user.id = :userId")
-    List<Long> findByTargetIdAndPortFolio(Long userId, List<Long> targetIds);
+    Set<Long> findByTargetIdAndPortFolio(Long userId, List<Long> targetIds);
 
 
 
