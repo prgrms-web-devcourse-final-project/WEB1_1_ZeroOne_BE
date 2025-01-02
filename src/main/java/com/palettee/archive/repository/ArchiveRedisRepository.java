@@ -1,10 +1,14 @@
 package com.palettee.archive.repository;
 
 import com.palettee.archive.domain.Archive;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -32,7 +36,7 @@ public class ArchiveRedisRepository {
         }
 
         for (String incrKey : incrKeys) {
-            String archiveId = incrKey.split(DELIMITER)[3];
+            String archiveId = extractId(incrKey);
 
             String incrHits = redisTemplate.opsForValue().get(incrKey);
             long incrCount = incrHits == null ? 0 : Long.parseLong(incrHits);
@@ -50,11 +54,44 @@ public class ArchiveRedisRepository {
         }
     }
 
+    private String extractId(String incrKey) {
+        return incrKey.split(DELIMITER)[3];
+    }
+
     @Transactional(readOnly = true)
     public void updateArchiveList() {
-        List<Archive> result = archiveRepository.findTopArchives();
+        List<Long> top4IncrKeys = getTop4IncrKeys();
+        List<Archive> result = archiveRepository.findArchivesInIds(top4IncrKeys);
+
+        int redisSize = result.size();
+        if (redisSize < 4) {
+            int remaining = 4 - redisSize;
+            List<Archive> additionalFromDB = archiveRepository.findTopArchives(remaining);
+            result.addAll(additionalFromDB);
+        }
+
         redisTemplateForArchive.opsForSet().remove(TOP_ARCHIVE);
-        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, result, 1, TimeUnit.MINUTES);
+        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, result, 1, TimeUnit.HOURS);
+    }
+
+    private List<Long> getTop4IncrKeys() {
+        Set<String> incrKeys = redisTemplate.keys(INCR_PATTERN);
+        if (incrKeys == null || incrKeys.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return incrKeys.stream()
+                .map(key -> new AbstractMap.SimpleEntry<>(key, getValueAsLong(key)))
+                .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
+                .limit(4)
+                .map(Map.Entry::getKey)
+                .map(it -> getValueAsLong(extractId(it)))
+                .collect(Collectors.toList());
+    }
+
+    private Long getValueAsLong(String key) {
+        String value = redisTemplate.opsForValue().get(key);
+        return value == null ? 0L : Long.parseLong(value);
     }
 
     @SuppressWarnings("unchecked")

@@ -31,6 +31,9 @@ public interface ArchiveRepository extends JpaRepository<Archive, Long>, Archive
     @Query("UPDATE Archive a SET a.hits = :hitCount WHERE a.id = :archiveId")
     void updateHitCount(@Param("archiveId") Long archiveId, @Param("hitCount") Long hitCount);
 
-    @Query("select a from Archive a order by (a.hits + a.likeCount * 5) desc, a.id desc limit 4")
-    List<Archive> findTopArchives();
+    @Query("select a from Archive a order by (a.hits + a.likeCount * 5) desc, a.id desc limit :limit")
+    List<Archive> findTopArchives(@Param("limit") int limit);
+
+    @Query("select a from Archive a where a.id in :ids")
+    List<Archive> findArchivesInIds(@Param("ids") List<Long> ids);
 }

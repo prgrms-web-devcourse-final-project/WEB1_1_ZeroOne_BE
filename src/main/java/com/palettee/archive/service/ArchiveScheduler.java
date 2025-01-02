@@ -13,8 +13,8 @@ public class ArchiveScheduler {
 
     @Scheduled(cron = "0 0 * * * *")
     public void updateMainArchive() {
-        archiveRedisRepository.settleHits();
         archiveRedisRepository.updateArchiveList();
+        archiveRedisRepository.settleHits();
     }
 
 }
