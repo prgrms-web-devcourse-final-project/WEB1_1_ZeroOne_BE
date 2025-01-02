@@ -2,7 +2,6 @@ package com.palettee.portfolio.service;
 
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
-import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
@@ -81,7 +80,7 @@ public class PortFolioService {
 
         // 이미 DB에 반영된 좋아요 디비에서 삭제
         if(!flag){
-            cancelLike(portFolioId, user);
+           likeRepository.deleteAllByTargetId(user.getId(), portFolioId, LikeType.PORTFOLIO);
         }
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
@@ -94,27 +93,27 @@ public class PortFolioService {
         return portFolioRepository.PageFindLikePortfolio(pageable, userId, likeId);
     }
 
-//    public PortFolioWrapper popularPf(Optional<User> user){
-//        PortFolioWrapper portFolioWrapper = popularPortFolio();
-//        if(user.isPresent()){
-//            log.info("user가 들어옴");
-//            Set<Long> portFolioIds = redisService.getLikeTargetIds(user.get().getId(), "portFolio");
-//
-//            if(portFolioIds.isEmpty()){
-//                log.info("유저가 누른 아이디가 없음");
-//            }
-//
-//            portFolioWrapper.portfolioResponses()
-//                    .stream()
-//                    .forEach(portFolioPopularResponse -> {
-//                        boolean isLiked = portFolioIds != null && portFolioIds.contains(portFolioPopularResponse.getPortFolioId());
-//                        portFolioPopularResponse.setLiked(isLiked);
-//                    });
-//
-//            return portFolioWrapper;
-//        }
-//        return portFolioWrapper;
-//    }
+    public PortFolioWrapper popularPf(Optional<User> user){
+        PortFolioWrapper portFolioWrapper = popularPortFolio(user);
+        if(user.isPresent()){
+            log.info("user가 들어옴");
+            Set<Long> portFolioIds = redisService.getLikeTargetIds(user.get().getId(), "portFolio");
+
+            if(portFolioIds.isEmpty()){
+                log.info("유저가 누른 아이디가 없음");
+            }
+
+            portFolioWrapper.portfolioResponses()
+                    .stream()
+                    .forEach(portFolioPopularResponse -> {
+                        boolean isLiked = portFolioIds != null && portFolioIds.contains(portFolioPopularResponse.getPortFolioId());
+                        portFolioPopularResponse.setLiked(isLiked);
+                    });
+
+            return portFolioWrapper;
+        }
+        return portFolioWrapper;
+    }
 
     /**
      * 상위 5개 레디스에 캐싱
@@ -147,15 +146,4 @@ public class PortFolioService {
     }
 
 
-
-
-    private boolean cancelLike(Long portfolioId, User user) {
-        List<Likes> findByLikes = likeRepository.findByList(user.getId(), portfolioId, LikeType.PORTFOLIO);
-
-        if(findByLikes != null) {
-            likeRepository.deleteAll(findByLikes);
-            return true;
-        }
-        return false;
-    }
 }

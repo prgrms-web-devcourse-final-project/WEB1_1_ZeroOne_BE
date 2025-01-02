@@ -1,23 +1,39 @@
 package com.palettee.portfolio.service;
 
-import static com.palettee.global.Const.*;
-
-import com.palettee.global.cache.*;
-import com.palettee.global.redis.service.*;
-import com.palettee.likes.domain.*;
-import com.palettee.likes.repository.*;
-import com.palettee.portfolio.controller.dto.response.*;
-import com.palettee.portfolio.domain.*;
-import com.palettee.portfolio.repository.*;
-import com.palettee.user.domain.*;
-import com.palettee.user.repository.*;
-import java.util.*;
+import com.palettee.global.cache.MemoryCache;
+import com.palettee.global.redis.service.RedisService;
+import com.palettee.likes.domain.LikeType;
+import com.palettee.likes.domain.Likes;
+import com.palettee.likes.repository.LikeRepository;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
+import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.portfolio.repository.PortFolioRepository;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
+import com.palettee.user.domain.User;
+import com.palettee.user.domain.UserRole;
+import com.palettee.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.boot.test.context.*;
-import org.springframework.data.domain.*;
-import org.springframework.data.redis.core.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static com.palettee.global.Const.LIKE_PREFIX;
+import static com.palettee.global.Const.VIEW_PREFIX;
 
 @SpringBootTest
 class PortFolioServiceTest {
@@ -39,6 +55,9 @@ class PortFolioServiceTest {
 
     @Autowired
     private MemoryCache memoryCache;
+
+    @Autowired
+    private  RedisTemplate<String, Long> redisTemplate;
 
 
     private User user;
@@ -422,4 +441,36 @@ class PortFolioServiceTest {
 //        Assertions.assertThat(portFolioResponses.get(0).portFolioId()).isEqualTo(portFolio.getPortfolioId());
 //        Assertions.assertThat(portFolioResponses.get(1).portFolioId()).isEqualTo(portFolio1.getPortfolioId());
 //    }
+
+    @Test
+    @DisplayName("포트폴리오 redis를 사용한 조회수 동시성 처리")
+    public void increment_hits() throws Exception {
+       //given
+        final int threadCount = 100;
+        final ExecutorService executorService = Executors.newFixedThreadPool(32);
+        final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+
+        String key = VIEW_PREFIX +  "portFolio: " + portFolio.getPortfolioId();
+
+
+        //when
+        for(int i = 0; i < threadCount; i++){
+            executorService.submit(()-> {
+                try{
+                    redisTemplate.opsForValue().increment(key, 1L);
+                }
+                finally {
+                    countDownLatch.countDown();
+                }
+            });
+        }
+        countDownLatch.await();
+
+        RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
+        Long count = redisTemplate.opsForValue().get(key);
+
+        Assertions.assertThat(count).isEqualTo(100);
+
+       //then
+    }
 }

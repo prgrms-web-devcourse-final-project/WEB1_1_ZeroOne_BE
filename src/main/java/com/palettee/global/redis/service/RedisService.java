@@ -161,8 +161,10 @@ public class RedisService {
     public void rankingCategory(String category) {
         String zSetKey = category + "_Ranking";
 
+        log.info("memort CacheSize ={}", memoryCache.getLocalCache().size());
+
         //memory cache 있을시에 한번 비우기
-        if(memoryCache.getLocalCache().isEmpty()){
+        if(memoryCache.getLocalCache() != null && !memoryCache.getLocalCache().isEmpty()){
             responseRedisTemplate.opsForZSet().removeRange(zSetKey, 0, -1);
         }
 
@@ -179,13 +181,13 @@ public class RedisService {
         // 아이디를 통해 db에서 한번에 조회하기 위해서
         Set<Long> setList = new HashSet<>();
 
-        //가중치 가져와서 합산 후에 더 한 값을 Zset에 반영
+        //set에 가중치에 key에 대한 아이디들 저장
         viewCache.forEach((keys, value) -> {
             Long targetId = Long.parseLong(keys.replace(viewsKeys, "").trim());
             setList.add(targetId);
         });
 
-        //가중치 가져와서 합산 후에 더 한 값을 Zset에 반영
+        //set에 가중치에 key에 대한 아이디들 저장
         likeCache.forEach((keys, value) -> {
             Long targetId = Long.parseLong(keys.replace(likesKeys, "").trim());
             setList.add(targetId);
@@ -199,6 +201,7 @@ public class RedisService {
             Map<Long, PortFolio> collect = portFolios.stream()
                     .collect(Collectors.toMap(PortFolio::getPortfolioId, portFolio -> portFolio));
 
+            //가중치
             viewCache.forEach((keys, value) -> {
                 Long targetId = Long.parseLong(keys.replace(viewsKeys, "").trim());
                 PortFolio portFolio = collect.get(targetId);
