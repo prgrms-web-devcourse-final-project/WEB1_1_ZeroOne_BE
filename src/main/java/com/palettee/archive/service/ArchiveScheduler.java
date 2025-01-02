@@ -11,7 +11,7 @@ public class ArchiveScheduler {
 
     private final ArchiveRedisRepository archiveRedisRepository;
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void updateMainArchive() {
         archiveRedisRepository.settleHits();
         archiveRedisRepository.updateArchiveList();

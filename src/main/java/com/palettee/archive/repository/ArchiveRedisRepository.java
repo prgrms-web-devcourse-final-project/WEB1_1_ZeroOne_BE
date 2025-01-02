@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,8 +52,7 @@ public class ArchiveRedisRepository {
 
     @Transactional(readOnly = true)
     public void updateArchiveList() {
-        PageRequest pageRequest = PageRequest.of(0, 5);
-        List<Archive> result = archiveRepository.findTopArchives(pageRequest);
+        List<Archive> result = archiveRepository.findTopArchives();
         redisTemplateForArchive.opsForSet().remove(TOP_ARCHIVE);
         redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, result, 1, TimeUnit.MINUTES);
     }
