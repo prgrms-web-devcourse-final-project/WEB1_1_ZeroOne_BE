@@ -1,5 +1,6 @@
 package com.palettee.user.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.palettee.archive.domain.*;
 import com.palettee.gathering.domain.*;
 import com.palettee.global.entity.*;
@@ -168,6 +169,7 @@ public class User extends BaseEntity {
     private final List<RelatedLink> relatedLinks = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @JsonIgnore
     private final List<Archive> archives = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)

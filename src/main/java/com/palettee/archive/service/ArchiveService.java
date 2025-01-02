@@ -4,6 +4,7 @@ import com.palettee.archive.controller.dto.request.*;
 import com.palettee.archive.controller.dto.response.*;
 import com.palettee.archive.domain.*;
 import com.palettee.archive.event.HitEvent;
+import com.palettee.archive.event.LikeEvent;
 import com.palettee.archive.exception.*;
 import com.palettee.archive.repository.*;
 import com.palettee.likes.domain.LikeType;
@@ -79,7 +80,7 @@ public class ArchiveService {
         Long userId = contextUser == null ? 0L : contextUser.getId();
         List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives()
                 .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, userId, likeRepository))
+                .map(it -> ArchiveSimpleResponse.changeToSimpleResponse(it, userId, likeRepository))
                 .toList();
         return new ArchiveListResponse(result,null, null);
     }
@@ -205,7 +206,7 @@ public class ArchiveService {
 
         Long targetId = archive.getUser().getId();
         notificationService.send(NotificationRequest.like(targetId, user.getName()));
-
+        publisher.publishEvent(new LikeEvent(archiveId, findUser.getId()));
         return new ArchiveResponse(archive.getId());
     }
 

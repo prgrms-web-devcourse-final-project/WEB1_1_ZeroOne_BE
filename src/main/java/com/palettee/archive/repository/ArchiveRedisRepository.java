@@ -1,5 +1,6 @@
 package com.palettee.archive.repository;
 
+import com.palettee.archive.controller.dto.response.ArchiveRedisResponse;
 import com.palettee.archive.domain.Archive;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -70,8 +71,11 @@ public class ArchiveRedisRepository {
             result.addAll(additionalFromDB);
         }
 
-        redisTemplateForArchive.opsForSet().remove(TOP_ARCHIVE);
-        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, result, 1, TimeUnit.HOURS);
+        List<ArchiveRedisResponse> redis = result.stream()
+                        .map(ArchiveRedisResponse::toResponse)
+                        .toList();
+
+        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, redis, 1, TimeUnit.HOURS);
     }
 
     private List<Long> getTop4IncrKeys() {
@@ -95,8 +99,8 @@ public class ArchiveRedisRepository {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Archive> getTopArchives() {
-        List<Archive> result = (List<Archive>) redisTemplateForArchive.opsForValue().get(TOP_ARCHIVE);
+    public List<ArchiveRedisResponse> getTopArchives() {
+        List<ArchiveRedisResponse> result = (List<ArchiveRedisResponse>) redisTemplateForArchive.opsForValue().get(TOP_ARCHIVE);
         return result == null ? new ArrayList<>() : result;
     }
 }

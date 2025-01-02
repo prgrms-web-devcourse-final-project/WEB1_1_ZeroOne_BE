@@ -1,10 +1,9 @@
 package com.palettee.archive.controller.dto.response;
 
 import com.palettee.archive.domain.Archive;
-import com.palettee.likes.repository.LikeRepository;
 import java.io.Serializable;
 
-public record ArchiveSimpleResponse(
+public record ArchiveRedisResponse(
         Long archiveId,
         String title,
         String description,
@@ -18,10 +17,10 @@ public record ArchiveSimpleResponse(
         String createDate
 ) implements Serializable {
 
-    public static ArchiveSimpleResponse toResponse(Archive archive, Long userId, LikeRepository likeRepository) {
+    public static ArchiveRedisResponse toResponse(Archive archive) {
         String imageUrl = archive.getArchiveImages().isEmpty() ? "" : archive.getArchiveImages().get(0).getImageUrl();
 
-        return new ArchiveSimpleResponse(
+        return new ArchiveRedisResponse(
                 archive.getId(),
                 archive.getTitle(),
                 archive.getDescription(),
@@ -30,25 +29,10 @@ public record ArchiveSimpleResponse(
                 archive.getType().name(),
                 archive.isCanComment(),
                 archive.getLikeCount(),
-                likeRepository.existByUserAndArchive(archive.getId(), userId).isPresent(),
+                false,
                 imageUrl,
                 archive.getCreateAt().toLocalDate().toString()
         );
     }
 
-    public static ArchiveSimpleResponse changeToSimpleResponse(ArchiveRedisResponse it, Long userId, LikeRepository likeRepository) {
-        return new ArchiveSimpleResponse(
-                it.archiveId(),
-                it.title(),
-                it.description(),
-                it.introduction(),
-                it.username(),
-                it.type(),
-                it.canComment(),
-                it.likeCount(),
-                likeRepository.existByUserAndArchive(it.archiveId(), userId).isPresent(),
-                it.imageUrl(),
-                it.createDate()
-        );
-    }
 }
