@@ -3,6 +3,7 @@ package com.palettee.gathering.controller;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
+import com.palettee.gathering.repository.GatheringRedisRepository;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
 import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
@@ -23,10 +24,16 @@ public class GatheringController {
 
     private final GatheringService gatheringService;
 
+    private final GatheringRedisRepository redisRepository;
+
 
     @PostMapping()
     public GatheringCommonResponse create(@RequestBody @Valid GatheringCommonRequest request) {
-        return gatheringService.createGathering(request, UserUtils.getContextUser());
+
+        GatheringCommonResponse gathering = gatheringService.createGathering(request, UserUtils.getContextUser());
+        redisRepository.addGatheringInRedis(gathering.gatheringId());
+
+        return gathering;
     }
 
     @GetMapping()

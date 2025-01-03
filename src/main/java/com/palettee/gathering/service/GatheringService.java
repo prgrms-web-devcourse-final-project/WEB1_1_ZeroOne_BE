@@ -10,12 +10,8 @@ import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
-import com.palettee.gathering.event.GatheringAddEventListener;
-import com.palettee.gathering.event.GatheringDeleteEventListener;
-import com.palettee.gathering.event.GatheringPutEventListener;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
-import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
@@ -28,16 +24,15 @@ import com.palettee.user.exception.UserNotFoundException;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static com.palettee.gathering.repository.GatheringRedisRepository.RedisConstKey_Gathering;
 
 @Service
 @RequiredArgsConstructor
@@ -55,7 +50,6 @@ public class GatheringService {
 
     private final RedisTemplate<String, GatheringResponse> redisTemplate;
 
-    private final ApplicationEventPublisher eventPublisher;
 
     private final RedisService redisService;
 
@@ -89,8 +83,6 @@ public class GatheringService {
 
         Gathering saveGathering = gatheringRepository.save(gathering);
 
-        eventPublisher.publishEvent(new GatheringAddEventListener(saveGathering.getId()));
-
         return GatheringCommonResponse.toDTO(saveGathering);
     }
 
@@ -122,11 +114,9 @@ public class GatheringService {
             List<GatheringResponse> results = customSliceResponse.content();
 
             // 캐시에 저장
-            results.forEach(result ->
-                    redisTemplate.opsForZSet().add(zSetKey, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime()))
-            );
+            redisTemplate.opsForList().rightPushAll(RedisConstKey_Gathering, results);
 
-            redisTemplate.expire(zSetKey, 6, TimeUnit.HOURS); // 6시간으로 고정
+            redisTemplate.expire(RedisConstKey_Gathering, 1, TimeUnit.MINUTES); // 6시간으로 고정
 
             return customSliceResponse;
         }
@@ -169,7 +159,6 @@ public class GatheringService {
 
         if(request.gatheringImages()!= null) deleteImages(gathering);  // 업데이트시 이미지가 들어왓을시 본래 s3 이미지삭제
 
-        eventPublisher.publishEvent(new GatheringPutEventListener(gathering.getId()));
 
         return GatheringCommonResponse.toDTO(gathering);
     }
@@ -186,8 +175,6 @@ public class GatheringService {
         deleteImages(gathering);
 
         gatheringRepository.delete(gathering);
-
-        eventPublisher.publishEvent(new GatheringDeleteEventListener(gathering));
 
         return GatheringCommonResponse.toDTO(gathering);
     }
@@ -282,22 +269,20 @@ public class GatheringService {
 
     // 첫 페이지 이면서 캐시에 데이터가 있는지 검증
     private CustomSliceResponse getCachedFirstPage(Pageable pageable){
-        Set<GatheringResponse> range = redisTemplate.opsForZSet().reverseRange(zSetKey, 0, pageable.getPageSize());
+        List<GatheringResponse> gatheringResponses = redisTemplate.opsForList().range(RedisConstKey_Gathering, 0, pageable.getPageSize());
 
-        if(range != null && !range.isEmpty()){
+        if(gatheringResponses != null && !gatheringResponses.isEmpty()){
             log.info("캐시에 값이 잇음");
-            List<GatheringResponse> gatheringResponses = new ArrayList<>(range);
 
             if(gatheringResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
                 log.info("range.size = {}", gatheringResponses.size());
                 log.info("pageable.getPageSize = {}", pageable.getPageSize());
                 log.info("사이즈가 다름");
-                redisTemplate.delete(zSetKey);
+                redisTemplate.delete(RedisConstKey_Gathering);
                 return null;
             }
 
             Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
-
 
             return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
         }
