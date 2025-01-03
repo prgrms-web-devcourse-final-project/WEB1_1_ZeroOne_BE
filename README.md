@@ -92,27 +92,27 @@
 
 - Application
 
-  |         Name         | Description                                    |
-            |:--------------------:|------------------------------------------------|
-  |         Java         | 사용 언어                                          |
-  |        Gradle        | 빌드 도구                                          |
-  |     Spring Boot      | 프로젝트 프레임웍                                      |
-  |   Spring Security    | 요청 인증 • 인가 & filtering request                 |
-  |  Spring Validation   | 요청 유효 검증                                       |
+  |         Name         |                  Description                   |
+  |:--------------------:|:----------------------------------------------:|
+  |         Java         |                     사용 언어                      |
+  |        Gradle        |                     빌드 도구                      |
+  |     Spring Boot      |                   프로젝트 프레임웍                    |
+  |   Spring Security    |         요청 인증 • 인가 & filtering request         |
+  |  Spring Validation   |                    요청 유효 검증                    |
   |        Redis         | Refresh token 저장, Data caching, 채팅 메시지 Pub/Sub |
-  |        STOMP         | 채팅 메시지 broker                                  |
-  | Spring OAuth2 Client | 소셜 로그인                                         |
-  |         JWT          | 사용자 인증 • 인가 토큰                                 |
-  |       Swagger        | API 문서 공유                                      |
+  |        STOMP         |                 채팅 메시지 broker                  |
+  | Spring OAuth2 Client |                     소셜 로그인                     |
+  |         JWT          |                 사용자 인증 • 인가 토큰                 |
+  |       Swagger        |                   API 문서 공유                    |
 
 - Test
 
-  |    Name     | Description        |
-    |:-----------:|--------------------|
-  |   JUnit5    | 테스트 프레임웍           |
-  | H2 Database | 테스트용 In-memory DB  |
-  |   Jacoco    | 테스트 코드 coverage 분석 |
-  | Sonar Cloud | 정적 코드 분석           |
+  |    Name     |     Description      |
+  |:-----------:|:--------------------:|
+  |   JUnit5    |       테스트 프레임웍       |
+  | H2 Database |  테스트용 In-memory DB   |
+  |   Jacoco    |  테스트 코드 coverage 분석  |
+  | Sonar Cloud |       정적 코드 분석       |
 
 - Infra & Monitoring
 
