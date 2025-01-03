@@ -1,7 +1,6 @@
 package com.palettee.user.service;
 
 import com.palettee.portfolio.domain.PortFolio;
-import com.palettee.portfolio.event.PortFolioAddEventListener;
 import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.controller.dto.request.users.RegisterBasicInfoRequest;
 import com.palettee.user.controller.dto.request.users.RegisterPortfolioRequest;

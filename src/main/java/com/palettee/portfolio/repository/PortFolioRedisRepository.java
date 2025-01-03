@@ -3,7 +3,6 @@ package com.palettee.portfolio.repository;
 import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
-import com.palettee.portfolio.event.PortFolioUpdateEventListener;
 import com.palettee.portfolio.service.PortFolioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
