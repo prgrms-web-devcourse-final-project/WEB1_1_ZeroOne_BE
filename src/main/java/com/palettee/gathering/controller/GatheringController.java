@@ -63,6 +63,8 @@ public class GatheringController {
     ) {
         GatheringCommonResponse gatheringCommonResponse = gatheringService.updateGathering(gatheringId, request, UserUtils.getContextUser());
 
+        redisRepository.updateGatheringInRedis(gatheringCommonResponse.gatheringId());
+
         return gatheringCommonResponse;
     }
 

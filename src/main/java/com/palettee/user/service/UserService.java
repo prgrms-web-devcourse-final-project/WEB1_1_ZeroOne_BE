@@ -145,7 +145,7 @@ public class UserService {
      * @throws NotOwnUserException   로그인 안 되어 있거나 다른 유저의 정보를 수정하려 할 때
      */
     @Transactional
-    public UserResponse editUserInfo(EditUserInfoRequest editUserInfoRequest,
+    public UserSavePortFolioResponse editUserInfo(EditUserInfoRequest editUserInfoRequest,
             Long userId, Optional<User> loggedInUser)
             throws UserNotFoundException, NotOwnUserException {
 
@@ -208,7 +208,7 @@ public class UserService {
         log.info("Edited user {}'s info successfully", userOnTarget.getId());
 
 
-        return UserResponse.of(userOnTarget);
+        return UserSavePortFolioResponse.of(userOnTarget, portFolio);
     }
 
     /**

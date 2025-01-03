@@ -10,8 +10,10 @@ import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
+import com.palettee.gathering.repository.GatheringRedisRepository;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
+import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
@@ -29,7 +31,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.palettee.gathering.repository.GatheringRedisRepository.RedisConstKey_Gathering;
@@ -50,10 +54,8 @@ public class GatheringService {
 
     private final RedisTemplate<String, GatheringResponse> redisTemplate;
 
-
     private final RedisService redisService;
 
-    public final static String zSetKey = "cache:firstPage:gatherings";
 
     private static boolean hasNext;
 
@@ -113,10 +115,12 @@ public class GatheringService {
 
             List<GatheringResponse> results = customSliceResponse.content();
 
-            // 캐시에 저장
-            redisTemplate.opsForList().rightPushAll(RedisConstKey_Gathering, results);
+            results.forEach(result ->
+                    redisTemplate.opsForZSet().add(RedisConstKey_Gathering, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime()))
+            );
 
-            redisTemplate.expire(RedisConstKey_Gathering, 1, TimeUnit.MINUTES); // 6시간으로 고정
+
+            redisTemplate.expire(RedisConstKey_Gathering, 1, TimeUnit.HOURS); // 1시간으로 고정
 
             return customSliceResponse;
         }
@@ -175,6 +179,8 @@ public class GatheringService {
         deleteImages(gathering);
 
         gatheringRepository.delete(gathering);
+
+        redisTemplate.delete(RedisConstKey_Gathering);
 
         return GatheringCommonResponse.toDTO(gathering);
     }
@@ -269,10 +275,11 @@ public class GatheringService {
 
     // 첫 페이지 이면서 캐시에 데이터가 있는지 검증
     private CustomSliceResponse getCachedFirstPage(Pageable pageable){
-        List<GatheringResponse> gatheringResponses = redisTemplate.opsForList().range(RedisConstKey_Gathering, 0, pageable.getPageSize());
+        Set<GatheringResponse> range = redisTemplate.opsForZSet().reverseRange(RedisConstKey_Gathering, 0, pageable.getPageSize());
 
-        if(gatheringResponses != null && !gatheringResponses.isEmpty()){
+        if(range != null && !range.isEmpty()){
             log.info("캐시에 값이 잇음");
+            List<GatheringResponse> gatheringResponses = new ArrayList<>(range);
 
             if(gatheringResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
                 log.info("range.size = {}", gatheringResponses.size());
@@ -283,6 +290,7 @@ public class GatheringService {
             }
 
             Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
+
 
             return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
         }

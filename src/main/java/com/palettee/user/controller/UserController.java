@@ -66,7 +66,7 @@ public class UserController {
      * @param id 수정하고자 하는 사용자의 id (자기 자신)
      */
     @PutMapping("/{userId}/edit")
-    public UserResponse editUserInfo(
+    public UserSavePortFolioResponse editUserInfo(
             @PathVariable("userId") Long id,
             @Valid @RequestBody
             EditUserInfoRequest editUserInfoRequest

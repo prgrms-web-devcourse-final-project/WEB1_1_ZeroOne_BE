@@ -245,7 +245,7 @@ class UserServiceTest {
         );
 
         // 정상 실행 검증
-        UserResponse result = userService.editUserInfo(req, testUser.getId(),
+        UserSavePortFolioResponse result = userService.editUserInfo(req, testUser.getId(),
                 Optional.of(testUser));
 
         assertThat(result.userId()).isEqualTo(testUser.getId());

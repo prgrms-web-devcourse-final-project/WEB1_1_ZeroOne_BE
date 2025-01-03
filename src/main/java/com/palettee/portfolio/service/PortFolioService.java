@@ -1,6 +1,7 @@
 package com.palettee.portfolio.service;
 
 import com.palettee.global.redis.service.RedisService;
+import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
@@ -66,9 +67,11 @@ public class PortFolioService {
             log.info("hasNext ={} ", hasNext);
             List<PortFolioResponse> results = response.content();
 
-            redisTemplate.opsForList().rightPushAll(RedisConstKey_PortFolio, results);
+            results.forEach(result ->
+                    redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, result, TypeConverter.LocalDateTimeToDouble(result.createAt()))
+            );
 
-            redisTemplate.expire(RedisConstKey_PortFolio, 1, TimeUnit.MINUTES);// 6시간으로 고정
+            redisTemplate.expire(RedisConstKey_PortFolio, 6, TimeUnit.HOURS); // 6시간으로 고정
             return response;
         }
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
@@ -139,10 +142,11 @@ public class PortFolioService {
     }
 
     private CustomOffSetResponse getCachedFirstPage(Pageable pageable){
-        List<PortFolioResponse> portFolioResponses = redisTemplate.opsForList().range(RedisConstKey_PortFolio, 0, pageable.getPageSize());
+        Set<PortFolioResponse> range = redisTemplate.opsForZSet().reverseRange(RedisConstKey_PortFolio, 0, pageable.getPageSize());
 
-        if(portFolioResponses != null && !portFolioResponses.isEmpty()){
+        if(range != null && !range.isEmpty()){
             log.info("캐시에 값이 잇음");
+            List<PortFolioResponse> portFolioResponses= new ArrayList<>(range);
 
             if(portFolioResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
                 log.info("range.size = {}", portFolioResponses.size());

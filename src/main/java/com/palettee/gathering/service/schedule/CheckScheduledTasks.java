@@ -8,7 +8,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import static com.palettee.gathering.service.GatheringService.zSetKey;
 
 @Component
 @RequiredArgsConstructor
@@ -26,12 +25,9 @@ public class CheckScheduledTasks {
     public void checkScheduledTasks() {
         log.info("만료 스케줄러 실행");
         gatheringService.updateGatheringStatus();
-        deleteCacheRedis();
     }
 
-    private void deleteCacheRedis(){
-        redisTemplate.delete(zSetKey);
-    }
+
 
 
 

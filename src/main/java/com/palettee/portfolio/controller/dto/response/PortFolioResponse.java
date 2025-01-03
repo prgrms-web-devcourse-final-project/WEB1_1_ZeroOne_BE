@@ -26,19 +26,31 @@ public record PortFolioResponse(
         LocalDateTime createAt
 ) {
 
-    public static PortFolioResponse toDto(PortFolio portFolio){
+    public static PortFolioResponse toDto(PortFolio portFolio) {
+        List<String> relationUrl = checkRelationUrl(portFolio);
 
-        List<String> relationUrl=  checkRelationUrl(portFolio);
-
-        return new PortFolioResponse(portFolio.getPortfolioId(),portFolio.getUser().getId(), portFolio.getUser().getJobTitle(), portFolio.getUrl(),portFolio.getUser().getName() , portFolio.getUser().getBriefIntro(), portFolio.getUser().getMajorJobGroup().name(), portFolio.getUser().getMinorJobGroup().name(), portFolio.getUser().getImageUrl(),relationUrl, portFolio.getCreateAt());
+        return new PortFolioResponse(
+                portFolio.getPortfolioId(),
+                portFolio.getUser().getId(),
+                portFolio.getUser().getJobTitle(),
+                portFolio.getUrl(),
+                portFolio.getUser().getName(),
+                portFolio.getUser().getBriefIntro(),
+                portFolio.getUser().getMajorJobGroup().name(),
+                portFolio.getUser().getMinorJobGroup().name(),
+                portFolio.getUser().getImageUrl(),
+                relationUrl,
+                portFolio.getCreateAt()
+        );
     }
 
     private static List<String> checkRelationUrl(PortFolio portFolio) {
         List<RelatedLink> relatedLinks = portFolio.getUser().getRelatedLinks();
 
-        if(relatedLinks != null && !relatedLinks.isEmpty()){
+        if (relatedLinks != null && !relatedLinks.isEmpty()) {
             return relatedLinks.stream()
-                    .map(RelatedLink::getLink).toList();
+                    .map(RelatedLink::getLink)
+                    .toList();
         }
         return null;
     }
