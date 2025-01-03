@@ -98,4 +98,8 @@ public class Archive extends BaseEntity {
     public boolean isNotOpenComment() {
         return !this.canComment;
     }
+
+    public void setHit(long totalHits) {
+        this.hits = (int) totalHits;
+    }
 }

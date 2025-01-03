@@ -2,18 +2,23 @@ package com.palettee.archive;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.palettee.archive.controller.dto.response.ArchiveListResponse;
 import com.palettee.archive.controller.dto.response.ArchiveRedisResponse;
+import com.palettee.archive.controller.dto.response.ArchiveSimpleResponse;
 import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.ArchiveType;
 import com.palettee.archive.event.HitEvent;
 import com.palettee.archive.repository.ArchiveRedisRepository;
 import com.palettee.archive.repository.ArchiveRepository;
+import com.palettee.archive.service.ArchiveScheduler;
+import com.palettee.archive.service.ArchiveService;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
 import com.palettee.user.domain.UserRole;
 import com.palettee.user.repository.UserRepository;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,19 +34,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArchiveRedisTest {
 
     @Autowired
+    private ArchiveService archiveService;
+
+    @Autowired
     private ArchiveRedisRepository archiveRedisRepository;
 
     @Autowired
-    private ArchiveRepository archiveRepository;
+    private ArchiveScheduler archiveScheduler;
 
     @Autowired
-    private UserRepository userRepository;
+    private ArchiveRepository archiveRepository;
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplateForArchive;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private User savedUser;
 
@@ -50,7 +61,7 @@ public class ArchiveRedisTest {
         savedUser = userRepository.save(
                 User.builder()
                         .email("email").imageUrl("imageUrl").name("name").briefIntro("briefIntro")
-                        .userRole(UserRole.REAL_NEWBIE)
+                        .userRole(UserRole.USER)
                         .majorJobGroup(MajorJobGroup.DEVELOPER)
                         .minorJobGroup(MinorJobGroup.BACKEND)
                         .build()
@@ -58,68 +69,85 @@ public class ArchiveRedisTest {
     }
 
     @AfterEach
-    public void clearRedis() {
-        redisTemplate.getConnectionFactory().getConnection().flushDb();
-        redisTemplateForArchive.getConnectionFactory().getConnection().flushDb();
+    void tearDown() {
+
+        archiveRepository.deleteAll();
+        userRepository.deleteAll();
+
+        Objects.requireNonNull(redisTemplate.keys("*")).forEach(redisTemplate::delete);
+        Objects.requireNonNull(redisTemplateForArchive.keys("*")).forEach(redisTemplateForArchive::delete);
     }
 
     @Test
-    @DisplayName("Redis hit count 정산 및 DB 업데이트 테스트")
-    public void testSettleHits() {
-        // given
-        String incrKey = "incr:hit:archiveId:1";
+    void testSettleHits() {
+        // Given
+
+        Archive archive = new Archive("title", "description", "introduction", ArchiveType.RED, true, savedUser);
+        archiveRepository.save(archive);
+
+        String incrKey = "incr:hit:archiveId:" + archive.getId();
+        String stdKey = "std:hit:archiveId:" + archive.getId();
+
         redisTemplate.opsForValue().set(incrKey, "5");
+        redisTemplate.opsForValue().set(stdKey, "10");
 
-        Archive archive = archiveRepository.save(Archive.builder()
-                .title("Test Archive")
-                .description("Test Description")
-                .introduction("Test Introduction")
-                .type(ArchiveType.RED)
-                .canComment(true)
-                .user(savedUser)
-                .build());
-
-        // when
+        // When
         archiveRedisRepository.settleHits();
 
-        // then
+        // Then
+        assertThat(redisTemplate.opsForValue().get(stdKey)).isEqualTo("15");
+        assertThat(redisTemplate.hasKey(incrKey)).isFalse();
+
         Archive updatedArchive = archiveRepository.findById(archive.getId()).orElseThrow();
-        assertThat(updatedArchive.getHits()).isEqualTo(5L); // 0 + 5
-        assertThat(redisTemplate.opsForValue().get(incrKey)).isNull();
+        assertThat(updatedArchive.getHits()).isEqualTo(15);
     }
 
     @Test
-    @DisplayName("인기 아카이브 업데이트 테스트")
-    public void testUpdateMainArchive() {
-        // given
+    void testUpdateArchiveList() {
+        // Given
+        Archive archive1 = new Archive("Archive 1", "description", "introduction", ArchiveType.RED, true, savedUser);
+        Archive archive2 = new Archive("Archive 2", "description", "introduction", ArchiveType.RED, true, savedUser);
+        archiveRepository.saveAll(List.of(archive1, archive2));
 
-        Archive archive1 = archiveRepository.save(Archive.builder()
-                .title("Archive 1")
-                .description("Description 1")
-                .introduction("Introduction 1")
-                .type(ArchiveType.RED)
-                .canComment(true)
-                .user(savedUser)
-                .build());
+        String incrKey1 = "incr:hit:archiveId:" + archive1.getId();
+        String incrKey2 = "incr:hit:archiveId:" + archive2.getId();
 
-        Archive archive2 = archiveRepository.save(Archive.builder()
-                .title("Archive 2")
-                .description("Description 2")
-                .introduction("Introduction 2")
-                .type(ArchiveType.RED)
-                .canComment(false)
-                .user(savedUser)
-                .build());
+        redisTemplate.opsForValue().set(incrKey1, "30");
+        redisTemplate.opsForValue().set(incrKey2, "40");
 
-        // when
+        // When
         archiveRedisRepository.updateArchiveList();
 
-        // then
-        @SuppressWarnings("unchecked")
-        List<Archive> topArchives = (List<Archive>) redisTemplateForArchive.opsForValue().get("top_archives");
-        assertThat(topArchives).isNotNull();
+        // Then
+        List<ArchiveRedisResponse> topArchives = archiveRedisRepository.getTopArchives();
         assertThat(topArchives).hasSize(2);
-        assertThat(topArchives.get(0).getTitle()).isEqualTo("Archive 1");
+        assertThat(topArchives)
+                .extracting(ArchiveRedisResponse::archiveId)
+                .containsExactlyInAnyOrder(archive1.getId(), archive2.getId());
+    }
+
+    @Test
+    void testGetMainArchive() {
+        // Given
+        Archive archive1 = new Archive("Archive 1", "description", "introduction", ArchiveType.RED, true, savedUser);
+        Archive archive2 = new Archive("Archive 2", "description", "introduction", ArchiveType.RED, true, savedUser);
+        archiveRepository.saveAll(List.of(archive1, archive2));
+
+        String topArchiveKey = "top_archives";
+        List<ArchiveRedisResponse> redisData = List.of(
+                new ArchiveRedisResponse(archive1.getId(), archive1.getTitle(), "", "", "", "", true, 1, true, "", ""),
+                new ArchiveRedisResponse(archive1.getId(), archive1.getTitle(), "", "", "", "", true, 1, true, "", "")
+        );
+        redisTemplateForArchive.opsForValue().set(topArchiveKey, redisData);
+
+        // When
+        ArchiveListResponse response = archiveService.getMainArchive(savedUser);
+
+        // Then
+        assertThat(response.archives()).hasSize(2);
+        assertThat(response.archives())
+                .extracting(ArchiveSimpleResponse::title)
+                .containsExactlyInAnyOrder("Archive 1", "Archive 2");
     }
 
     @Test
@@ -143,31 +171,6 @@ public class ArchiveRedisTest {
 
         Set<String> setMembers = redisTemplate.opsForSet().members(setKey);
         assertThat(setMembers).contains(email);
-    }
-
-    @Test
-    @DisplayName("인기 아카이브 조회 테스트")
-    public void testGetTopArchives() {
-        // given
-
-        Archive archive = archiveRepository.save(Archive.builder()
-                .title("Top Archive")
-                .description("Top Description")
-                .introduction("Top Introduction")
-                .type(ArchiveType.RED)
-                .canComment(true)
-                .user(savedUser)
-                .build());
-
-        redisTemplateForArchive.opsForValue().set("top_archives", List.of(archive));
-
-        // when
-        List<ArchiveRedisResponse> topArchives = archiveRedisRepository.getTopArchives();
-
-        // then
-        assertThat(topArchives).isNotNull();
-        assertThat(topArchives).hasSize(1);
-        assertThat(topArchives.get(0).title()).isEqualTo("Top Archive");
     }
 
 }

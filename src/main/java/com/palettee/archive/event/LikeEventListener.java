@@ -3,6 +3,7 @@ package com.palettee.archive.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,9 +14,10 @@ public class LikeEventListener {
 
     private final RedisTemplate<String, String> redisTemplate;
 
+    @Async
     @EventListener(value = LikeEvent.class)
     public void onLike(LikeEvent event) {
-        redisTemplate.opsForValue().setIfAbsent(LIKE_KEY + event.archiveId(), String.valueOf(event.userId()));
+        redisTemplate.opsForValue().increment(LIKE_KEY + event.archiveId());
     }
 
 }

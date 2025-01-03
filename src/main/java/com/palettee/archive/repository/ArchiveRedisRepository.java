@@ -2,9 +2,9 @@ package com.palettee.archive.repository;
 
 import com.palettee.archive.controller.dto.response.ArchiveRedisResponse;
 import com.palettee.archive.domain.Archive;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArchiveRedisRepository {
 
     private static final String INCR_PATTERN = "incr:hit:archiveId:*";
-    private static final String STD_PATTERN = "std:hit:archiveId:*";
+    private static final String STD_PATTERN = "std:hit:archiveId:";
     private static final String TOP_ARCHIVE = "top_archives";
     private static final String DELIMITER = ":";
 
@@ -48,11 +48,16 @@ public class ArchiveRedisRepository {
 
             long totalHits = stdCount + incrCount;
 
-            archiveRepository.updateHitCount(Long.parseLong(archiveId), totalHits);
+            updateHitCount(Long.parseLong(archiveId), totalHits);
 
             redisTemplate.opsForValue().set(stdKey, String.valueOf(totalHits));
             redisTemplate.delete(incrKey);
         }
+    }
+
+    private void updateHitCount(Long archiveId, long totalHits) {
+        Archive archive = archiveRepository.findById(archiveId).orElseThrow();
+        archive.setHit(totalHits);
     }
 
     private String extractId(String incrKey) {
@@ -79,23 +84,45 @@ public class ArchiveRedisRepository {
     }
 
     private List<Long> getTop4IncrKeys() {
-        Set<String> incrKeys = redisTemplate.keys(INCR_PATTERN);
-        if (incrKeys == null || incrKeys.isEmpty()) {
+        String hitPattern = "incr:hit:archiveId:*";
+        String likePattern = "like:archiveId:*";
+
+        // Redis에서 키 가져오기
+        Set<String> hitKeys = redisTemplate.keys(hitPattern);
+        Set<String> likeKeys = redisTemplate.keys(likePattern);
+
+        if (hitKeys == null || likeKeys == null) {
             return Collections.emptyList();
         }
 
-        return incrKeys.stream()
-                .map(key -> new AbstractMap.SimpleEntry<>(key, getValueAsLong(key)))
-                .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
+        // 점수 계산
+        Map<Long, Integer> archiveScores = new HashMap<>();
+        for (String hitKey : hitKeys) {
+            Long archiveId = extractArchiveId(hitKey);
+            Integer hitCount = getValueAsInt(hitKey);
+
+            String likeKey = "like:archiveId:" + archiveId;
+            Integer likeCount = getValueAsInt(likeKey);
+
+            int score = hitCount + (likeCount * 5);
+            archiveScores.put(archiveId, score);
+        }
+
+        // 정렬 및 상위 4개 추출
+        return archiveScores.entrySet().stream()
+                .sorted(Map.Entry.<Long, Integer>comparingByValue().reversed())
                 .limit(4)
                 .map(Map.Entry::getKey)
-                .map(it -> getValueAsLong(extractId(it)))
                 .collect(Collectors.toList());
     }
 
-    private Long getValueAsLong(String key) {
+    private Long extractArchiveId(String key) {
+        return Long.valueOf(key.replace("incr:hit:archiveId:", ""));
+    }
+
+    private Integer getValueAsInt(String key) {
         String value = redisTemplate.opsForValue().get(key);
-        return value == null ? 0L : Long.parseLong(value);
+        return value != null ? Integer.parseInt(value) : 0;
     }
 
     @SuppressWarnings("unchecked")

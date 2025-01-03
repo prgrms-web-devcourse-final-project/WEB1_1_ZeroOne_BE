@@ -4,6 +4,7 @@ import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,6 +16,7 @@ public class HitEventListener {
 
     private final RedisTemplate<String, String> redisTemplate;
 
+    @Async
     @EventListener(value = HitEvent.class)
     public void onHit(HitEvent event) {
 
@@ -25,7 +27,7 @@ public class HitEventListener {
             return;
         }
 
-        redisTemplate.expire(setKey, Duration.ofHours(1));
+        redisTemplate.expire(setKey, Duration.ofDays(1));
 
         String valueKey = VALUE_KEY_PREFIX + event.archiveId();
         redisTemplate.opsForValue().increment(valueKey);
