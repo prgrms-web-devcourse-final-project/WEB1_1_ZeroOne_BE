@@ -10,7 +10,6 @@ import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
-import com.palettee.gathering.repository.GatheringRedisRepository;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.global.redis.utils.TypeConverter;
