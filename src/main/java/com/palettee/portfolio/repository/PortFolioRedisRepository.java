@@ -1,0 +1,60 @@
+package com.palettee.portfolio.repository;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
+import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.portfolio.service.PortFolioService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import static com.palettee.portfolio.service.PortFolioService.zSetPfKey;
+
+@Repository
+@Slf4j
+@RequiredArgsConstructor
+public class PortFolioRedisRepository
+{
+
+    public final static String RedisConstKey_PortFolio = "cache:firstPage:portFolios";
+
+    private final PortFolioService portFolioService;
+    private final RedisTemplate<String, PortFolioResponse> redisTemplate;
+
+
+    @Transactional(readOnly = true)
+    public void addPortFolioInRedis(Long portFolioId){
+
+        PortFolio portFolio = portFolioService.getPortFolio(portFolioId);
+
+        Long preSize = redisTemplate.opsForList().size(RedisConstKey_PortFolio);
+
+
+        redisTemplate.opsForList().range(RedisConstKey_PortFolio, 0, -1) // 전체 범위 조회
+                .stream()
+                .filter(portFolioResponse -> {
+                    // `portFolioResponse`의 userId와 `portFolio`의 userId를 비교
+                    return portFolioResponse.userId().equals(portFolio.getUser().getId());
+                })
+                .findFirst() // 조건에 맞는 첫 번째 항목만 처리 (유일한 항목이라고 가정)
+                .ifPresent(matchingResponse -> {
+                    log.info("같은 포트폴리오 Redis 캐시에 존재");
+                    log.info("삭제된 Redis PortFolioId ={}", matchingResponse.portFolioId());
+                    // 조건에 맞는 항목을 ZSet에서 제거
+                    redisTemplate.opsForList().remove(RedisConstKey_PortFolio, 0, matchingResponse.portFolioId());
+                });
+
+        Long afterSize = redisTemplate.opsForList().size(RedisConstKey_PortFolio);
+
+        if(preSize.equals(afterSize)){
+            log.info("캐시에 해당 아이디가 없어서 마지막 데이터 삭제");
+            redisTemplate.opsForList().rightPop(RedisConstKey_PortFolio); //맨 마지막 요소 빼기 즉 score가 가장 낮은애를 빼줌
+        }
+
+        PortFolioResponse portFolioResponse = PortFolioResponse.toDto(portFolio);
+        redisTemplate.opsForList().leftPush(RedisConstKey_PortFolio, portFolioResponse);
+
+    }
+}

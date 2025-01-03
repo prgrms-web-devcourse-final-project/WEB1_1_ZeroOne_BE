@@ -7,6 +7,7 @@ import com.palettee.user.controller.dto.request.users.RegisterBasicInfoRequest;
 import com.palettee.user.controller.dto.request.users.RegisterPortfolioRequest;
 import com.palettee.user.controller.dto.response.users.BasicInfoResponse;
 import com.palettee.user.controller.dto.response.users.UserResponse;
+import com.palettee.user.controller.dto.response.users.UserSavePortFolioResponse;
 import com.palettee.user.domain.RelatedLink;
 import com.palettee.user.domain.StoredProfileImageUrl;
 import com.palettee.user.domain.User;
@@ -106,7 +107,7 @@ public class BasicRegisterService {
      * 유저 포폴 정보 (링크) 등록하기
      */
     @Transactional
-    public UserResponse registerPortfolio(
+    public UserSavePortFolioResponse registerPortfolio(
             User user,
             RegisterPortfolioRequest registerPortfolioRequest
     ) {
@@ -117,7 +118,7 @@ public class BasicRegisterService {
         user = this.getUserByIdFetchWithPortfolio(user.getId());
 
         // 이전 포폴 정보 삭제
-         portFolioRepo.deleteAllByUserId(user.getId());
+//         portFolioRepo.deleteAllByUserId(user.getId());
 
         log.debug("Deleted user {}'s all portfolio links", user.getId());
 
@@ -129,9 +130,7 @@ public class BasicRegisterService {
         log.info("Registered user portfolio info on id: {}",
                 user.getId());
 
-        eventPublisher.publishEvent(new PortFolioAddEventListener(portFolio.getPortfolioId()));
-
-        return UserResponse.of(user);
+        return UserSavePortFolioResponse.of(user, portFolio);
     }
 
     private User getUser(String email) {

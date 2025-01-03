@@ -1,7 +1,6 @@
 package com.palettee.portfolio.service;
 
 import com.palettee.global.redis.service.RedisService;
-import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
@@ -22,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.palettee.portfolio.repository.PortFolioRedisRepository.RedisConstKey_PortFolio;
 
 @Service
 @Slf4j
@@ -65,11 +66,9 @@ public class PortFolioService {
             log.info("hasNext ={} ", hasNext);
             List<PortFolioResponse> results = response.content();
 
-            results.forEach(result ->
-                    redisTemplate.opsForZSet().add(zSetPfKey, result, TypeConverter.LocalDateTimeToDouble(result.createAt()))
-            );
+            redisTemplate.opsForList().rightPushAll(RedisConstKey_PortFolio, results);
 
-            redisTemplate.expire(zSetPfKey, 6, TimeUnit.HOURS); // 6시간으로 고정
+            redisTemplate.expire(RedisConstKey_PortFolio, 1, TimeUnit.MINUTES);// 6시간으로 고정
             return response;
         }
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
@@ -140,17 +139,16 @@ public class PortFolioService {
     }
 
     private CustomOffSetResponse getCachedFirstPage(Pageable pageable){
-        Set<PortFolioResponse> range = redisTemplate.opsForZSet().reverseRange(zSetPfKey, 0, pageable.getPageSize());
+        List<PortFolioResponse> portFolioResponses = redisTemplate.opsForList().range(RedisConstKey_PortFolio, 0, pageable.getPageSize());
 
-        if(range != null && !range.isEmpty()){
+        if(portFolioResponses != null && !portFolioResponses.isEmpty()){
             log.info("캐시에 값이 잇음");
-            List<PortFolioResponse> portFolioResponses= new ArrayList<>(range);
 
             if(portFolioResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
                 log.info("range.size = {}", portFolioResponses.size());
                 log.info("pageable.getPageSize = {}", pageable.getPageSize());
                 log.info("사이즈가 다름");
-                redisTemplate.delete(zSetPfKey);
+                redisTemplate.delete(RedisConstKey_PortFolio);
                 return null;
             }
 

@@ -1,6 +1,7 @@
 package com.palettee.user.controller;
 
 import com.palettee.global.security.validation.*;
+import com.palettee.portfolio.repository.PortFolioRedisRepository;
 import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
@@ -17,6 +18,10 @@ import org.springframework.web.bind.annotation.*;
 public class BasicRegisterController {
 
     private final BasicRegisterService basicRegisterService;
+
+    private final PortFolioRedisRepository redisRepository;
+
+
 
     /**
      * 유저 기본 정보 등록시 기초 정보 보여주기
@@ -43,13 +48,16 @@ public class BasicRegisterController {
      * 유저 포폴 정보 등록하기
      */
     @PostMapping("/portfolio")
-    public UserResponse registerPortfolio(
+    public UserSavePortFolioResponse registerPortfolio(
             @Valid @RequestBody
             RegisterPortfolioRequest registerPortfolioRequest
     ) {
-        return basicRegisterService.registerPortfolio(
+        UserSavePortFolioResponse userSavePortFolioResponse = basicRegisterService.registerPortfolio(
                 getUserFromContext(), registerPortfolioRequest
         );
+        redisRepository.addPortFolioInRedis(userSavePortFolioResponse.portFolioId());
+
+        return userSavePortFolioResponse;
     }
 
     private User getUserFromContext() {

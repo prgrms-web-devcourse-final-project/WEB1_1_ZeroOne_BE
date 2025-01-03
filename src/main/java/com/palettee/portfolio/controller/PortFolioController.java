@@ -2,7 +2,6 @@ package com.palettee.portfolio.controller;
 
 import com.palettee.global.security.validation.UserUtils;
 import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
-import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.service.PortFolioService;
