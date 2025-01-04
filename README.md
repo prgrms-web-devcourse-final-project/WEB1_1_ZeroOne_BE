@@ -157,7 +157,7 @@
 
 <details><summary> 🔖 부가 수행 내용</summary>
 
-- `SonarCloud`, `Jacoco` 를 이용한 `CI` 파이프라인 구축
+- `SonarCloud`, `Jacoco` 를 이용한 [`CI` 파이프라인](./.github/workflows/ci-with-gradle-and-sonar.yml) 구축
 - `Spring Security` `filter`
   우회용 [`BypassUrlHolder`](./src/main/java/com/palettee/global/security/jwt/utils/BypassUrlHolder.java)
   구현

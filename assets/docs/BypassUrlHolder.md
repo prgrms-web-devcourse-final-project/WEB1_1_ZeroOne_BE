@@ -41,7 +41,7 @@
 <!-- security-filter-chain-bypass-before.png -->
 
 <p align="center">
-    <img src="../images/docs/bypass/security-filter-chain-bypass-before.png" width="70%" height="70%"><br>
+    <img src="../images/docs/bypass/security-filter-chain-bypass-before.png" width="50%" height="50%"><br>
     우회 요청별 인가 설정을 중복으로 하는 모습
 </p>
 
@@ -49,9 +49,13 @@
 
 그래서 저는 `Builder Pattern` 에 기반한 `BypassUrlHolder` 를 추가하였습니다.
 
-| [`BypassUrlHolder` source code](../../src/main/java/com/palettee/global/security/jwt/utils/BypassUrlHolder.java) |
-|:----------------------------------------------------------------------------------------------------------------:|
-|                         ![BypassUrlHolder](../images/docs/bypass/bypass-url-holder.png)                          |
+- [`BypassUrlHolder` source code](../../src/main/java/com/palettee/global/security/jwt/utils/BypassUrlHolder.java)
+
+<!-- bypass-url-holder.png -->
+
+<p align="center">
+    <img src="../images/docs/bypass/bypass-url-holder.png" width="60%" height="60%">
+</p>
 
 ---
 
@@ -76,7 +80,7 @@
 <!-- bypass-url-holder-ant-pattern.png -->
 
 <p align="center">
-    <img src="../images/docs/bypass/bypass-url-holder-ant-pattern.png" width="70%" height="70%"><br>
+    <img src="../images/docs/bypass/bypass-url-holder-ant-pattern.png" width="50%" height="50%"><br>
     Ant Path 패턴을 이용해 우회 URI 를 등록하는 모습
 </p>
 
@@ -91,7 +95,7 @@
 <!-- bypass-url-holder-builder-pattern.png -->
 
 <p align="center">
-    <img src="../images/docs/bypass/bypass-url-holder-builder-pattern.png" width="70%" height="70%"><br>
+    <img src="../images/docs/bypass/bypass-url-holder-builder-pattern.png" width="50%" height="50%"><br>
     Builder 패턴으로 우회 URI 등록, BypassUrlHolder 를 생성하는 모습
 </p>
 
@@ -109,6 +113,14 @@
 하지만 이를 자동화한 만큼 위 `요청별 인가 설정` 은 반드시 정상 작동해야 되며, 때문에 이를 확실하게 보여주는 `테스트 코드` 의 필요성을 느꼈습니다.
 
 그래서 `MockMVC` 와 `SpyBean` 을 통한 `요청 인가 설정 테스트 코드` 를 추가하였습니다.
+
+- [`BypassUrlHolderTest` source code](../../src/test/java/com/palettee/global/security/jwt/utils/BypassUrlHolderTest.java)
+
+<!-- bypass-url-holder-test-code.png -->
+
+<p align="center">
+    <img src="../images/docs/bypass/bypass-url-holder-test-code.png" width="50%" height="50%">
+</p>
 
 | [`BypassUrlHolderTest` source code](../../src/test/java/com/palettee/global/security/jwt/utils/BypassUrlHolderTest.java) |
 |--------------------------------------------------------------------------------------------------------------------------|
