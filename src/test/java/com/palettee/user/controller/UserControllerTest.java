@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 import lombok.extern.slf4j.*;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.*;
 import org.springframework.beans.factory.annotation.*;
@@ -43,7 +44,6 @@ import org.springframework.test.web.servlet.request.*;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
-@Transactional
 class UserControllerTest {
 
     @Autowired
@@ -273,6 +273,10 @@ class UserControllerTest {
 
         EditUserInfoRequest request = genReq("etc", "etc", "student", List.of("11", "22"));
         String body = mapper.writeValueAsString(request);
+
+        // Lazy 로딩된 컬렉션 초기화
+        Hibernate.initialize(testUser.getRelatedLinks());
+
 
         mvc.perform(put(BASE_URL + "/edit")
                         .header("Authorization", ACCESS_TOKEN)

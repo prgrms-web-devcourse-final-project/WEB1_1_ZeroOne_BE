@@ -37,7 +37,6 @@ public class PortFolioService {
 
     private final RedisTemplate<String, PortFolioResponse> redisTemplate;
 
-    public final static String zSetPfKey = "cache:firstPage:portFolios";
 
     private static boolean hasNext;
 
@@ -139,6 +138,11 @@ public class PortFolioService {
     public PortFolio getPortFolio(Long portFolioId){
        return portFolioRepository.findById(portFolioId)
               .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
+    }
+
+    public PortFolio getUserPortFolio(Long portFolioId){
+        return portFolioRepository.findByFetchUserPortFolio(portFolioId)
+                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
     }
 
     private CustomOffSetResponse getCachedFirstPage(Pageable pageable){
