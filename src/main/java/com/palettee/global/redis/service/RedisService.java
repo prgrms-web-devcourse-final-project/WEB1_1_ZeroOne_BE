@@ -1,6 +1,6 @@
 package com.palettee.global.redis.service;
 
-import com.palettee.global.cache.MemoryCache;
+import com.palettee.global.cache.RedisWeightCache;
 import com.palettee.likes.controller.dto.LikeDto;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.service.LikeService;
@@ -29,10 +29,12 @@ public class RedisService {
     private final PortFolioRedisService portFolioRedisService;
 
     private final PortFolioRepository portFolioRepository;
-    private final MemoryCache memoryCache;
+
     private final LikeService likeService;
 
     private final RedisTemplate<String, PortFolioPopularResponse> responseRedisTemplate;
+    private final RedisWeightCache redisWeightCache;
+
     /**
      * redis에 해당 뷰 카운팅
      * @param targetId 는 achieveId, portFolioId
@@ -42,7 +44,7 @@ public class RedisService {
      *   userKey = 중복 조회수 방지를 위해 targetId를 조회한 유저 Id가 value
      */
     public boolean viewCount(Long targetId, Long userId ,String category) {
-        String key = VIEW_PREFIX + category + ": " + targetId;
+        String key = VIEW_PREFIX + category + ":" + targetId;
         String userKey = key + "_user";
 
 
@@ -72,22 +74,19 @@ public class RedisService {
      *   이미 유저가 좋아요를 누른 게시물을 확인하고 좋아요를 눌렀을시에
      */
     public boolean likeCount(Long targetId, Long userId, String category) {
-        String key = LIKE_PREFIX + category + ": " + targetId;
+        String key = LIKE_PREFIX + category + ":" + targetId;
         String userKey = key + "_user";
-        String userTargetsKey = LIKE_PREFIX + category + ": " + userId + "_targets"; // userId가 좋아요를 누른 모든 targetId를 추적
 
         Long validation = redisTemplate.opsForSet().add(userKey, userId);
 
         if (validation != null && validation > 0) {
             log.info("좋아요를 눌렀습니다");
             redisTemplate.opsForValue().increment(key, 1L);
-            redisTemplate.opsForSet().add(userTargetsKey, targetId);
             return true;
         } else {
             log.info("좋아요를 취소하였습니다");
             redisTemplate.opsForSet().remove(userKey, userId);
             redisTemplate.opsForValue().set(key, 0L); //decrement 를 안한 이유: count redis 가 reset 된 후에 좋아요 취소하면 -1 값이 들어감
-            redisTemplate.opsForSet().remove(userTargetsKey, targetId);
             return false;
         }
     }
@@ -96,8 +95,8 @@ public class RedisService {
      * 스케줄러를 돌려서 1분마다 redis -> db로 반영
      */
     public void categoryToDb(String category) {
-        String viewKeys = VIEW_PREFIX + category + ": ";
-        String likeKeys = LIKE_PREFIX + category + ": ";
+        String viewKeys = VIEW_PREFIX + category + ":";
+        String likeKeys = LIKE_PREFIX + category + ":";
 
         viewRedisToDB(viewKeys);
         likeRedisToDB(likeKeys, category);
@@ -115,12 +114,12 @@ public class RedisService {
         }
 
         redisKeys = redisKeys.stream()   // SET에 있는 USER 조회용 키들은 제외시킴
-                .filter(redisKey -> !redisKey.contains("_user"))
+                .filter(redisKey -> !redisKey.contains("_user") && !redisKey.contains(":weight"))
                 .collect(Collectors.toSet());
 
         redisKeys.forEach(redisKey -> {
             log.info("카운트");
-            long targetId = Long.parseLong(redisKey.replace(viewKeys, "").trim()); // 키에 있는 targetId 들을 가져옴
+            long targetId = Long.parseLong(redisKey.split(":")[1]); // 키에 있는 targetId 들을 가져옴
             Long countViews = Optional.ofNullable(redisTemplate.opsForValue().get(redisKey)).orElse(0L); // view count 인 value 를 가져옴
             log.info("targetId: {}, countViews: {}", targetId, countViews);
 
@@ -141,12 +140,12 @@ public class RedisService {
         }
 
         redisKeys = redisKeys.stream()
-                .filter(redisKey -> !redisKey.contains("_user") && !redisKey.contains("_targets"))
+                .filter(redisKey -> !redisKey.contains("_user"))
                 .collect(Collectors.toSet());
 
         redisKeys.forEach(redisKey -> {
             log.info("redisKey ={}", redisKey);
-            long targetId = Long.parseLong(redisKey.replace(likeKeys, "").trim());
+            long targetId =Long.parseLong(redisKey.split(":")[1]);
             Long countLikes = Optional.ofNullable(redisTemplate.opsForValue().get(redisKey)).orElse(0L); // view count 인 value 를 가져옴
             if(countLikes > 0) {
                 // 배치 insert
@@ -161,36 +160,35 @@ public class RedisService {
     public void rankingCategory(String category) {
         String zSetKey = category + "_Ranking";
 
-        log.info("memort CacheSize ={}", memoryCache.getLocalCache().size());
+        String viewKeys = VIEW_PREFIX + category + ":";
+        String likeKeys = LIKE_PREFIX + category + ":";
+
 
         //memory cache 있을시에 한번 비우기
-        if(memoryCache.getLocalCache() != null && !memoryCache.getLocalCache().isEmpty()){
+        if(redisWeightCache.getSize()){
+            log.info("지워짐 ㅋㅋ");
             responseRedisTemplate.opsForZSet().removeRange(zSetKey, 0, -1);
         }
 
 
-        Map<String, Long> viewCache = memoryCache.getViewCache(category);
-        Map<String, Long> likeCache = memoryCache.getLikeCache(category);
+        Map<Long, Long> viewCache = redisWeightCache.getCache(viewKeys);
+        Map<Long, Long> likeCache = redisWeightCache.getCache(likeKeys);
 
         log.info("viewCache: {}", viewCache.size());
         log.info("likeCache: {}", likeCache.size());
 
-        String viewsKeys = VIEW_PREFIX + category + ": ";
-        String likesKeys = LIKE_PREFIX + category + ": ";
 
         // 아이디를 통해 db에서 한번에 조회하기 위해서
         Set<Long> setList = new HashSet<>();
 
         //set에 가중치에 key에 대한 아이디들 저장
-        viewCache.forEach((keys, value) -> {
-            Long targetId = Long.parseLong(keys.replace(viewsKeys, "").trim());
-            setList.add(targetId);
+        viewCache.forEach((keys, value)  -> {
+            setList.add(keys);
         });
 
         //set에 가중치에 key에 대한 아이디들 저장
         likeCache.forEach((keys, value) -> {
-            Long targetId = Long.parseLong(keys.replace(likesKeys, "").trim());
-            setList.add(targetId);
+            setList.add(keys);
         });
 
         if(!setList.isEmpty()) {
@@ -203,7 +201,7 @@ public class RedisService {
 
             //가중치
             viewCache.forEach((keys, value) -> {
-                Long targetId = Long.parseLong(keys.replace(viewsKeys, "").trim());
+                Long targetId = keys;
                 PortFolio portFolio = collect.get(targetId);
                 if(portFolio != null){
                     Double score = responseRedisTemplate.opsForZSet().score(zSetKey, PortFolioPopularResponse.toDto(portFolio));
@@ -214,11 +212,10 @@ public class RedisService {
             });
 
             likeCache.forEach((keys, value) -> {
-                Long targetId = Long.parseLong(keys.replace(likesKeys, "").trim());
+                Long targetId = keys;
                 log.info("targetId ={}", targetId);
                 PortFolio portFolio = collect.get(targetId);
                 if(portFolio != null) {
-                    log.info("값이 잇음");
                     Double score = responseRedisTemplate.opsForZSet().score(zSetKey, PortFolioPopularResponse.toDto(portFolio));
                     log.info("LikeScore={}", score);
                     double result = ((score == null) ? 0 : score) + value;
@@ -261,7 +258,7 @@ public class RedisService {
     private void updateViewDB(String redisKey, Long count, Long targetId) {
         log.info("count = {}, targetId = {}, str = {}", count, targetId);
         portFolioRedisService.incrementHits(count, targetId); //배치 업데이트
-        memoryCache.put(redisKey, count); // 해당 대한 가중치 넣어줌
+        redisWeightCache.put(redisKey, count); // 해당 대한 가중치 넣어줌
         redisTemplate.opsForValue().decrement(redisKey, count); // view(count) 만큼 차감
     }
 
@@ -414,7 +411,7 @@ public class RedisService {
         });
 
         redisTemplate.opsForValue().decrement(redisKey, count); // 카운트 차감
-        memoryCache.put(redisKey, count); // 가중치 저장
+        redisWeightCache.put(redisKey, count); // 가중치 저장
         likeService.bulkSaveLike(list);  // bulk insert
     }
 

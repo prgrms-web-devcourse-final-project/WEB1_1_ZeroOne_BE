@@ -1,12 +1,11 @@
 package com.palettee.portfolio.service;
 
-import com.palettee.global.cache.MemoryCache;
+import com.palettee.global.cache.RedisWeightCache;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.MajorJobGroup;
@@ -22,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
@@ -54,7 +52,7 @@ class PortFolioServiceTest {
     private RedisService redisService;
 
     @Autowired
-    private MemoryCache memoryCache;
+    private RedisWeightCache memoryCache;
 
     @Autowired
     private  RedisTemplate<String, Long> redisTemplate;
