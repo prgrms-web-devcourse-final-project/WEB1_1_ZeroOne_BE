@@ -20,10 +20,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -37,7 +35,7 @@ public class PortFolioService {
 
     private final RedisService redisService;
 
-    private final RedisTemplate<String, PortFolioPopularResponse> responseRedisTemplate;
+    private final RedisTemplate<String, Object> redisTemplateForTarget;
 
 
 
@@ -123,19 +121,32 @@ public class PortFolioService {
         log.info("호출");
         String zSetKey = "portFolio_Ranking";
 
-        List<PortFolioPopularResponse> list = new ArrayList<>(responseRedisTemplate.opsForZSet().reverseRange(zSetKey, 0, 4));
-
+        List<PortFolioPopularResponse> listFromRedis = getListFromRedis(zSetKey);
         user.ifPresent(u -> {
-            Set<Long> portFolioIds = redisService.getLikeTargetIds(u.getId(), "portFolio");
+            List<Long> longs = listFromRedis
+                    .stream()
+                    .map(PortFolioPopularResponse::getPortFolioId)
+                    .toList();
+
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndPortFolio(user.get().getId(), longs);
 
             if (portFolioIds.isEmpty()) {
                 log.info("유저가 누른 아이디가 없음");
             }
 
-            list.forEach(response -> response.setLiked(portFolioIds.contains(response.getPortFolioId())));
+            listFromRedis.forEach(response -> response.setLiked(portFolioIds.contains(response.getPortFolioId())));
         });
-        return new PortFolioWrapper(list);
+        return new PortFolioWrapper(listFromRedis);
         }
+
+    @SuppressWarnings("unchecked")
+    public List<PortFolioPopularResponse> getListFromRedis(String zSetKey) {
+        Object result = redisTemplateForTarget.opsForValue().get(zSetKey);
+        if (result instanceof List) {
+            return (List<PortFolioPopularResponse>) result; // List<PortFolioPopularResponse>로 캐스팅
+        }
+        return Collections.emptyList(); // 빈 리스트 반환
+    }
 
 
 

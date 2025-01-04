@@ -10,8 +10,8 @@ import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.portfolio.service.PortFolioRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -32,7 +32,8 @@ public class RedisService {
 
     private final LikeService likeService;
 
-    private final RedisTemplate<String, PortFolioPopularResponse> responseRedisTemplate;
+
+    private final RedisTemplate<String, Object> redisTemplateForTarget;
     private final RedisWeightCache redisWeightCache;
 
     /**
@@ -163,92 +164,61 @@ public class RedisService {
         String viewKeys = VIEW_PREFIX + category + ":";
         String likeKeys = LIKE_PREFIX + category + ":";
 
-
-        //memory cache 있을시에 한번 비우기
-        if(redisWeightCache.getSize()){
-            log.info("지워짐 ㅋㅋ");
-            responseRedisTemplate.opsForZSet().removeRange(zSetKey, 0, -1);
-        }
-
-
         Map<Long, Long> viewCache = redisWeightCache.getCache(viewKeys);
         Map<Long, Long> likeCache = redisWeightCache.getCache(likeKeys);
+
+        if(viewCache.isEmpty() && likeCache.isEmpty()) {
+            log.info("아무것도 입력이 안됐습니다");
+            return;
+        }
 
         log.info("viewCache: {}", viewCache.size());
         log.info("likeCache: {}", likeCache.size());
 
 
-        // 아이디를 통해 db에서 한번에 조회하기 위해서
-        Set<Long> setList = new HashSet<>();
+        Map<Long, Double> combinedScores = new HashMap<>();
+            viewCache.forEach((portFolioId, viewScore) -> {
+                double likeScore= Double.parseDouble(String.valueOf(likeCache.getOrDefault(portFolioId, 0L)));
+                double totalScore = viewScore + likeScore;
 
-        //set에 가중치에 key에 대한 아이디들 저장
-        viewCache.forEach((keys, value)  -> {
-            setList.add(keys);
-        });
-
-        //set에 가중치에 key에 대한 아이디들 저장
-        likeCache.forEach((keys, value) -> {
-            setList.add(keys);
-        });
-
-        if(!setList.isEmpty()) {
-            //아이디들을 통해 포트폴리오들을 가져옴
-            List<PortFolio> portFolios = portFolioRepository.findAllByPortfolioIdIn(new ArrayList<>(setList));
-
-            // 해당 아이디에 대한 포트폴리오 매핑
-            Map<Long, PortFolio> collect = portFolios.stream()
-                    .collect(Collectors.toMap(PortFolio::getPortfolioId, portFolio -> portFolio));
-
-            //가중치
-            viewCache.forEach((keys, value) -> {
-                Long targetId = keys;
-                PortFolio portFolio = collect.get(targetId);
-                if(portFolio != null){
-                    Double score = responseRedisTemplate.opsForZSet().score(zSetKey, PortFolioPopularResponse.toDto(portFolio));
-                    log.info("viewScore={}", score);
-                    double result = ((score == null) ? 0 : score) + value;
-                    responseRedisTemplate.opsForZSet().add(zSetKey, PortFolioPopularResponse.toDto(portFolio), result);
-                }
+                combinedScores.put(portFolioId, totalScore);
             });
 
-            likeCache.forEach((keys, value) -> {
-                Long targetId = keys;
-                log.info("targetId ={}", targetId);
-                PortFolio portFolio = collect.get(targetId);
-                if(portFolio != null) {
-                    Double score = responseRedisTemplate.opsForZSet().score(zSetKey, PortFolioPopularResponse.toDto(portFolio));
-                    log.info("LikeScore={}", score);
-                    double result = ((score == null) ? 0 : score) + value;
-                    responseRedisTemplate.opsForZSet().add(zSetKey, PortFolioPopularResponse.toDto(portFolio), result);
-                }
-            });
+            likeCache.forEach((portFolioId, likeScore) -> {
+                if(!combinedScores.containsKey(portFolioId)){
+                double viewScore = Double.parseDouble(String.valueOf(viewCache.getOrDefault(portFolioId, 0L)));
+                double totalScore = likeScore + viewScore;
 
-        }
-    }
+                combinedScores.put(portFolioId, totalScore);
+            }});
 
-    /**
-     * 인기 순위 상위 5개 targetId와 점수조회
-     */
-    public Map<Long, Double> getZSetPopularity(String category) {
-        String key = category + "_Ranking";
+            //점수가 높은 Map의 상위 4개의 아이디들을 추출
 
-        Set<ZSetOperations.TypedTuple<Long>> typedTuples = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, 4);
+        List<Long> topRankPortFolioIds = topRankIds(combinedScores);
 
-        // 로그로 데이터 출력
-        typedTuples.forEach(tuple -> {
-            System.out.println("Value: " + tuple.getValue() + ", Score: " + tuple.getScore());
-        });
+        // 상위 4개 포트폴리오 추출
+        List<PortFolioPopularResponse> allByPortfolioIdIn = portFolioRepository.findAllByPortfolioIdIn(topRankPortFolioIds)
+                .stream()
+                .map(portFolio -> PortFolioPopularResponse.toDto(portFolio,combinedScores.get(portFolio.getPortfolioId())))
+                .collect(Collectors.toList());
 
-        return typedTuples.stream()
-                .collect(Collectors.toMap(
-                        ZSetOperations.TypedTuple::getValue,
-                        ZSetOperations.TypedTuple::getScore,
-                        (e1, e2) -> e1, // 중복된 key 처리 방식 (여기서는 충돌이 없을 것으로 가정)
-                        LinkedHashMap::new  // LinkedHashMap으로 반환하여 순서 유지
-                ));
+        redisTemplateForTarget.delete(zSetKey);
+
+        redisTemplateForTarget.opsForValue().set(zSetKey, allByPortfolioIdIn);
 
     }
 
+    private List<Long> topRankIds(Map<Long, Double> combinedScores) {
+        List<Long> topRankPortFolioIds = combinedScores.entrySet()
+                .stream()
+                .sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
+                .limit(4)
+                .toList()
+                .stream()
+                .map(Map.Entry::getKey)
+                .toList();
+        return topRankPortFolioIds;
+    }
     /**
      *
      * @param redisKey -> view Count 용 키를 가져옴

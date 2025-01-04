@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Getter
@@ -25,12 +24,14 @@ public class PortFolioPopularResponse {
     private String minorJobGroup;
     private String memberImageUrl;
     private List<String> relatedUrl;
+    private Double score;
     private boolean isLiked;
 
     // Constructor
     public PortFolioPopularResponse(Long portFolioId, Long userId, String jobTitle, String portFolioUrl,
                                     String username, String introduction,  String majorJobGroup,
-                                    String minorJobGroup, String memberImageUrl, List<String> relatedUrl) {
+                                    String minorJobGroup, String memberImageUrl, List<String> relatedUrl
+                                    ,double score) {
         this.portFolioId = portFolioId;
         this.userId = userId;
         this.jobTitle = jobTitle;
@@ -40,11 +41,12 @@ public class PortFolioPopularResponse {
         this.majorJobGroup = majorJobGroup;
         this.minorJobGroup = minorJobGroup;
         this.memberImageUrl = memberImageUrl;
+        this.score = score;
         this.relatedUrl = relatedUrl;
     }
 
     // Static method to convert entity to DTO
-    public static PortFolioPopularResponse toDto(PortFolio portFolio) {
+    public static PortFolioPopularResponse toDto(PortFolio portFolio, Double score) {
         List<String> relationUrl = checkRelationUrl(portFolio);
 
         return new PortFolioPopularResponse(
@@ -57,7 +59,8 @@ public class PortFolioPopularResponse {
                 portFolio.getUser().getMajorJobGroup().name(),
                 portFolio.getUser().getMinorJobGroup().name(),
                 portFolio.getUser().getImageUrl(),
-                relationUrl
+                relationUrl,
+                score
         );
     }
 
@@ -71,18 +74,6 @@ public class PortFolioPopularResponse {
                     .collect(Collectors.toList());
         }
         return null;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true; // 동일 객체 비교
-        if (o == null || getClass() != o.getClass()) return false; // null 또는 타입 불일치
-        PortFolioPopularResponse that = (PortFolioPopularResponse) o;
-        return Objects.equals(portFolioId, that.portFolioId); // portFolioId로 비교
-    }
-    @Override
-    public int hashCode() {
-        return Objects.hash(portFolioId); // portFolioId로만 해시코드 생성
     }
 
 
