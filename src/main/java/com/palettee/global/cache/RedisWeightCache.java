@@ -44,7 +44,7 @@ public class RedisWeightCache {
         log.info("redisKeys: {}", redisKeys.size());
 
 
-        redisKeys = redisKeys.stream()   // SET에 있는 USER 조회용 키들은 제외시킴
+        redisKeys = redisKeys.stream()
                 .filter(redisKey -> redisKey.contains(keyPattern))
                 .collect(Collectors.toSet());
 

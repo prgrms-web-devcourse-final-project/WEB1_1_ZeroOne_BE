@@ -52,10 +52,14 @@ class PortFolioServiceTest {
     private RedisService redisService;
 
     @Autowired
-    private RedisWeightCache memoryCache;
+    private RedisWeightCache redisCache;
 
     @Autowired
     private  RedisTemplate<String, Long> redisTemplate;
+
+    private final String constView= VIEW_PREFIX + "portFolio:";
+
+    private final String constLike = LIKE_PREFIX+ "portFolio:";
 
 
     private User user;
@@ -190,17 +194,18 @@ class PortFolioServiceTest {
 
        //when
 
-        redisService.viewRedisToDB(VIEW_PREFIX + "portFolio: ");
+        // DB 반영
+        redisService.viewRedisToDB(constView);
 
-        Map<String, Long> localCache = memoryCache.getLocalCache();
+
+        Map<Long, Long> cache = redisCache.getCache(constView);
 
         PortFolio portFolio1 = portFolioRepository.findById(portFolio.getPortfolioId()).get();
 
 
+        Long remainCount = redisTemplate.opsForValue().get(constView + portFolio1.getPortfolioId());
 
-        Long remainCount = redisTemplate.opsForValue().get(VIEW_PREFIX + "portFolio" + ": " + portFolio.getPortfolioId());
-
-        Long cacheCount = localCache.get(VIEW_PREFIX + "portFolio" + ": " + portFolio.getPortfolioId());
+        Long cacheCount = cache.get(portFolio1.getPortfolioId());
 
         //then
         // 조회수는 1이여야 함
@@ -216,20 +221,14 @@ class PortFolioServiceTest {
        //given
         RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
 
-        redisTemplate.delete( LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId() + "_user");
-
-        redisTemplate.delete(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
-
-
+        String setKeys = constLike + portFolio.getPortfolioId() + "_user";
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
        //when
+        Long count = redisTemplate.opsForValue().get(constLike + portFolio.getPortfolioId());
 
-
-        Long count = redisTemplate.opsForValue().get(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
-
-        Set<Long> members = redisTemplate.opsForSet().members(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId() + "_user");
+        Set<Long> members = redisTemplate.opsForSet().members(setKeys);
 
         //then
         Assertions.assertThat(count).isEqualTo(1);
@@ -244,8 +243,6 @@ class PortFolioServiceTest {
         //given
         RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
 
-       redisTemplate.getConnectionFactory().getConnection().flushAll();
-
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
@@ -253,9 +250,9 @@ class PortFolioServiceTest {
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
-        Long count = redisTemplate.opsForValue().get(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
+        Long count = redisTemplate.opsForValue().get(constLike + portFolio.getPortfolioId());
 
-        Set<Long> members = redisTemplate.opsForSet().members(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId() + "_user");
+        Set<Long> members = redisTemplate.opsForSet().members(constLike + "_user");
 
         //then
         Assertions.assertThat(count).isEqualTo(0);
@@ -267,9 +264,6 @@ class PortFolioServiceTest {
     @DisplayName("redis 를 사용하여 유저가 좋아요 db batch insert")
     public void redis_like_db() throws Exception {
        //given
-        RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
-
-
         User user1 = User.builder()
                 .imageUrl("image")
                 .email("hellod")
@@ -294,6 +288,10 @@ class PortFolioServiceTest {
 
         userRepository.save(user2);
 
+
+        String keys = constLike + portFolio.getPortfolioId();
+
+
         //when
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
@@ -301,11 +299,11 @@ class PortFolioServiceTest {
         redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
 
-        redisService.likeRedisToDB( LIKE_PREFIX + "portFolio: ", "portFolio" );
+        redisService.likeRedisToDB( constLike, "portFolio" );
 
-        Map<String, Long> localCache = memoryCache.getLocalCache();
+        Map<Long, Long> cache = redisCache.getCache(keys);
 
-        Long aw = localCache.get(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
+        Long aw = cache.get(portFolio.getPortfolioId());
 
 
         List<Likes> byTargetId = likeRepository.findByTargetId(portFolio.getPortfolioId());
@@ -448,7 +446,7 @@ class PortFolioServiceTest {
         final ExecutorService executorService = Executors.newFixedThreadPool(32);
         final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
 
-        String key = VIEW_PREFIX +  "portFolio: " + portFolio.getPortfolioId();
+        String key = constView + portFolio.getPortfolioId();
 
 
         //when
