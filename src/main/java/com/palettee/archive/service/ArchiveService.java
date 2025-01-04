@@ -78,7 +78,7 @@ public class ArchiveService {
 
     public ArchiveListResponse getMainArchive(User contextUser) {
         Long userId = contextUser == null ? 0L : contextUser.getId();
-        List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives()
+        List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives().archives()
                 .stream()
                 .map(it -> ArchiveSimpleResponse.changeToSimpleResponse(it, userId, likeRepository))
                 .toList();

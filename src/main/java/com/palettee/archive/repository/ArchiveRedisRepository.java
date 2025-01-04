@@ -1,7 +1,9 @@
 package com.palettee.archive.repository;
 
+import com.palettee.archive.controller.dto.response.ArchiveRedisList;
 import com.palettee.archive.controller.dto.response.ArchiveRedisResponse;
 import com.palettee.archive.domain.Archive;
+import io.jsonwebtoken.io.SerializationException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,11 +13,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
+@Slf4j
 @RequiredArgsConstructor
 public class ArchiveRedisRepository {
 
@@ -79,8 +83,8 @@ public class ArchiveRedisRepository {
         List<ArchiveRedisResponse> redis = result.stream()
                         .map(ArchiveRedisResponse::toResponse)
                         .toList();
-
-        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, redis, 1, TimeUnit.HOURS);
+        log.info("Redis에 저장될 데이터: {}", redis);
+        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, new ArchiveRedisList(redis), 1, TimeUnit.HOURS);
     }
 
     private List<Long> getTop4IncrKeys() {
@@ -125,9 +129,14 @@ public class ArchiveRedisRepository {
         return value != null ? Integer.parseInt(value) : 0;
     }
 
-    @SuppressWarnings("unchecked")
-    public List<ArchiveRedisResponse> getTopArchives() {
-        List<ArchiveRedisResponse> result = (List<ArchiveRedisResponse>) redisTemplateForArchive.opsForValue().get(TOP_ARCHIVE);
-        return result == null ? new ArrayList<>() : result;
+    public ArchiveRedisList getTopArchives() {
+        try {
+            ArchiveRedisList result = (ArchiveRedisList) redisTemplateForArchive.opsForValue().get(TOP_ARCHIVE);
+            return result == null ? new ArchiveRedisList(new ArrayList<>()) : result;
+        } catch (SerializationException e) {
+            log.error("Redis 역직렬화 실패: {}", e.getMessage());
+            redisTemplateForArchive.delete(TOP_ARCHIVE);
+            return new ArchiveRedisList(new ArrayList<>());
+        }
     }
 }
