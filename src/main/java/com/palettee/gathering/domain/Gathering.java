@@ -40,6 +40,8 @@ public class Gathering extends BaseEntity {
 
     private int personnel; // 모집 인원
 
+    private int hits;
+
     @Enumerated(EnumType.STRING)
     private Status status; // 현재 모집 상태
 
@@ -80,6 +82,7 @@ public class Gathering extends BaseEntity {
             List<GatheringTag> gatheringTagList,
             List<GatheringImage> gatheringImages
     ) {
+        this.hits = 0;
         this.sort = sort;
         this.subject = subject;
         this.period = period;

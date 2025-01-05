@@ -3,6 +3,7 @@ package com.palettee.portfolio.service;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
@@ -20,8 +21,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -56,7 +59,7 @@ public class PortFolioService {
                     .map(PortFolioResponse::getPortFolioId).toList();
 
             // 유저가 누른 좋아요들의 포트폴리오 아이디들을 DB에서 조회
-            Set<Long> portFolioIds = likeRepository.findByTargetIdAndPortFolio(user.get().getId(), longs);
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndTarget(user.get().getId(),LikeType.PORTFOLIO ,longs);
 
 //            redisService.getLikedTargetId(user.get().getId(), "portFolio")
 //                    .forEach(id -> portFolioIds.add(id));
@@ -80,6 +83,7 @@ public class PortFolioService {
         if(!flag){
            likeRepository.deleteAllByTargetId(user.getId(), portFolioId, LikeType.PORTFOLIO);
         }
+        notificationService.send(NotificationRequest.like(portFolioId, user.getName()));
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
@@ -118,7 +122,6 @@ public class PortFolioService {
      * @return
      */
     public PortFolioWrapper popularPortFolio(Optional<User> user) {
-        log.info("호출");
         String zSetKey = "portFolio_Ranking";
 
         List<PortFolioPopularResponse> listFromRedis = getListFromRedis(zSetKey);
@@ -128,7 +131,7 @@ public class PortFolioService {
                     .map(PortFolioPopularResponse::getPortFolioId)
                     .toList();
 
-            Set<Long> portFolioIds = likeRepository.findByTargetIdAndPortFolio(user.get().getId(), longs);
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndTarget(user.get().getId(),LikeType.PORTFOLIO ,longs);
 
             if (portFolioIds.isEmpty()) {
                 log.info("유저가 누른 아이디가 없음");

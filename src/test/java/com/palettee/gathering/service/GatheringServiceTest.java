@@ -1,25 +1,20 @@
 package com.palettee.gathering.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.palettee.gathering.controller.dto.Request.*;
-import com.palettee.gathering.controller.dto.Response.*;
-import com.palettee.gathering.domain.Sort;
+import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
+import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.domain.*;
-import com.palettee.gathering.repository.*;
-import com.palettee.global.exception.*;
-import com.palettee.portfolio.controller.dto.response.*;
-import com.palettee.user.domain.*;
-import com.palettee.user.repository.*;
-import java.time.*;
-import java.util.*;
+import com.palettee.gathering.repository.GatheringImageRepository;
+import com.palettee.gathering.repository.GatheringRepository;
+import com.palettee.gathering.repository.GatheringTagRepository;
+import com.palettee.global.exception.InvalidCategoryException;
+import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
+import com.palettee.user.domain.User;
+import com.palettee.user.domain.UserRole;
+import com.palettee.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
-
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.boot.test.context.*;
-import org.springframework.data.domain.*;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -4,6 +4,7 @@ import com.palettee.gathering.GatheringNotFoundException;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringPopularResponse;
 import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
@@ -24,10 +25,14 @@ import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +49,8 @@ public class GatheringService {
     private final NotificationService notificationService;
 
     private final RedisService redisService;
+
+    private final RedisTemplate<String, Object> redisTemplateForTarget;
 
 
     @Transactional
@@ -97,23 +104,13 @@ public class GatheringService {
     public GatheringDetailsResponse findByDetails(Long gatheringId, Long userId) {
         Gathering gathering = getFetchGathering(gatheringId);
 
+        boolean isHits = redisService.viewCount(gatheringId, userId, "gathering");
+
         long likeCounts = calculateLikeCounts(gatheringId);
 
-        return GatheringDetailsResponse.toDto(gathering, likeCounts, isLikedUserGathering(gatheringId, userId));
+        return GatheringDetailsResponse.toDto(gathering, likeCounts, calculateHitsCount(gathering),isLikedUserGathering(gatheringId, userId),isHits);
     }
 
-
-
-    private long calculateLikeCounts(Long gatheringId) {
-        long likeCounts = likeRepository.countByTargetId(gatheringId);
-
-        Long count = redisService.likeCountInRedis("gathering", gatheringId);
-
-        if(count == null){
-            count = 0L;
-        }
-        return likeCounts + count;
-    }
 
     @Transactional
     public GatheringCommonResponse updateGathering(Long gatheringId, GatheringCommonRequest request, User user) {
@@ -187,11 +184,48 @@ public class GatheringService {
         return gatheringRepository.PageFindLikeGathering(pageable, userId, likeId);
     }
 
+    public List<GatheringPopularResponse> gatheringPopular(Optional<User> user){
+        String zSetKey = "gathering_Ranking";
+
+        List<GatheringPopularResponse> listFromRedis = getListFromRedis(zSetKey);
+
+        user.ifPresent(u -> {
+            List<Long> longs = listFromRedis
+                    .stream()
+                    .map(GatheringPopularResponse::getGatheringId)
+                    .toList();
+
+            Set<Long> gatheringIds = likeRepository.findByTargetIdAndTarget(user.get().getId(),LikeType.GATHERING ,longs);
+
+            if (gatheringIds.isEmpty()) {
+                log.info("유저가 누른 아이디가 없음");
+            }
+
+            listFromRedis.forEach(response -> response.setLiked(gatheringIds.contains(response.getGatheringId())));
+        });
+        return listFromRedis;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<GatheringPopularResponse> getListFromRedis(String zSetKey) {
+        Object result = redisTemplateForTarget.opsForValue().get(zSetKey);
+        if (result instanceof List) {
+            return (List<GatheringPopularResponse>) result; // List<PortFolioPopularResponse>로 캐스팅
+        }
+        return Collections.emptyList(); // 빈 리스트 반환
+    }
+
+
+
+
+
     public Gathering getGathering(Long gatheringId){
         return gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
     }
+
 
     private Gathering getFetchGathering(Long gatheringId) {
         return gatheringRepository.findByGatheringId(gatheringId)
@@ -232,6 +266,22 @@ public class GatheringService {
         if (!gathering.getGatheringImages().isEmpty()) {
             gathering.getGatheringImages().forEach(gatheringImage -> imageService.delete(gatheringImage.getImageUrl()));
         }
+    }
+
+    private long calculateLikeCounts(Long gatheringId) {
+        long likeCounts = likeRepository.countByTargetId(gatheringId);
+
+        Long count = redisService.likeCountInRedis("gathering", gatheringId);
+
+        return likeCounts + count;
+    }
+
+    private long calculateHitsCount(Gathering gathering){
+        long dbCount = gathering.getHits();
+
+        Long redisInViewCount = redisService.viewCountInRedis("gathering", gathering.getId());
+
+        return dbCount + redisInViewCount;
     }
 
 

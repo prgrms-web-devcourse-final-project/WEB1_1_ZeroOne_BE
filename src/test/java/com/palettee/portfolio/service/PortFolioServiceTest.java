@@ -1,5 +1,9 @@
 package com.palettee.portfolio.service;
 
+import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
+import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringPopularResponse;
+import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.cache.RedisWeightCache;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
@@ -24,10 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,6 +56,9 @@ class PortFolioServiceTest {
 
     @Autowired
     private RedisWeightCache redisCache;
+
+    @Autowired
+    private GatheringService gatheringService;
 
     @Autowired
     private  RedisTemplate<String, Long> redisTemplate;
@@ -164,7 +168,7 @@ class PortFolioServiceTest {
        //when
 
         // DB 반영
-        redisService.viewRedisToDB(constView);
+        redisService.viewRedisToDB(constView, "portFolio");
 
 
         Map<Long, Long> cache = redisCache.getCache(constView);
@@ -345,7 +349,7 @@ class PortFolioServiceTest {
 
 
         redisService.likeRedisToDB(constLike, "portFolio" );
-        redisService.viewRedisToDB(constView);
+        redisService.viewRedisToDB(constView, "portFolio");
 
         redisService.rankingCategory("portFolio");
 
@@ -357,6 +361,113 @@ class PortFolioServiceTest {
         Assertions.assertThat(portFolioPopularResponses.get(0).getScore()).isEqualTo(15);
         Assertions.assertThat(portFolioPopularResponses.get(1).getScore()).isEqualTo(10);
         Assertions.assertThat(portFolioPopularResponses.get(2).getScore()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("인기 포폴과 게더링 실시간 반영")
+    public void getPopularService() throws Exception {
+        //given
+
+        User user1 = User.builder()
+                .imageUrl("image")
+                .email("hellod")
+                .name("테스트")
+                .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
+                .build();
+
+        User user2 = User.builder()
+                .imageUrl("image")
+                .email("hellos")
+                .name("테스트")
+                .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
+                .build();
+
+        PortFolio portFolio1 = PortFolio.builder()
+                .user(user)
+                .url("테스트테스트")
+                .build();
+
+        PortFolio portFolio2 = PortFolio.builder()
+                .user(user)
+                .url("테스트테스트")
+                .build();
+
+        List<String> tagList = new ArrayList<>();
+
+        tagList.add("tag1");
+        tagList.add("tag2");
+
+
+        List<String> imageList = new ArrayList<>();
+        imageList.add("URL1");
+        imageList.add("URL2");
+
+
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
+
+        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content",null);
+
+        GatheringCommonRequest gatheringCreateRequest2 = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content",null);
+        GatheringCommonResponse gathering1 = gatheringService.createGathering(gatheringCreateRequest1, user);
+        GatheringCommonResponse gathering2 = gatheringService.createGathering(gatheringCreateRequest2, user);
+
+
+        portFolioRepository.save(portFolio1);
+
+        portFolioRepository.save(portFolio2);
+
+        userRepository.save(user1);
+
+        userRepository.save(user2);
+
+
+
+        // 포트폴리오1좋아요 15점
+        redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+
+        //프토플리오2 좋아요 10점
+        redisService.likeCount(portFolio1.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio1.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+
+        //포트폴리오3 조회수 1점
+        redisService.viewCount(portFolio2.getPortfolioId(), user.getId(),"portFolio");
+
+
+        // 게더링 점수 10점
+        redisService.likeCount(gathering1.gatheringId(), user.getId(), "gathering");
+        redisService.likeCount(gathering1.gatheringId(), user1.getId(), "gathering");
+
+        // 게더링 점수 6점
+        redisService.likeCount(gathering2.gatheringId(), user.getId(), "gathering");
+        redisService.viewCount(gathering2.gatheringId(), user2.getId(), "gathering");
+
+        redisService.categoryToDb("portFolio");
+        redisService.categoryToDb("gathering");
+
+        redisService.rankingCategory("portFolio");
+        redisService.rankingCategory("gathering");
+
+        List<PortFolioPopularResponse> portFolioPopularResponses = portFolioService.popularPortFolio(Optional.empty()).portfolioResponses();
+        List<GatheringPopularResponse> gatheringPopularResponses = gatheringService.gatheringPopular(Optional.empty());
+
+        Assertions.assertThat(portFolioPopularResponses.size()).isEqualTo(3);
+        Assertions.assertThat(gatheringPopularResponses.size()).isEqualTo(2);
+        Assertions.assertThat(portFolioPopularResponses.get(0).getScore()).isEqualTo(15);
+        Assertions.assertThat(portFolioPopularResponses.get(1).getScore()).isEqualTo(10);
+        Assertions.assertThat(gatheringPopularResponses.get(0).getScore()).isEqualTo(10);
+        Assertions.assertThat(gatheringPopularResponses.get(1).getScore()).isEqualTo(6);
+
+       //then
     }
 
     @Test
@@ -390,4 +501,5 @@ class PortFolioServiceTest {
 
        //then
     }
+
 }

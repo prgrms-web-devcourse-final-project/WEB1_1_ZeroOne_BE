@@ -1,6 +1,5 @@
 package com.palettee.global.scheduler;
 
-import com.palettee.global.cache.RedisWeightCache;
 import com.palettee.global.redis.service.RedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +29,9 @@ public class RedisScheduled {
     }
 
     /**
-     * 매 10분마다 가중치 반영
+     * 매 1시간 마다 가중치 반영
      */
-    @Scheduled(cron = "3 * * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void rankingRedis(){
 
         //랭킹 반영전에 랭킹 키 한번 비워주기
@@ -60,6 +59,7 @@ public class RedisScheduled {
      */
     private void redisRankingZset() {
         redisService.rankingCategory("portFolio");
+        redisService.rankingCategory("gathering");
     }
 
 
