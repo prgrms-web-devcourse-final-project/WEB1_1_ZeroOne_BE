@@ -4,9 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.palettee.archive.controller.dto.response.ArchiveListResponse;
+import com.palettee.archive.controller.dto.response.ArchiveRedisList;
 import com.palettee.archive.controller.dto.response.ArchiveRedisResponse;
-import com.palettee.archive.controller.dto.response.ArchiveSimpleResponse;
 import com.palettee.archive.domain.Archive;
 import com.palettee.archive.domain.ArchiveType;
 import com.palettee.archive.event.HitEvent;
@@ -20,7 +19,6 @@ import com.palettee.user.domain.User;
 import com.palettee.user.domain.UserRole;
 import com.palettee.user.repository.UserRepository;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,13 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArchiveRedisTest {
 
     @Autowired
-    private ArchiveService archiveService;
-
-    @Autowired
     private ArchiveRedisRepository archiveRedisRepository;
-
-    @Autowired
-    private ArchiveScheduler archiveScheduler;
 
     @Autowired
     private ArchiveRepository archiveRepository;
@@ -76,8 +68,8 @@ public class ArchiveRedisTest {
         archiveRepository.deleteAll();
         userRepository.deleteAll();
 
-        Objects.requireNonNull(redisTemplate.keys("*")).forEach(redisTemplate::delete);
-        Objects.requireNonNull(redisTemplateForArchive.keys("*")).forEach(redisTemplateForArchive::delete);
+        redisTemplate.keys("*").forEach(redisTemplate::delete);
+        redisTemplateForArchive.keys("*").forEach(redisTemplateForArchive::delete);
     }
 
     @Test
@@ -119,7 +111,9 @@ public class ArchiveRedisTest {
         // Given
         Archive archive1 = new Archive("Archive 1", "description", "introduction", ArchiveType.RED, true, savedUser);
         Archive archive2 = new Archive("Archive 2", "description", "introduction", ArchiveType.RED, true, savedUser);
-        archiveRepository.saveAll(List.of(archive1, archive2));
+        Archive archive3 = new Archive("Archive 2", "description", "introduction", ArchiveType.RED, true, savedUser);
+        Archive archive4 = new Archive("Archive 2", "description", "introduction", ArchiveType.RED, true, savedUser);
+        archiveRepository.saveAll(List.of(archive1, archive2, archive3, archive4));
 
         String incrKey1 = "incr:hit:archiveId:" + archive1.getId();
         String incrKey2 = "incr:hit:archiveId:" + archive2.getId();
@@ -131,35 +125,11 @@ public class ArchiveRedisTest {
         archiveRedisRepository.updateArchiveList();
 
         // Then
-//        List<ArchiveRedisResponse> topArchives = archiveRedisRepository.getTopArchives();
-//        assertThat(topArchives).hasSize(2);
-//        assertThat(topArchives)
-//                .extracting(ArchiveRedisResponse::archiveId)
-//                .containsExactlyInAnyOrder(archive1.getId(), archive2.getId());
-    }
-
-    @Test
-    void testGetMainArchive() {
-        // Given
-        Archive archive1 = new Archive("Archive 1", "description", "introduction", ArchiveType.RED, true, savedUser);
-        Archive archive2 = new Archive("Archive 2", "description", "introduction", ArchiveType.RED, true, savedUser);
-        archiveRepository.saveAll(List.of(archive1, archive2));
-
-        String topArchiveKey = "top_archives";
-        List<ArchiveRedisResponse> redisData = List.of(
-                new ArchiveRedisResponse(archive1.getId(), archive1.getTitle(), "", "", "", "", true, 1, true, "", ""),
-                new ArchiveRedisResponse(archive1.getId(), archive1.getTitle(), "", "", "", "", true, 1, true, "", "")
-        );
-        redisTemplateForArchive.opsForValue().set(topArchiveKey, redisData);
-
-        // When
-        ArchiveListResponse response = archiveService.getMainArchive(savedUser);
-
-        // Then
-        assertThat(response.archives()).hasSize(2);
-        assertThat(response.archives())
-                .extracting(ArchiveSimpleResponse::title)
-                .containsExactlyInAnyOrder("Archive 1", "Archive 2");
+        ArchiveRedisList topArchives = archiveRedisRepository.getTopArchives();
+        assertThat(topArchives.archives()).hasSize(4);
+        assertThat(topArchives.archives())
+                .extracting(ArchiveRedisResponse::archiveId)
+                .containsExactlyInAnyOrder(archive2.getId(), archive1.getId(), archive4.getId(), archive3.getId());
     }
 
     @Test
