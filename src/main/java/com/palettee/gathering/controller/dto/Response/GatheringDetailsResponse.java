@@ -26,10 +26,12 @@ public record GatheringDetailsResponse(
         String contactUrl,
         String title,
         String content,
-        boolean isLiked
+        Long hits,
+        boolean isLiked,
+        boolean isHits
 ) {
 
-    public static GatheringDetailsResponse toDto(Gathering gathering, Long likeCounts, boolean isLiked) {
+    public static GatheringDetailsResponse toDto(Gathering gathering, Long likeCounts, Long hits,boolean isLiked, boolean isHits) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String createTime = gathering.getCreateAt().format(dateTimeFormatter);
 
@@ -57,9 +59,12 @@ public record GatheringDetailsResponse(
                 gathering.getUrl(),
                 gathering.getTitle(),
                 gathering.getContent(),
-                isLiked
+                hits,
+                isLiked,
+                isHits
         );
     }
+
 
     private static List<String> gatheringPositions(Gathering gathering) {
 

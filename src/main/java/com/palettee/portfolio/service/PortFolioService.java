@@ -2,8 +2,8 @@ package com.palettee.portfolio.service;
 
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
-import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
@@ -15,14 +15,16 @@ import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -36,14 +38,35 @@ public class PortFolioService {
 
     private final RedisService redisService;
 
+    private final RedisTemplate<String, Object> redisTemplateForTarget;
+
+
 
     public Slice<PortFolioResponse> findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,
             String minorJobGroup,
-            String sort
+            String sort,
+            Optional<User> user
     ) {
-        return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
+
+        Slice<PortFolioResponse> portFolioResponses = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
+
+        user.ifPresent(u-> {
+            log.info("유저가 있습니다");
+
+            List<Long> longs = portFolioResponses.stream()
+                    .map(PortFolioResponse::getPortFolioId).toList();
+
+            // 유저가 누른 좋아요들의 포트폴리오 아이디들을 DB에서 조회
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndTarget(user.get().getId(),LikeType.PORTFOLIO ,longs);
+
+//            redisService.getLikedTargetId(user.get().getId(), "portFolio")
+//                    .forEach(id -> portFolioIds.add(id));
+
+            portFolioResponses.forEach(portFolios -> portFolios.setLiked(portFolioIds.contains(portFolios.getPortFolioId())));
+        });
+        return portFolioResponses;
     }
 
 
@@ -58,8 +81,9 @@ public class PortFolioService {
 
         // 이미 DB에 반영된 좋아요 디비에서 삭제
         if(!flag){
-            cancelLike(portFolioId, user);
+           likeRepository.deleteAllByTargetId(user.getId(), portFolioId, LikeType.PORTFOLIO);
         }
+        notificationService.send(NotificationRequest.like(portFolioId, user.getName()));
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
@@ -71,38 +95,63 @@ public class PortFolioService {
         return portFolioRepository.PageFindLikePortfolio(pageable, userId, likeId);
     }
 
+    public PortFolioWrapper popularPf(Optional<User> user){
+        PortFolioWrapper portFolioWrapper = popularPortFolio(user);
+        if(user.isPresent()){
+            log.info("user가 들어옴");
+            Set<Long> portFolioIds = redisService.getLikeTargetIds(user.get().getId(), "portFolio");
+
+            if(portFolioIds.isEmpty()){
+                log.info("유저가 누른 아이디가 없음");
+            }
+
+            portFolioWrapper.portfolioResponses()
+                    .stream()
+                    .forEach(portFolioPopularResponse -> {
+                        boolean isLiked = portFolioIds != null && portFolioIds.contains(portFolioPopularResponse.getPortFolioId());
+                        portFolioPopularResponse.setLiked(isLiked);
+                    });
+
+            return portFolioWrapper;
+        }
+        return portFolioWrapper;
+    }
+
     /**
      * 상위 5개 레디스에 캐싱
      * @return
      */
-    @Cacheable(value = "pf_cache", key = "'cache'")
-    public PortFolioWrapper popularPortFolio(){
+    public PortFolioWrapper popularPortFolio(Optional<User> user) {
+        String zSetKey = "portFolio_Ranking";
 
-        Map<Long, Double> portFolioMap = redisService.getZSetPopularity("portFolio");
+        List<PortFolioPopularResponse> listFromRedis = getListFromRedis(zSetKey);
+        user.ifPresent(u -> {
+            List<Long> longs = listFromRedis
+                    .stream()
+                    .map(PortFolioPopularResponse::getPortFolioId)
+                    .toList();
 
-        Set<Long> longs = portFolioMap.keySet();
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndTarget(user.get().getId(),LikeType.PORTFOLIO ,longs);
 
-        List<Long> sortedPortFolio = new ArrayList<>(longs);
+            if (portFolioIds.isEmpty()) {
+                log.info("유저가 누른 아이디가 없음");
+            }
 
-        List<PortFolio> portfolios = portFolioRepository.findAllByPortfolioIdIn(sortedPortFolio);
+            listFromRedis.forEach(response -> response.setLiked(portFolioIds.contains(response.getPortFolioId())));
+        });
+        return new PortFolioWrapper(listFromRedis);
+        }
 
-
-        // in 절을 사용하면 정렬 순서가 바뀌기 때문에 Map으로 순서를 맞춰줌
-        Map<Long, PortFolio> portfoliosMap = portfolios.stream()
-                .collect(Collectors.toMap(PortFolio::getPortfolioId, portfolio -> portfolio));
-
-        // 본 List의 본 순서와 맞는 점수 대응
-        List<PortFolioPopularResponse> list = sortedPortFolio.stream()
-                .map(portFolioId -> {
-                    Double score = portFolioMap.get(portFolioId);
-                    PortFolio portFolio = portfoliosMap.get(portFolioId);
-                    return portFolio != null ? PortFolioPopularResponse.toDto(portFolio, score) : null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        return new PortFolioWrapper(list);
+    @SuppressWarnings("unchecked")
+    public List<PortFolioPopularResponse> getListFromRedis(String zSetKey) {
+        Object result = redisTemplateForTarget.opsForValue().get(zSetKey);
+        if (result instanceof List) {
+            return (List<PortFolioPopularResponse>) result; // List<PortFolioPopularResponse>로 캐스팅
+        }
+        return Collections.emptyList(); // 빈 리스트 반환
     }
+
+
 
 
     public PortFolio getPortFolio(Long portFolioId){
@@ -111,15 +160,4 @@ public class PortFolioService {
     }
 
 
-
-
-    private boolean cancelLike(Long portfolioId, User user) {
-        List<Likes> findByLikes = likeRepository.findByList(user.getId(), portfolioId, LikeType.PORTFOLIO);
-
-        if(findByLikes != null) {
-            likeRepository.deleteAll(findByLikes);
-            return true;
-        }
-        return false;
-    }
 }

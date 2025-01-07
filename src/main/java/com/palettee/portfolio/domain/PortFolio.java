@@ -36,4 +36,8 @@ public class PortFolio extends BaseEntity {
         user.addPortfolio(this);
     }
 
+    public void incrementHits(){
+        hits++;
+    }
+
 }

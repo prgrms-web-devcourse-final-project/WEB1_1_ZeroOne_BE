@@ -109,7 +109,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                 .stream()
                 .map(PortFolioResponse::toDto).collect(Collectors.toList());
 
-        list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.portFolioId())));
+        list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.getPortFolioId())));
 
 
         return new CustomSliceResponse(list, hasNext, nextId);
