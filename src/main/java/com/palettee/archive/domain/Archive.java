@@ -31,6 +31,7 @@ public class Archive extends BaseEntity {
 
     private int hits;
     private int archiveOrder;
+    private int likeCount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -55,6 +56,7 @@ public class Archive extends BaseEntity {
         this.canComment = canComment;
         this.hits = 0;
         this.archiveOrder = 0;
+        this.likeCount = 0;
 
         this.user = user;
         this.user.addArchive(this);
@@ -81,8 +83,8 @@ public class Archive extends BaseEntity {
         return this;
     }
 
-    public void hit() {
-        this.hits++;
+    public void like() {
+        this.likeCount++;
     }
 
     public void setOrder() {
@@ -95,5 +97,9 @@ public class Archive extends BaseEntity {
 
     public boolean isNotOpenComment() {
         return !this.canComment;
+    }
+
+    public void setHit(long totalHits) {
+        this.hits = (int) totalHits;
     }
 }
