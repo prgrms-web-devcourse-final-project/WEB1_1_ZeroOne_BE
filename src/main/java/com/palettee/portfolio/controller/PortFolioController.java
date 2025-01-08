@@ -27,7 +27,7 @@ public class PortFolioController
             @RequestParam(required = false) String majorJobGroup,
             @RequestParam(required = false) String minorJobGroup
             ){
-        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, isFirst(pageable,majorJobGroup,minorJobGroup));
+        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, isFirst(pageable,majorJobGroup,minorJobGroup,sort));
     }
 
     @GetMapping("/{portFolioId}")
@@ -58,8 +58,8 @@ public class PortFolioController
     }
 
 
-    private static boolean isFirst(Pageable pageable, String majorJobGroup, String minorJobGroup) {
-        if(pageable.getOffset() == 0 && majorJobGroup == null && minorJobGroup == null){
+    private static boolean isFirst(Pageable pageable, String majorJobGroup, String minorJobGroup,String sort) {
+        if(pageable.getOffset() == 0 && majorJobGroup == null && minorJobGroup == null && sort.equals("latest")){
             return true;
         }
         return false;

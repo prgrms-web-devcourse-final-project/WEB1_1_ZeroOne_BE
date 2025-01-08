@@ -36,8 +36,8 @@ public record PortFolioResponse(
                 portFolio.getUrl(),
                 portFolio.getUser().getName(),
                 portFolio.getUser().getBriefIntro(),
-                portFolio.getUser().getMajorJobGroup().name(),
-                portFolio.getUser().getMinorJobGroup().name(),
+                portFolio.getMajorJobGroup().name(),
+                portFolio.getMinorJobGroup().name(),
                 portFolio.getUser().getImageUrl(),
                 relationUrl,
                 portFolio.getCreateAt()

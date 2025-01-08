@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.palettee.global.Const.portFolio_Page_Size;
 import static com.palettee.portfolio.repository.PortFolioRedisRepository.RedisConstKey_PortFolio;
 
 @Service
@@ -41,8 +42,6 @@ public class PortFolioService {
     private static boolean hasNext;
 
     private final RedisService redisService;
-
-
 
 
     public CustomOffSetResponse findAllPortFolio(
@@ -69,8 +68,9 @@ public class PortFolioService {
             results.forEach(result ->
                     redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, result, TypeConverter.LocalDateTimeToDouble(result.createAt()))
             );
+            portFolio_Page_Size = pageable.getPageSize();
 
-            redisTemplate.expire(RedisConstKey_PortFolio, 6, TimeUnit.HOURS); // 6시간으로 고정
+            redisTemplate.expire(RedisConstKey_PortFolio, 1, TimeUnit.HOURS); // 6시간으로 고정
             return response;
         }
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);

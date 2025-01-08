@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.palettee.global.Const.*;
+
 import static com.palettee.gathering.repository.GatheringRedisRepository.RedisConstKey_Gathering;
 
 @Service
@@ -118,6 +120,7 @@ public class GatheringService {
                     redisTemplate.opsForZSet().add(RedisConstKey_Gathering, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime()))
             );
 
+            gathering_Page_Size = pageable.getPageSize();
 
             redisTemplate.expire(RedisConstKey_Gathering, 1, TimeUnit.HOURS); // 1시간으로 고정
 
