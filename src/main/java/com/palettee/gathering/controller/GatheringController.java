@@ -3,9 +3,10 @@ package com.palettee.gathering.controller;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
+import com.palettee.gathering.repository.GatheringRedisRepository;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
 import com.palettee.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,11 +24,14 @@ public class GatheringController {
 
     private final GatheringService gatheringService;
 
+    private final GatheringRedisRepository redisRepository;
+
 
     @PostMapping()
     public GatheringCommonResponse create(@RequestBody @Valid GatheringCommonRequest request) {
 
         GatheringCommonResponse gathering = gatheringService.createGathering(request, UserUtils.getContextUser());
+        redisRepository.addGatheringInRedis(gathering.gatheringId());
 
         return gathering;
     }
@@ -44,8 +48,7 @@ public class GatheringController {
             @RequestParam(required = false, defaultValue = "0") int personnel,
             Pageable pageable
     ) {
-        log.info("positions.size = {}", positions.size());
-        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable);
+        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable, isFirstTrue(gatheringId, sort, subject, period, contact, status, positions, personnel));
     }
 
     @GetMapping("/{gatheringId}")
@@ -59,6 +62,8 @@ public class GatheringController {
             @PathVariable Long gatheringId
     ) {
         GatheringCommonResponse gatheringCommonResponse = gatheringService.updateGathering(gatheringId, request, UserUtils.getContextUser());
+
+        redisRepository.updateGatheringInRedis(gatheringCommonResponse.gatheringId());
 
         return gatheringCommonResponse;
     }
@@ -86,6 +91,13 @@ public class GatheringController {
         User contextUser = UserUtils.getContextUser();
 
         return gatheringService.findLikeList(pageable, contextUser.getId(), likeId);
+    }
+
+    private static boolean isFirstTrue(Long gatheringId, String sort, String subject, String period, String contact,String status ,List<String> positions, int personnel) {
+        if(gatheringId != null || sort != null || subject != null || period != null || contact != null || !status.equals("모집중") || !positions.isEmpty() || personnel > 0){
+            return false;
+        }
+        return true;
     }
 
 }

@@ -15,7 +15,7 @@ import lombok.*;
 @Entity
 @Table(indexes = {
         @Index(name = "idx_email", columnList = "user_email"),
-        @Index(name = "idx_oauth_identity", columnList = "oauth_identity")
+        @Index(name = "idx_oauth_identity", columnList = "oauth_identity"),
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

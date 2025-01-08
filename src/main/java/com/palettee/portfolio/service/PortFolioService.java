@@ -1,14 +1,12 @@
 package com.palettee.portfolio.service;
 
 import com.palettee.global.redis.service.RedisService;
+import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.service.NotificationService;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
+import com.palettee.portfolio.controller.dto.response.*;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.exception.PortFolioNotFoundException;
 import com.palettee.portfolio.repository.PortFolioRepository;
@@ -17,12 +15,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.palettee.global.Const.portFolio_Page_Size;
+import static com.palettee.portfolio.repository.PortFolioRedisRepository.RedisConstKey_PortFolio;
 
 @Service
 @Slf4j
@@ -34,15 +36,43 @@ public class PortFolioService {
     private final LikeRepository likeRepository;
     private final NotificationService notificationService;
 
+    private final RedisTemplate<String, PortFolioResponse> redisTemplate;
+
+
+    private static boolean hasNext;
+
     private final RedisService redisService;
 
 
-    public Slice<PortFolioResponse> findAllPortFolio(
+    public CustomOffSetResponse findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,
             String minorJobGroup,
-            String sort
+            String sort,
+            boolean isFirstPage
+
     ) {
+
+        if(isFirstPage){
+            CustomOffSetResponse cachedFirstPage = getCachedFirstPage(pageable);
+
+            if(cachedFirstPage != null){
+                return cachedFirstPage;
+            }
+            CustomOffSetResponse response = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
+            log.info("캐시에 데이터 없음");
+            hasNext =  response.hasNext();
+            log.info("hasNext ={} ", hasNext);
+            List<PortFolioResponse> results = response.content();
+
+            results.forEach(result ->
+                    redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, result, TypeConverter.LocalDateTimeToDouble(result.createAt()))
+            );
+            portFolio_Page_Size = pageable.getPageSize();
+
+            redisTemplate.expire(RedisConstKey_PortFolio, 1, TimeUnit.HOURS); // 6시간으로 고정
+            return response;
+        }
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
     }
 
@@ -63,7 +93,7 @@ public class PortFolioService {
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
-    public CustomSliceResponse findListPortFolio(
+    public CustomPortFolioResponse findListPortFolio(
             Pageable pageable,
             Long userId,
             Long likeId
@@ -108,6 +138,32 @@ public class PortFolioService {
     public PortFolio getPortFolio(Long portFolioId){
        return portFolioRepository.findById(portFolioId)
               .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
+    }
+
+    public PortFolio getUserPortFolio(Long portFolioId){
+        return portFolioRepository.findByFetchUserPortFolio(portFolioId)
+                .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
+    }
+
+    private CustomOffSetResponse getCachedFirstPage(Pageable pageable){
+        Set<PortFolioResponse> range = redisTemplate.opsForZSet().reverseRange(RedisConstKey_PortFolio, 0, pageable.getPageSize());
+
+        if(range != null && !range.isEmpty()){
+            log.info("캐시에 값이 잇음");
+            List<PortFolioResponse> portFolioResponses= new ArrayList<>(range);
+
+            if(portFolioResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
+                log.info("range.size = {}", portFolioResponses.size());
+                log.info("pageable.getPageSize = {}", pageable.getPageSize());
+                log.info("사이즈가 다름");
+                redisTemplate.delete(RedisConstKey_PortFolio);
+                return null;
+            }
+
+
+            return new CustomOffSetResponse(portFolioResponses,hasNext,0L, portFolioResponses.size());
+        }
+        return null;
     }
 
 

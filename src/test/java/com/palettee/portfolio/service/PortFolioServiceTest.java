@@ -1,27 +1,42 @@
 package com.palettee.portfolio.service;
 
-import static com.palettee.global.Const.*;
-
-import com.palettee.global.cache.*;
-import com.palettee.global.redis.service.*;
-import com.palettee.likes.domain.*;
-import com.palettee.likes.repository.*;
-import com.palettee.portfolio.controller.dto.response.*;
-import com.palettee.portfolio.domain.*;
-import com.palettee.portfolio.repository.*;
-import com.palettee.user.domain.*;
-import com.palettee.user.repository.*;
-import java.util.*;
+import com.palettee.global.cache.MemoryCache;
+import com.palettee.global.redis.service.RedisService;
+import com.palettee.likes.domain.LikeType;
+import com.palettee.likes.domain.Likes;
+import com.palettee.likes.repository.LikeRepository;
+import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
+import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
+import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.portfolio.repository.PortFolioRepository;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
+import com.palettee.user.domain.User;
+import com.palettee.user.domain.UserRole;
+import com.palettee.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.boot.test.context.*;
-import org.springframework.data.domain.*;
-import org.springframework.data.redis.core.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.palettee.global.Const.LIKE_PREFIX;
+import static com.palettee.global.Const.VIEW_PREFIX;
 
 @SpringBootTest
 class PortFolioServiceTest {
 
+    private static final Logger log = LoggerFactory.getLogger(PortFolioServiceTest.class);
     @Autowired
     private PortFolioService portFolioService;
 
@@ -60,6 +75,8 @@ class PortFolioServiceTest {
         portFolio = PortFolio.builder()
                 .user(user)
                 .url("테스트테스트")
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
         portFolioRepository.save(portFolio);
     }
@@ -81,6 +98,8 @@ class PortFolioServiceTest {
             PortFolio portFolio = PortFolio.builder()
                     .user(user)
                     .url("테스트테스트1")
+                    .majorJobGroup(MajorJobGroup.DEVELOPER)
+                    .minorJobGroup(MinorJobGroup.BACKEND)
                     .build();
             portFolioRepository.save(portFolio);
         }
@@ -90,15 +109,17 @@ class PortFolioServiceTest {
         System.out.println(all.size());
 
         PageRequest pageRequest = PageRequest.of(0, 10);
-        Slice<PortFolioResponse> results = portFolioService.findAllPortFolio(
+        CustomOffSetResponse results = portFolioService.findAllPortFolio(
                 pageRequest,
                 MajorJobGroup.DEVELOPER.getMajorGroup(),
                 MinorJobGroup.BACKEND.getMinorJobGroup(),
                 "popularlity"
+                ,true
         );
+        System.out.println(results.hasNext());
 
         // then
-        Assertions.assertThat(results.getSize()).isEqualTo(10);
+        Assertions.assertThat(results.pageSize()).isEqualTo(10);
         Assertions.assertThat(results.hasNext()).isEqualTo(true);
     }
 
@@ -110,6 +131,8 @@ class PortFolioServiceTest {
             PortFolio portFolio = PortFolio.builder()
                     .user(user)
                     .url("테스트테스트1")
+                    .majorJobGroup(MajorJobGroup.DEVELOPER)
+                    .minorJobGroup(MinorJobGroup.BACKEND)
                     .build();
             portFolioRepository.save(portFolio);
 
@@ -123,7 +146,7 @@ class PortFolioServiceTest {
 
         // when
         PageRequest pageRequest = PageRequest.of(0, 10);
-        CustomSliceResponse customSliceResponse = portFolioService.findListPortFolio(pageRequest, user.getId(), null);
+        CustomPortFolioResponse customSliceResponse = portFolioService.findListPortFolio(pageRequest, user.getId(), null);
 
         // then
         Assertions.assertThat(customSliceResponse.content().size()).isEqualTo(10);

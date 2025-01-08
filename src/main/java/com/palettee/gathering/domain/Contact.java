@@ -1,6 +1,8 @@
 package com.palettee.gathering.domain;
 
+import com.palettee.global.exception.InvalidCategoryException;
 import lombok.RequiredArgsConstructor;
+import org.webjars.NotFoundException;
 
 import java.util.Arrays;
 
@@ -23,7 +25,7 @@ public enum Contact {
         return Arrays.stream(Contact.values())
                 .filter(it -> it.contact.equals(input))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(()-> InvalidCategoryException.EXCEPTION);
     }
 
 

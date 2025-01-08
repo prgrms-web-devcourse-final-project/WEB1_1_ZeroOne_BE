@@ -102,7 +102,7 @@ class UserServiceTest {
                         .userRole(UserRole.REAL_NEWBIE)
                         .build()
         );
-        portFolioRepo.save(new PortFolio(testUser, "portfolioLink.com"));
+        portFolioRepo.save(new PortFolio(testUser, "portfolioLink.com", testUser.getMajorJobGroup(), testUser.getMinorJobGroup()));
         relatedLinkRepo.saveAll(List.of(
                 new RelatedLink("github", testUser),
                 new RelatedLink("blog", testUser)
@@ -245,7 +245,7 @@ class UserServiceTest {
         );
 
         // 정상 실행 검증
-        UserResponse result = userService.editUserInfo(req, testUser.getId(),
+        UserSavePortFolioResponse result = userService.editUserInfo(req, testUser.getId(),
                 Optional.of(testUser));
 
         assertThat(result.userId()).isEqualTo(testUser.getId());

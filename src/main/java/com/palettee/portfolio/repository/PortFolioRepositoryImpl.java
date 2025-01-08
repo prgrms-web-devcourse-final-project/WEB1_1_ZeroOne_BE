@@ -1,7 +1,9 @@
 package com.palettee.portfolio.repository;
 
 import com.palettee.likes.domain.LikeType;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.user.domain.MajorJobGroup;
@@ -14,8 +16,6 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -43,7 +43,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
      *
      */
     @Override
-    public Slice<PortFolioResponse> PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
+    public CustomOffSetResponse PageFindAllPortfolio(Pageable pageable, String majorJobGroup, String minorJobGroup, String sort) {
 
         List<PortFolioResponse> result = queryFactory
                 .select(portFolio
@@ -62,14 +62,17 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         // 페이지 존재 여부를 나타내기 위해 하나 더 가져온걸 삭제
         boolean hasNext = hasNextPage(pageable, result);
 
-        return new SliceImpl<>(result, pageable, hasNext);
+        log.info("offset ={}", pageable.getOffset());
+
+
+        return CustomOffSetResponse.toDto(result, hasNext, pageable.getOffset(), pageable.getPageSize());
     }
     /*
     좋아요한 포트폴리오 조회(noOffSet)
      */
 
     @Override
-    public CustomSliceResponse PageFindLikePortfolio(Pageable pageable, Long userId, Long likeId) {
+    public CustomPortFolioResponse PageFindLikePortfolio(Pageable pageable, Long userId, Long likeId) {
 
         /*
         NoOffset으로 먼저 targetId 들 조회 -> 유저가 좋아요한 포트폴리오 아이디들 조회
@@ -82,10 +85,10 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
                 .where(
                         likes.user.id.eq(userId)
                                 .and(likes.likeType.eq(LikeType.PORTFOLIO))
-                                .and(likeIdLoe(likeId))
+                                .and(likeIdLoe(likeId)) 
                 )
                 .leftJoin(likes.user, user)
-                .orderBy(likes.likeId.desc())
+                .orderBy(likes.createAt.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
@@ -112,7 +115,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.portFolioId())));
 
 
-        return new CustomSliceResponse(list, hasNext, nextId);
+        return new CustomPortFolioResponse(list, hasNext, nextId);
     }
 
     private BooleanExpression majorJobGroupEquals(String majorJobGroup) {
@@ -120,7 +123,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         MajorJobGroup majorGroup = MajorJobGroup.findMajorGroup(majorJobGroup);
 
         if(majorGroup != null){
-            return user.majorJobGroup.eq(majorGroup);
+            return portFolio.majorJobGroup.eq(majorGroup);
         }
 
         return null;
@@ -131,7 +134,7 @@ public class PortFolioRepositoryImpl implements PortFolioRepositoryCustom {
         MinorJobGroup findMinorJobGroup = MinorJobGroup.findMinorJobGroup(minorJobGroup);
 
         if(findMinorJobGroup != null){
-            return user.minorJobGroup.eq(findMinorJobGroup);
+            return portFolio.minorJobGroup.eq(findMinorJobGroup);
         }
         return null;
     }

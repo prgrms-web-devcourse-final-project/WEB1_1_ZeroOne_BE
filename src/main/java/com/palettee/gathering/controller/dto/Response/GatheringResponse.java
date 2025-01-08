@@ -1,8 +1,15 @@
 package com.palettee.gathering.controller.dto.Response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.palettee.gathering.domain.Gathering;
+import com.palettee.gathering.domain.Sort;
+import com.palettee.gathering.domain.Subject;
+import com.palettee.global.exception.InvalidCategoryException;
 
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record GatheringResponse(
@@ -14,6 +21,9 @@ public record GatheringResponse(
         String title,
         String deadLine,
         String username,
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        LocalDateTime createDateTime,
         List<String> tags,
         List<String> positions
 
@@ -31,17 +41,31 @@ public record GatheringResponse(
         return new GatheringResponse(
                 gathering.getId(),
                 gathering.getUser().getId(),
-                gathering.getSort().getSort(),
+                getSort(gathering.getSort()),
                 gathering.getPersonnel(),
-                gathering.getSubject().getSubject(),
+                getSubject(gathering.getSubject()),
                 gathering.getTitle(),
                 deadLine,
                 gathering.getUser().getName(),
+                gathering.getCreateAt(),
                 gatheringTagList,
                 positions
         );
     }
 
+    private static String getSort(Sort sort) {
+        if(sort!= null){
+            return sort.getSort();
+        }
+        throw  InvalidCategoryException.EXCEPTION;
+    }
+
+    private static String getSubject(Subject subject) {
+        if(subject != null){
+            return subject.getSubject();
+        }
+        throw  InvalidCategoryException.EXCEPTION;
+    }
 
     private static List<String> checkGatheringTag(Gathering gathering) {
         if(gathering.getGatheringTagList() != null && !gathering.getGatheringTagList().isEmpty()){

@@ -116,10 +116,10 @@ class BasicRegisterServiceTest {
     void registerPortfolio() {
         RegisterPortfolioRequest request = new RegisterPortfolioRequest("test.com");
 
-        UserResponse result = basicRegisterService.registerPortfolio(testUser, request);
+        UserSavePortFolioResponse userSavePortFolioResponse = basicRegisterService.registerPortfolio(testUser, request);
 
         // 응답 검증
-        checkResult(result);
+        checkResult(userSavePortFolioResponse);
 
         // 정보 진짜 변경 됐는지 확인
         User verify = userRepo.findById(testUser.getId()).orElseThrow();
@@ -135,6 +135,11 @@ class BasicRegisterServiceTest {
     }
 
     private void checkResult(UserResponse result) {
+        assertThat(result).isNotNull();
+        assertThat(result.userId()).isNotNull().isEqualTo(testUser.getId());
+    }
+
+    private void checkResult(UserSavePortFolioResponse result) {
         assertThat(result).isNotNull();
         assertThat(result.userId()).isNotNull().isEqualTo(testUser.getId());
     }

@@ -64,6 +64,8 @@ class BasicRegisterControllerTest {
                         .email("test@test.com")
                         .name("test")
                         .userRole(UserRole.REAL_NEWBIE)
+                        .majorJobGroup(MajorJobGroup.DEVELOPER)
+                        .minorJobGroup(MinorJobGroup.BACKEND)
                         .build()
         );
         otherUser = userRepo.save(

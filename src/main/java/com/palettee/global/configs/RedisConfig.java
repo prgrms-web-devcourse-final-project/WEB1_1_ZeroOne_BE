@@ -6,13 +6,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.palettee.chat.controller.dto.response.ChatResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.global.redis.sub.RedisSubscriber;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -115,24 +115,31 @@ public class RedisConfig {
     }
 
     @Bean
+    public RedisTemplate<String, GatheringResponse> RedisGatheringTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, GatheringResponse> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+
+    @Bean
+    public RedisTemplate<String, PortFolioResponse> RedisPortFolioTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, PortFolioResponse> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+
+
+
+    @Bean
     public RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-                .entryTtl(Duration.ofHours(1));
-
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(redisCacheConfiguration)
-                .build();
-    }
-
-    @Bean(name = "customCacheManager")
-    @Primary
-    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-                .entryTtl(Duration.ofMinutes(30));
+                .entryTtl(Duration.ofHours(3));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(redisCacheConfiguration)
