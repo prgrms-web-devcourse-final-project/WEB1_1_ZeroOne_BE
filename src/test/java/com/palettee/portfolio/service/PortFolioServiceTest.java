@@ -131,6 +131,8 @@ class PortFolioServiceTest {
             PortFolio portFolio = PortFolio.builder()
                     .user(user)
                     .url("테스트테스트1")
+                    .majorJobGroup(MajorJobGroup.DEVELOPER)
+                    .minorJobGroup(MinorJobGroup.BACKEND)
                     .build();
             portFolioRepository.save(portFolio);
 
