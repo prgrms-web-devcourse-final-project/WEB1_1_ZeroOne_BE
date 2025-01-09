@@ -15,6 +15,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,7 @@ import static com.palettee.portfolio.repository.PortFolioRedisRepository.RedisCo
 @SpringBootTest
 public class PortFolioCacheServiceTest {
 
+    private static final Logger log = LoggerFactory.getLogger(PortFolioCacheServiceTest.class);
     @Autowired
     private PortFolioService portFolioService;
 
@@ -119,14 +122,14 @@ public class PortFolioCacheServiceTest {
                     .email("hello" + i)
                     .briefIntro("안녕하세요")
                     .userRole(UserRole.USER)
-                    .majorJobGroup(MajorJobGroup.DEVELOPER)
+                    .majorJobGroup(MajorJobGroup.MARKETING)
                     .minorJobGroup(MinorJobGroup.BACKEND)
                     .build();
 
             PortFolio testPortFolio = PortFolio.builder()
                     .user(testUser)
                     .url("테스트테스트1")
-                    .majorJobGroup(MajorJobGroup.DEVELOPER)
+                    .majorJobGroup(testUser.getMajorJobGroup())
                     .minorJobGroup(MinorJobGroup.BACKEND)
                     .build();
 
@@ -156,13 +159,16 @@ public class PortFolioCacheServiceTest {
 
         Set<PortFolioResponse> range = redisTemplate.opsForZSet().range(RedisConstKey_PortFolio, 0, -1);
 
-        Optional<PortFolioResponse> samplePortFolio = range.stream().filter(portFolioResponse -> portFolioResponse.userId().equals(portFolio.getUser().getId())).findFirst();
+        Optional<PortFolioResponse> samplePortFolio = range.stream().filter(portFolioResponse -> portFolioResponse.getUserId().equals(save.getUser().getId())).findFirst();
+
+
+        System.out.println("userId = "+ samplePortFolio.get().getUserId());
 
 
         //then
         Assertions.assertThat(range.size()).isEqualTo(6);
         Assertions.assertThat(samplePortFolio.isPresent()).isTrue();
-        Assertions.assertThat(samplePortFolio.get().majorJobGroup()).isEqualTo(MajorJobGroup.DESIGN.name());
+        Assertions.assertThat(samplePortFolio.get().getMajorJobGroup()).isEqualTo(MajorJobGroup.DESIGN.name());
     }
 
     @Test
@@ -214,12 +220,12 @@ public class PortFolioCacheServiceTest {
 
         Set<PortFolioResponse> range = redisTemplate.opsForZSet().range(RedisConstKey_PortFolio, 0, -1);
 
-        Optional<PortFolioResponse> samplePortFolio = range.stream().filter(portFolioResponse -> portFolioResponse.userId().equals(updateNewPortFolio.getUser().getId())).findFirst();
+        Optional<PortFolioResponse> samplePortFolio = range.stream().filter(portFolioResponse -> portFolioResponse.getUserId().equals(updateNewPortFolio.getUser().getId())).findFirst();
 
         //then
         Assertions.assertThat(range.size()).isEqualTo(6);
         Assertions.assertThat(samplePortFolio.isPresent()).isEqualTo(true);
-        Assertions.assertThat(samplePortFolio.get().majorJobGroup()).isEqualTo(MajorJobGroup.ETC.name());
+        Assertions.assertThat(samplePortFolio.get().getMajorJobGroup()).isEqualTo(MajorJobGroup.ETC.name());
     }
 
     @Test
@@ -346,7 +352,7 @@ public class PortFolioCacheServiceTest {
 
         Set<PortFolioResponse> range = redisTemplate.opsForZSet().range(RedisConstKey_PortFolio, 0, -1);
 
-        Optional<PortFolioResponse> samplePortFolio = range.stream().filter(portFolioResponse -> portFolioResponse.userId().equals(save.getUser().getId())).findFirst();
+        Optional<PortFolioResponse> samplePortFolio = range.stream().filter(portFolioResponse -> portFolioResponse.getUserId().equals(save.getUser().getId())).findFirst();
 
 
         //then

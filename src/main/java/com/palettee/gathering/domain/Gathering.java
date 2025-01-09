@@ -57,7 +57,6 @@ public class Gathering extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private int hits;
 
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GatheringTag> gatheringTagList = new ArrayList<>();

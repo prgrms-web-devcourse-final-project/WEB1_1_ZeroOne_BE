@@ -1,15 +1,22 @@
 package com.palettee.portfolio.controller.dto.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.user.domain.RelatedLink;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Setter
 @Getter
+@EqualsAndHashCode
 @NoArgsConstructor
 public class PortFolioResponse {
     private Long portFolioId;
@@ -23,8 +30,11 @@ public class PortFolioResponse {
     private String memberImageUrl;
     private List<String> relatedUrl;
     private boolean isLiked;
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime createAt;
 
-    public PortFolioResponse(Long portFolioId, Long userId, String jobTitle, String portFolioUrl, String username, String introduction, String majorJobGroup, String minorJobGroup, String memberImageUrl, List<String> relatedUrl) {
+    public PortFolioResponse(Long portFolioId, Long userId, String jobTitle, String portFolioUrl, String username, String introduction, String majorJobGroup, String minorJobGroup, String memberImageUrl, List<String> relatedUrl, LocalDateTime createAt) {
         this.portFolioId = portFolioId;
         this.userId = userId;
         this.jobTitle = jobTitle;
@@ -35,6 +45,7 @@ public class PortFolioResponse {
         this.minorJobGroup = minorJobGroup;
         this.memberImageUrl = memberImageUrl;
         this.relatedUrl = relatedUrl;
+        this.createAt = createAt;
     }
 
     public static PortFolioResponse toDto(PortFolio portFolio) {
@@ -46,10 +57,11 @@ public class PortFolioResponse {
                 portFolio.getUrl(),
                 portFolio.getUser().getName(),
                 portFolio.getUser().getBriefIntro(),
-                portFolio.getUser().getMajorJobGroup().name(),
-                portFolio.getUser().getMinorJobGroup().name(),
+                portFolio.getMajorJobGroup().name(),
+                portFolio.getMinorJobGroup().name(),
                 portFolio.getUser().getImageUrl(),
-                relationUrl
+                relationUrl,
+                portFolio.getCreateAt()
         );
     }
     private static List<String> checkRelationUrl(PortFolio portFolio) {

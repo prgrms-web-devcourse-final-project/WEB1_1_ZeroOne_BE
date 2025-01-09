@@ -67,7 +67,7 @@ public class PortFolioService {
             List<PortFolioResponse> results = response.content();
 
             results.forEach(result ->
-                    redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, result, TypeConverter.LocalDateTimeToDouble(result.createAt()))
+                    redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, result, TypeConverter.LocalDateTimeToDouble(result.getCreateAt()))
             );
             portFolio_Page_Size = pageable.getPageSize();
 
