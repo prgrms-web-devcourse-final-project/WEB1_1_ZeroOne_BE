@@ -50,7 +50,7 @@ public class GatheringController {
             @RequestParam(required = false, defaultValue = "0") int personnel,
             Pageable pageable
     ) {
-        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable, isFirstTrue(gatheringId, sort, subject, period, contact, status, positions, personnel));
+        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable,getUserFromContext() ,isFirstTrue(gatheringId, sort, subject, period, contact, status, positions, personnel));
     }
 
     @GetMapping("/{gatheringId}")

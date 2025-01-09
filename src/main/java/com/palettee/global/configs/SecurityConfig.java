@@ -84,7 +84,7 @@ public class SecurityConfig {
                 .conditionalByPassable("/gathering/main", HttpMethod.GET)
 
                 // 소모임 전체 조회
-                .byPassable("/gathering", HttpMethod.GET)
+                .conditionalByPassable("/gathering", HttpMethod.GET)
 
                 /* <-------------- Archive API --------------> */
                 // 아카이브 전체 & 단건 조회 & 아카이브 검색 & 댓글 조회

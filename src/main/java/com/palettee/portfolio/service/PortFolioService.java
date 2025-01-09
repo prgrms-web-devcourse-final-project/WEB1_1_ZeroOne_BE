@@ -50,6 +50,7 @@ public class PortFolioService {
             String majorJobGroup,
             String minorJobGroup,
             String sort,
+            Optional<User> user,
             boolean isFirstPage
 
     ) {
@@ -58,6 +59,7 @@ public class PortFolioService {
             CustomOffSetResponse cachedFirstPage = getCachedFirstPage(pageable);
 
             if(cachedFirstPage != null){
+                cacheInRedisIsLiked(user, cachedFirstPage.content());
                 return cachedFirstPage;
             }
             CustomOffSetResponse response = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
@@ -72,6 +74,7 @@ public class PortFolioService {
             portFolio_Page_Size = pageable.getPageSize();
 
             redisTemplate.expire(RedisConstKey_PortFolio, 1, TimeUnit.HOURS); // 6시간으로 고정
+            cacheInRedisIsLiked(user, response.content());
             return response;
         }
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
@@ -145,7 +148,9 @@ public class PortFolioService {
                 log.info("유저가 누른 아이디가 없음");
             }
 
-            listFromRedis.forEach(response -> response.setLiked(portFolioIds.contains(response.getPortFolioId())));
+            listFromRedis.forEach(response -> {
+                response.setLiked(portFolioIds.contains(response.getPortFolioId()));
+            });
         });
         return new PortFolioWrapper(listFromRedis);
         }
@@ -157,14 +162,6 @@ public class PortFolioService {
             return (List<PortFolioPopularResponse>) result; // List<PortFolioPopularResponse>로 캐스팅
         }
         return Collections.emptyList(); // 빈 리스트 반환
-    }
-
-
-
-
-    public PortFolio getPortFolio(Long portFolioId){
-       return portFolioRepository.findById(portFolioId)
-              .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
     }
 
     public PortFolio getUserPortFolio(Long portFolioId){
@@ -191,6 +188,20 @@ public class PortFolioService {
             return new CustomOffSetResponse(portFolioResponses,hasNext,0L, portFolioResponses.size());
         }
         return null;
+    }
+
+    private void cacheInRedisIsLiked(Optional<User> user, List<PortFolioResponse> portFolioResponses){
+        user.ifPresent(u ->{
+            List<Long> longs = portFolioResponses.stream()
+                    .map(PortFolioResponse::getPortFolioId)
+                    .toList();
+
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndTarget(u.getId(),LikeType.PORTFOLIO ,longs);
+
+            portFolioResponses.forEach(portFolioResponse -> {
+                portFolioResponse.setLiked(portFolioIds.contains(portFolioResponse.getPortFolioId()));
+            });
+        });
     }
 
 

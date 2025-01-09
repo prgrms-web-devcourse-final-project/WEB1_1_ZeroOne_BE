@@ -101,6 +101,7 @@ public class PortFolioCacheServiceTest {
                 null,
                 null,
                 "latest"
+                ,Optional.empty()
                 ,true
         );
 
@@ -142,7 +143,8 @@ public class PortFolioCacheServiceTest {
                 pageRequest,
                 null,
                 null,
-                "latest"
+                "latest",
+                Optional.empty()
                 ,true  //캐싱 여부
         );
 
@@ -203,6 +205,7 @@ public class PortFolioCacheServiceTest {
                 null,
                 null,
                 "latest"
+                ,Optional.empty()
                 ,true  //캐싱 여부
         );
 
@@ -259,7 +262,8 @@ public class PortFolioCacheServiceTest {
                 pageRequest,
                 null,
                 null,
-                "latest"
+                "latest",
+                Optional.empty()
                 ,true  //캐싱 여부
         );
 
@@ -323,7 +327,8 @@ public class PortFolioCacheServiceTest {
                 pageRequest,
                 null,
                 null,
-                "latest"
+                "latest",
+                Optional.empty()
                 ,true  //캐싱 여부
         );
 

@@ -30,7 +30,7 @@ public class PortFolioController
             @RequestParam(required = false) String majorJobGroup,
             @RequestParam(required = false) String minorJobGroup
             ){
-        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, isFirst(pageable,majorJobGroup,minorJobGroup,sort));
+        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, getUserFromContext(),isFirst(pageable,majorJobGroup,minorJobGroup,sort));
     }
 
     @GetMapping("/{portFolioId}")

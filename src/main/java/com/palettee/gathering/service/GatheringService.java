@@ -16,6 +16,7 @@ import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
 import com.palettee.user.exception.UserNotFoundException;
@@ -53,11 +54,7 @@ public class GatheringService {
 
     private final RedisTemplate<String, Object> redisTemplateForTarget;
 
-
     private static boolean hasNext;
-
-
-
 
     @Transactional
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
@@ -95,6 +92,7 @@ public class GatheringService {
             int personnel,
             Long gatheringId,
             Pageable pageable,
+            Optional<User> user,
             boolean isFirstTrue
     ) {
 
@@ -102,6 +100,7 @@ public class GatheringService {
             CustomSliceResponse cachedFirstPage = getCachedFirstPage(pageable);
 
             if(cachedFirstPage != null){
+                cacheInRedisIsLiked(user, cachedFirstPage.content());
                 return cachedFirstPage;
             }
 
@@ -113,12 +112,13 @@ public class GatheringService {
             List<GatheringResponse> results = customSliceResponse.content();
 
             results.forEach(result ->
-                    redisTemplate.opsForZSet().add(RedisConstKey_Gathering, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime()))
+                    redisTemplate.opsForZSet().add(RedisConstKey_Gathering, result, TypeConverter.LocalDateTimeToDouble(result.getCreateDateTime()))
             );
 
             gathering_Page_Size = pageable.getPageSize();
 
             redisTemplate.expire(RedisConstKey_Gathering, 1, TimeUnit.HOURS); // 1시간으로 고정
+            cacheInRedisIsLiked(user, customSliceResponse.content());
 
             return customSliceResponse;
         }
@@ -314,7 +314,7 @@ public class GatheringService {
                 return null;
             }
 
-            Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
+            Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).getGatheringId() : null;
 
 
             return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
@@ -339,6 +339,20 @@ public class GatheringService {
             count = 0L;
         }
         return likeCounts + count;
+    }
+
+    private void cacheInRedisIsLiked(Optional<User> user, List<GatheringResponse> gatheringResponses){
+        user.ifPresent(u ->{
+            List<Long> longs = gatheringResponses.stream()
+                    .map(GatheringResponse::getGatheringId)
+                    .toList();
+
+            Set<Long> gatheringIds = likeRepository.findByTargetIdAndTarget(u.getId(),LikeType.GATHERING ,longs);
+
+            gatheringResponses.forEach(gatheringResponse -> {
+                gatheringResponse.setLiked(gatheringIds.contains(gatheringResponse.getGatheringId()));
+            });
+        });
     }
 
 

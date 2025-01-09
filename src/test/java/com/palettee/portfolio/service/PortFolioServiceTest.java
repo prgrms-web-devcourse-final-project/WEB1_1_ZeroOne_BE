@@ -128,6 +128,7 @@ class PortFolioServiceTest {
                 MajorJobGroup.DEVELOPER.getMajorGroup(),
                 MinorJobGroup.BACKEND.getMinorJobGroup(),
                 "popularlity"
+                ,Optional.empty()
                 ,true
         );
         System.out.println(results.hasNext());
