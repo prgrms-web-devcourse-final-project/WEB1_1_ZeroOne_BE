@@ -3,6 +3,8 @@ package com.palettee.archive.service;
 import com.palettee.archive.controller.dto.request.*;
 import com.palettee.archive.controller.dto.response.*;
 import com.palettee.archive.domain.*;
+import com.palettee.archive.event.HitEvent;
+import com.palettee.archive.event.LikeEvent;
 import com.palettee.archive.exception.*;
 import com.palettee.archive.repository.*;
 import com.palettee.likes.domain.LikeType;
@@ -15,6 +17,7 @@ import com.palettee.user.exception.UserNotFoundException;
 import com.palettee.user.repository.UserRepository;
 import java.util.*;
 import lombok.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
@@ -31,6 +34,8 @@ public class ArchiveService {
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final ArchiveRedisRepository archiveRedisRepository;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public ArchiveResponse registerArchive(ArchiveRegisterRequest archiveRegisterRequest, User user) {
@@ -71,10 +76,11 @@ public class ArchiveService {
         return optionalUser == null ? 0L : optionalUser.getId();
     }
 
-    public ArchiveListResponse getMainArchive(User optionalUser) {
-        Long myId = getOptionalUserId(optionalUser);
-        List<ArchiveSimpleResponse> result = archiveRepository.getMainArchives().stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
+    public ArchiveListResponse getMainArchive(User contextUser) {
+        Long userId = contextUser == null ? 0L : contextUser.getId();
+        List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives().archives()
+                .stream()
+                .map(it -> ArchiveSimpleResponse.changeToSimpleResponse(it, userId, likeRepository))
                 .toList();
         return new ArchiveListResponse(result,null, null);
     }
@@ -82,8 +88,9 @@ public class ArchiveService {
     @Transactional
     public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);
-        archive.hit();
         Long userId = user == null ? 0L : user.getId();
+        String email = user == null ? "" : user.getEmail();
+        publisher.publishEvent(new HitEvent(archiveId, email));
         return ArchiveDetailResponse.toResponse(
                 archive,
                 userId,
@@ -124,11 +131,6 @@ public class ArchiveService {
         List<Long> ids = tagRepository.findAllArchiveIds(searchKeyword);
         Long myId = getOptionalUserId(optionalUser);
         Slice<Archive> archives = archiveRepository.searchArchive(searchKeyword, ids, pageable);
-
-//        List<Long> archiveIds = archives.stream()
-//                .map(Archive::getId)
-//                .toList();
-//        List<ColorCount> colorCounts = archiveRepository.countLikeArchiveByArchiveType(archiveIds);
 
         List<ArchiveSimpleResponse> list = archives
                 .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
@@ -204,7 +206,7 @@ public class ArchiveService {
 
         Long targetId = archive.getUser().getId();
         notificationService.send(NotificationRequest.like(targetId, user.getName()));
-
+        publisher.publishEvent(new LikeEvent(archiveId, findUser.getId()));
         return new ArchiveResponse(archive.getId());
     }
 

@@ -1,6 +1,7 @@
 package com.palettee.user.controller;
 
 import com.palettee.global.security.validation.*;
+import com.palettee.portfolio.repository.PortFolioRedisRepository;
 import com.palettee.user.controller.dto.request.users.*;
 import com.palettee.user.controller.dto.response.users.*;
 import com.palettee.user.domain.*;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    private final PortFolioRedisRepository redisRepository;
 
     private static final String REFRESH_TOKEN_COOKIE_KEY = "refresh_token";
 
@@ -66,12 +69,16 @@ public class UserController {
      * @param id 수정하고자 하는 사용자의 id (자기 자신)
      */
     @PutMapping("/{userId}/edit")
-    public UserResponse editUserInfo(
+    public UserSavePortFolioResponse editUserInfo(
             @PathVariable("userId") Long id,
             @Valid @RequestBody
             EditUserInfoRequest editUserInfoRequest
     ) {
-        return userService.editUserInfo(editUserInfoRequest, id, getUserFromContext());
+        UserSavePortFolioResponse userSavePortFolioResponse = userService.editUserInfo(editUserInfoRequest, id, getUserFromContext());
+
+        redisRepository.updatePortFolio(userSavePortFolioResponse.portFolioId());
+
+        return userSavePortFolioResponse;
     }
 
     /**

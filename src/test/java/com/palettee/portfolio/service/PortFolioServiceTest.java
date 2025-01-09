@@ -9,7 +9,8 @@ import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
+import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
+import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.repository.PortFolioRepository;
@@ -38,6 +39,7 @@ import static com.palettee.global.Const.VIEW_PREFIX;
 
 @SpringBootTest
 class PortFolioServiceTest {
+
 
     @Autowired
     private PortFolioService portFolioService;
@@ -87,6 +89,8 @@ class PortFolioServiceTest {
         portFolio = PortFolio.builder()
                 .user(user)
                 .url("테스트테스트")
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
         portFolioRepository.save(portFolio);
     }
@@ -101,6 +105,39 @@ class PortFolioServiceTest {
     }
 
     @Test
+    @DisplayName("포트폴리오 전체조회 무한스크롤 처리")
+    void portfolio_pageNation() {
+        // given
+        for (int i = 0; i < 20; i++) {
+            PortFolio portFolio = PortFolio.builder()
+                    .user(user)
+                    .url("테스트테스트1")
+                    .majorJobGroup(MajorJobGroup.DEVELOPER)
+                    .minorJobGroup(MinorJobGroup.BACKEND)
+                    .build();
+            portFolioRepository.save(portFolio);
+        }
+
+        // when
+        List<PortFolio> all = portFolioRepository.findAll();
+        System.out.println(all.size());
+
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        CustomOffSetResponse results = portFolioService.findAllPortFolio(
+                pageRequest,
+                MajorJobGroup.DEVELOPER.getMajorGroup(),
+                MinorJobGroup.BACKEND.getMinorJobGroup(),
+                "popularlity"
+                ,true
+        );
+        System.out.println(results.hasNext());
+
+        // then
+        Assertions.assertThat(results.pageSize()).isEqualTo(10);
+        Assertions.assertThat(results.hasNext()).isEqualTo(true);
+    }
+
+    @Test
     @DisplayName("좋아요한 포트폴리오 목록 조회 NoOffset")
     void userLike_portFolio() {
         // given
@@ -108,6 +145,8 @@ class PortFolioServiceTest {
             PortFolio portFolio = PortFolio.builder()
                     .user(user)
                     .url("테스트테스트1")
+                    .majorJobGroup(MajorJobGroup.DEVELOPER)
+                    .minorJobGroup(MinorJobGroup.BACKEND)
                     .build();
             portFolioRepository.save(portFolio);
 
@@ -121,7 +160,7 @@ class PortFolioServiceTest {
 
         // when
         PageRequest pageRequest = PageRequest.of(0, 10);
-        CustomSliceResponse customSliceResponse = portFolioService.findListPortFolio(pageRequest, user.getId(), null);
+        CustomPortFolioResponse customSliceResponse = portFolioService.findListPortFolio(pageRequest, user.getId(), null);
 
         // then
         Assertions.assertThat(customSliceResponse.content().size()).isEqualTo(10);

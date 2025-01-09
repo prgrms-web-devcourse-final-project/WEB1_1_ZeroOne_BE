@@ -2,22 +2,20 @@ package com.palettee.gathering.service;
 
 import com.palettee.gathering.GatheringNotFoundException;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
-import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringPopularResponse;
+import com.palettee.gathering.controller.dto.Response.*;
 import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.Subject;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.global.redis.service.RedisService;
+import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.global.s3.service.ImageService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
 import com.palettee.user.exception.UserNotFoundException;
@@ -29,10 +27,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static com.palettee.gathering.repository.GatheringRedisRepository.RedisConstKey_Gathering;
+import static com.palettee.global.Const.gathering_Page_Size;
 
 @Service
 @RequiredArgsConstructor
@@ -48,9 +47,16 @@ public class GatheringService {
 
     private final NotificationService notificationService;
 
+    private final RedisTemplate<String, GatheringResponse> redisTemplate;
+
     private final RedisService redisService;
 
     private final RedisTemplate<String, Object> redisTemplateForTarget;
+
+
+    private static boolean hasNext;
+
+
 
 
     @Transactional
@@ -74,7 +80,9 @@ public class GatheringService {
                 .gatheringTagList(GatheringCommonRequest.getGatheringTag(request.gatheringTag()))
                 .build();
 
-        return GatheringCommonResponse.toDTO(gatheringRepository.save(gathering));
+        Gathering saveGathering = gatheringRepository.save(gathering);
+
+        return GatheringCommonResponse.toDTO(saveGathering);
     }
 
     public CustomSliceResponse findAll(
@@ -86,19 +94,38 @@ public class GatheringService {
             String status,
             int personnel,
             Long gatheringId,
-            Pageable pageable
+            Pageable pageable,
+            boolean isFirstTrue
     ) {
+
+        if(isFirstTrue){ // 첫 페이지 인지
+            CustomSliceResponse cachedFirstPage = getCachedFirstPage(pageable);
+
+            if(cachedFirstPage != null){
+                return cachedFirstPage;
+            }
+
+            // 캐시가 비어 있는 경우 DB에서 데이터를 가져오고 캐시에 저장
+            CustomSliceResponse customSliceResponse = gatheringRepository.pageGathering(
+                    sort, subject, period, contact, positions, personnel, status, gatheringId, pageable);
+            hasNext = customSliceResponse.hasNext();
+
+            List<GatheringResponse> results = customSliceResponse.content();
+
+            results.forEach(result ->
+                    redisTemplate.opsForZSet().add(RedisConstKey_Gathering, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime()))
+            );
+
+            gathering_Page_Size = pageable.getPageSize();
+
+            redisTemplate.expire(RedisConstKey_Gathering, 1, TimeUnit.HOURS); // 1시간으로 고정
+
+            return customSliceResponse;
+        }
+
+        // 첫 페이지가 아니면 DB에서 바로 가져옴
         return gatheringRepository.pageGathering(
-                sort,
-                subject,
-                period,
-                contact,
-                positions,
-                personnel,
-                status,
-                gatheringId,
-                pageable
-        );
+                sort, subject, period, contact, positions, personnel, status, gatheringId, pageable);
     }
 
     public GatheringDetailsResponse findByDetails(Long gatheringId, Long userId) {
@@ -124,6 +151,7 @@ public class GatheringService {
 
         if(request.gatheringImages()!= null) deleteImages(gathering);  // 업데이트시 이미지가 들어왓을시 본래 s3 이미지삭제
 
+
         return GatheringCommonResponse.toDTO(gathering);
     }
 
@@ -139,6 +167,8 @@ public class GatheringService {
         deleteImages(gathering);
 
         gatheringRepository.delete(gathering);
+
+        redisTemplate.delete(RedisConstKey_Gathering);
 
         return GatheringCommonResponse.toDTO(gathering);
     }
@@ -268,12 +298,28 @@ public class GatheringService {
         }
     }
 
-    private long calculateLikeCounts(Long gatheringId) {
-        long likeCounts = likeRepository.countByTargetId(gatheringId);
+    // 첫 페이지 이면서 캐시에 데이터가 있는지 검증
+    private CustomSliceResponse getCachedFirstPage(Pageable pageable){
+        Set<GatheringResponse> range = redisTemplate.opsForZSet().reverseRange(RedisConstKey_Gathering, 0, pageable.getPageSize());
 
-        Long count = redisService.likeCountInRedis("gathering", gatheringId);
+        if(range != null && !range.isEmpty()){
+            log.info("캐시에 값이 잇음");
+            List<GatheringResponse> gatheringResponses = new ArrayList<>(range);
 
-        return likeCounts + count;
+            if(gatheringResponses.size() != pageable.getPageSize()){ //페이지 사이즈가 바뀌면
+                log.info("range.size = {}", gatheringResponses.size());
+                log.info("pageable.getPageSize = {}", pageable.getPageSize());
+                log.info("사이즈가 다름");
+                redisTemplate.delete(RedisConstKey_Gathering);
+                return null;
+            }
+
+            Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
+
+
+            return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
+        }
+        return null;
     }
 
     private long calculateHitsCount(Gathering gathering){
@@ -282,6 +328,17 @@ public class GatheringService {
         Long redisInViewCount = redisService.viewCountInRedis("gathering", gathering.getId());
 
         return dbCount + redisInViewCount;
+    }
+
+    private long calculateLikeCounts(Long gatheringId) {
+        long likeCounts = likeRepository.countByTargetId(gatheringId);
+
+        Long count = redisService.likeCountInRedis("gathering", gatheringId);
+
+        if(count == null){
+            count = 0L;
+        }
+        return likeCounts + count;
     }
 
 

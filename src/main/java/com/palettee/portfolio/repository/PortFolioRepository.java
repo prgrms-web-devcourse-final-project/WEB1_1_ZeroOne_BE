@@ -21,4 +21,9 @@ public interface PortFolioRepository extends JpaRepository<PortFolio, Long>,
 
     @Query("select p from PortFolio p join fetch p.user where p.portfolioId in :portFolioIds")
     List<PortFolio> findAllByPortfolioIdIn(List<Long> portFolioIds);
+
+    @Query("SELECT p FROM PortFolio p " + "JOIN FETCH p.user u " + "LEFT JOIN FETCH u.relatedLinks " + "WHERE p.portfolioId = :portFolioId")
+    Optional<PortFolio> findByFetchUserPortFolio(@Param("portFolioId") Long portFolioId);
+
+
 }

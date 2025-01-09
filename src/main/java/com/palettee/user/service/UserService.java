@@ -1,23 +1,35 @@
 package com.palettee.user.service;
 
-import com.palettee.archive.domain.*;
-import com.palettee.archive.repository.*;
-import com.palettee.gathering.repository.*;
-import com.palettee.global.security.jwt.services.*;
-import com.palettee.portfolio.domain.*;
-import com.palettee.portfolio.repository.*;
-import com.palettee.user.controller.dto.request.users.*;
+import com.palettee.archive.domain.Archive;
+import com.palettee.archive.domain.ArchiveType;
+import com.palettee.archive.repository.ArchiveRepository;
+import com.palettee.gathering.repository.GatheringRepository;
+import com.palettee.gathering.repository.GatheringTagRepository;
+import com.palettee.global.security.jwt.services.RefreshTokenRedisService;
+import com.palettee.portfolio.domain.PortFolio;
+import com.palettee.portfolio.repository.PortFolioRepository;
+import com.palettee.user.controller.dto.request.users.EditUserInfoRequest;
 import com.palettee.user.controller.dto.response.users.*;
-import com.palettee.user.domain.*;
-import com.palettee.user.exception.*;
-import com.palettee.user.repository.*;
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
-import lombok.*;
-import lombok.extern.slf4j.*;
-import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
+import com.palettee.user.domain.RelatedLink;
+import com.palettee.user.domain.StoredProfileImageUrl;
+import com.palettee.user.domain.User;
+import com.palettee.user.domain.UserRole;
+import com.palettee.user.exception.NotOwnUserException;
+import com.palettee.user.exception.UserNotFoundException;
+import com.palettee.user.repository.RelatedLinkRepository;
+import com.palettee.user.repository.StoredProfileImageUrlRepository;
+import com.palettee.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,6 +45,7 @@ public class UserService {
     private final GatheringRepository gatheringRepo;
     private final GatheringTagRepository gatheringTagRepo;
     private final RefreshTokenRedisService refreshTokenRedisService;
+
 
     /**
      * 자신의 정보를 조회
@@ -132,7 +145,7 @@ public class UserService {
      * @throws NotOwnUserException   로그인 안 되어 있거나 다른 유저의 정보를 수정하려 할 때
      */
     @Transactional
-    public UserResponse editUserInfo(EditUserInfoRequest editUserInfoRequest,
+    public UserSavePortFolioResponse editUserInfo(EditUserInfoRequest editUserInfoRequest,
             Long userId, Optional<User> loggedInUser)
             throws UserNotFoundException, NotOwnUserException {
 
@@ -174,7 +187,9 @@ public class UserService {
         portFolioRepo.deleteAllByUserId(userOnTarget.getId());
         log.debug("Deleted user {}'s all portfolio links", userOnTarget.getId());
 
-        portFolioRepo.save(new PortFolio(userOnTarget, portfolioLink));
+        PortFolio portFolio = new PortFolio(userOnTarget, portfolioLink, userOnTarget.getMajorJobGroup(), userOnTarget.getMinorJobGroup());
+
+        portFolioRepo.save(portFolio);
         log.debug("Edited user {}'s portfolio link", userOnTarget.getId());
 
         // 사용자가 S3 에 업로드한 자원들 추가
@@ -192,7 +207,8 @@ public class UserService {
 
         log.info("Edited user {}'s info successfully", userOnTarget.getId());
 
-        return UserResponse.of(userOnTarget);
+
+        return UserSavePortFolioResponse.of(userOnTarget, portFolio);
     }
 
     /**

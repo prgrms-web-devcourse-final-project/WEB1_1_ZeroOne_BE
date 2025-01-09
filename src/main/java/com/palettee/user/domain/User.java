@@ -1,5 +1,6 @@
 package com.palettee.user.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.palettee.archive.domain.*;
 import com.palettee.gathering.domain.*;
 import com.palettee.global.entity.*;
@@ -14,7 +15,7 @@ import lombok.*;
 @Entity
 @Table(indexes = {
         @Index(name = "idx_email", columnList = "user_email"),
-        @Index(name = "idx_oauth_identity", columnList = "oauth_identity")
+        @Index(name = "idx_oauth_identity", columnList = "oauth_identity"),
 })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -168,6 +169,7 @@ public class User extends BaseEntity {
     private final List<RelatedLink> relatedLinks = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @JsonIgnore
     private final List<Archive> archives = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)

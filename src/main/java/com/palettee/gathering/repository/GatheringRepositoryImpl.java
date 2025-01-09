@@ -10,7 +10,6 @@ import com.palettee.gathering.controller.dto.Response.*;
 import com.palettee.gathering.domain.Sort;
 import com.palettee.gathering.domain.*;
 import com.palettee.likes.domain.*;
-import com.palettee.portfolio.controller.dto.response.*;
 import com.palettee.user.controller.dto.response.users.*;
 import com.querydsl.core.*;
 import com.querydsl.core.types.dsl.*;
@@ -47,7 +46,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
         List<Gathering> result = queryFactory
                 .selectFrom(gathering)
                 .join(gathering.user, user).fetchJoin()
-                .join(gathering.positions, position).fetchJoin()
+                .leftJoin(gathering.positions, position).fetchJoin()
                 .where(
                         sortEq(sort),
                         subjectEq(subject),
@@ -58,7 +57,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
                         positionIn(positions),
                         pageIdLoe(gatheringId)
                         )
-                .orderBy(gathering.id.desc())
+                .orderBy(gathering.createAt.desc())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 

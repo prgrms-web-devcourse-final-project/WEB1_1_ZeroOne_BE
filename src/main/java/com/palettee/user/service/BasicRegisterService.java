@@ -6,6 +6,7 @@ import com.palettee.user.controller.dto.request.users.RegisterBasicInfoRequest;
 import com.palettee.user.controller.dto.request.users.RegisterPortfolioRequest;
 import com.palettee.user.controller.dto.response.users.BasicInfoResponse;
 import com.palettee.user.controller.dto.response.users.UserResponse;
+import com.palettee.user.controller.dto.response.users.UserSavePortFolioResponse;
 import com.palettee.user.domain.RelatedLink;
 import com.palettee.user.domain.StoredProfileImageUrl;
 import com.palettee.user.domain.User;
@@ -19,6 +20,7 @@ import com.palettee.user.repository.StoredProfileImageUrlRepository;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +41,8 @@ public class BasicRegisterService {
     private final RelatedLinkRepository relatedLinkRepo;
     private final PortFolioRepository portFolioRepo;
     private final StoredProfileImageUrlRepository storedProfileImageUrlRepo;
+
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 유저 기본 정보 등록시 기초 정보 보여주기
@@ -102,7 +106,7 @@ public class BasicRegisterService {
      * 유저 포폴 정보 (링크) 등록하기
      */
     @Transactional
-    public UserResponse registerPortfolio(
+    public UserSavePortFolioResponse registerPortfolio(
             User user,
             RegisterPortfolioRequest registerPortfolioRequest
     ) {
@@ -113,18 +117,19 @@ public class BasicRegisterService {
         user = this.getUserByIdFetchWithPortfolio(user.getId());
 
         // 이전 포폴 정보 삭제
-        portFolioRepo.deleteAllByUserId(user.getId());
+         portFolioRepo.deleteAllByUserId(user.getId());
 
         log.debug("Deleted user {}'s all portfolio links", user.getId());
 
         // 포폴 정보 등록 -> validation 으로 빈 링크는 안들어옴.
         String url = registerPortfolioRequest.portfolioUrl();
-        portFolioRepo.save(new PortFolio(user, url));
+        PortFolio portFolio = new PortFolio(user, url, user.getMajorJobGroup(), user.getMinorJobGroup());
+        portFolioRepo.save(portFolio);
 
         log.info("Registered user portfolio info on id: {}",
                 user.getId());
 
-        return UserResponse.of(user);
+        return UserSavePortFolioResponse.of(user, portFolio);
     }
 
     private User getUser(String email) {

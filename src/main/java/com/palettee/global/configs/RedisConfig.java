@@ -1,10 +1,14 @@
 package com.palettee.global.configs;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.palettee.chat.controller.dto.response.ChatResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.global.redis.sub.RedisSubscriber;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,6 +118,26 @@ public class RedisConfig {
     }
 
     @Bean
+    public RedisTemplate<String, GatheringResponse> RedisGatheringTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, GatheringResponse> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+
+    @Bean
+    public RedisTemplate<String, PortFolioResponse> RedisPortFolioTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, PortFolioResponse> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+
+
+
+    @Bean
     public RedisTemplate<String, PortFolioPopularResponse> portFolioPopular(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, PortFolioPopularResponse> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -135,12 +159,21 @@ public class RedisConfig {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-                .entryTtl(Duration.ofHours(1));
+                .entryTtl(Duration.ofHours(3));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(redisCacheConfiguration)
                 .build();
     }
+
+    @Bean(name = "redisTemplateForArchive")
+    public RedisTemplate<String, Object> redisTemplateForArchive(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return template;
+        }
 
     @Bean(name = "customCacheManager")
     @Primary
@@ -156,6 +189,13 @@ public class RedisConfig {
     }
 
 
+    @Bean
+    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        return new GenericJackson2JsonRedisSerializer(objectMapper);
+    }
 
 
     @Bean(name = "redisObjectMapper") // LocalDateTime 직렬화 할 때 오류 발생 -> jsr310 Module 추가

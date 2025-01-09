@@ -1,15 +1,14 @@
 package com.palettee.portfolio.controller;
 
 import com.palettee.global.security.validation.UserUtils;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
-import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
+import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
+import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.service.PortFolioService;
 import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -25,13 +24,13 @@ public class PortFolioController
 
 
     @GetMapping()
-    public Slice<PortFolioResponse>  findAll(
+    public CustomOffSetResponse findAll(
             Pageable pageable,
             @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(required = false) String majorJobGroup,
             @RequestParam(required = false) String minorJobGroup
             ){
-        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, getUserFromContext());
+        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, isFirst(pageable,majorJobGroup,minorJobGroup,sort));
     }
 
     @GetMapping("/{portFolioId}")
@@ -40,7 +39,7 @@ public class PortFolioController
     }
 
     @GetMapping("/my-page")
-    public CustomSliceResponse findLike(
+    public CustomPortFolioResponse findLike(
             Pageable pageable ,
             @RequestParam(required = false) Long likeId){
 
@@ -61,6 +60,14 @@ public class PortFolioController
      return portFolioService.popularPortFolio(getUserFromContext());
     }
 
+
+    private static boolean isFirst(Pageable pageable, String majorJobGroup, String minorJobGroup,String sort) {
+        if(pageable.getOffset() == 0 && majorJobGroup == null && minorJobGroup == null && sort.equals("latest")){
+            return true;
+        }
+        return false;
+    }
+
     private Optional<User> getUserFromContext() {
         User user = null;
         try {
@@ -68,20 +75,7 @@ public class PortFolioController
         } catch (Exception e) {
             log.info("Current user is not logged in");
         }
-
         return Optional.ofNullable(user);
     }
-
-
-
-    private static boolean isLikedFirst(Long likeId) {
-        if(likeId == null){
-            return true;
-        }
-        return false;
-    }
-
-
-
 
 }

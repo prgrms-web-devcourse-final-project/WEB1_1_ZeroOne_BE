@@ -57,6 +57,8 @@ public class Gathering extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private int hits;
+
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GatheringTag> gatheringTagList = new ArrayList<>();
 
@@ -94,6 +96,7 @@ public class Gathering extends BaseEntity {
         this.title = title;
         this.content = content;
         this.user = user;
+        this.hits = 0;
         user.addGathering(this);
        setGatheringTagList(gatheringTagList);
        setGatheringImages(gatheringImages);

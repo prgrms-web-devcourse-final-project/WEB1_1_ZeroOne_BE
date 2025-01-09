@@ -1,6 +1,7 @@
 package com.palettee.gathering.service;
 
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.domain.*;
@@ -8,7 +9,6 @@ import com.palettee.gathering.repository.GatheringImageRepository;
 import com.palettee.gathering.repository.GatheringRepository;
 import com.palettee.gathering.repository.GatheringTagRepository;
 import com.palettee.global.exception.InvalidCategoryException;
-import com.palettee.portfolio.controller.dto.response.CustomSliceResponse;
 import com.palettee.user.domain.MajorJobGroup;
 import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
@@ -161,7 +161,7 @@ class GatheringServiceTest {
 
         //when
 
-        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "온라인" ,null, "모집중", 3,null, PageRequest.of(0, 10));
+        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "온라인" ,null, "모집중", 3,null, PageRequest.of(0, 10), true);
 
 
         //then

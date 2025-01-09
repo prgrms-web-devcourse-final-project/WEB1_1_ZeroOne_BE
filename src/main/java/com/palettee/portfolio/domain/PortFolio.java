@@ -1,6 +1,8 @@
 package com.palettee.portfolio.domain;
 
 import com.palettee.global.entity.BaseEntity;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
 import com.palettee.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -28,11 +30,19 @@ public class PortFolio extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Enumerated(EnumType.STRING)
+    private MajorJobGroup majorJobGroup;
+
+    @Enumerated(EnumType.STRING)
+    private MinorJobGroup minorJobGroup;
+
     @Builder
-    public PortFolio(User user, String url) {
+    public PortFolio(User user, String url,MajorJobGroup majorJobGroup, MinorJobGroup minorJobGroup) {
         this.hits = 0;
         this.user = user;
         this.url = url;
+        this.minorJobGroup = minorJobGroup;
+        this.majorJobGroup = majorJobGroup;
         user.addPortfolio(this);
     }
 

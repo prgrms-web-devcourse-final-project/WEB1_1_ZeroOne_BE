@@ -6,9 +6,7 @@ import java.time.ZoneId;
 public class TypeConverter {
 
     public static Double LocalDateTimeToDouble(LocalDateTime timeStamp) {
-        long epochMilli = timeStamp.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        int nanos = timeStamp.getNano();
-        return epochMilli + (nanos / 1000000.0);
+        return ((Long) timeStamp.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()).doubleValue();
     }
 
     public static String LongToString(Long id) {
