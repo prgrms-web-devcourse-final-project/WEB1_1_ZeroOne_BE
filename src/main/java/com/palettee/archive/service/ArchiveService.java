@@ -151,7 +151,8 @@ public class ArchiveService {
 
         deleteAllInfo(archiveId);
         processingTags(archiveUpdateRequest.tags(), archive);
-        processingImage(archiveUpdateRequest.imageUrls(), archive);
+        publisher.publishEvent(new ImageProcessingEvent(archiveUpdateRequest.description(), archive.getId(), ContentType.ARCHIVE));
+//        processingImage(archiveUpdateRequest.imageUrls(), archive);
 
         return new ArchiveResponse(updatedArchive.getId());
     }
@@ -216,12 +217,6 @@ public class ArchiveService {
     private void processingTags(List<TagDto> tags, Archive archive) {
         for (TagDto dto : tags) {
             tagRepository.save(new Tag(dto.tag(), archive));
-        }
-    }
-
-    private void processingImage(List<ImageUrlDto> imageUrls, Archive archive) {
-        for (ImageUrlDto dto : imageUrls) {
-            archiveImageRepository.save(new ArchiveImage(dto.url(), archive));
         }
     }
 
