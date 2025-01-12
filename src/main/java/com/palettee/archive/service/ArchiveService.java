@@ -7,6 +7,8 @@ import com.palettee.archive.event.HitEvent;
 import com.palettee.archive.event.LikeEvent;
 import com.palettee.archive.exception.*;
 import com.palettee.archive.repository.*;
+import com.palettee.image.ContentType;
+import com.palettee.image.event.ImageProcessingEvent;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.*;
@@ -52,7 +54,8 @@ public class ArchiveService {
         Archive savedArchive = archiveRepository.save(archive);
         archive.setOrder();
         processingTags(archiveRegisterRequest.tags(), archive);
-        processingImage(archiveRegisterRequest.imageUrls(), archive);
+        publisher.publishEvent(new ImageProcessingEvent(archive.getDescription(), archive.getId(), ContentType.ARCHIVE));
+//        processingImage(archiveRegisterRequest.imageUrls(), archive);
 
         // 아카이브 등록시 유저 권한 상승
         findUser.changeUserRole(UserRole.USER);
