@@ -11,13 +11,16 @@ public class ImageProcessor {
 
     Pattern pattern = Pattern.compile("!\\[.*?]\\((https?://[^)]+)\\)");
 
+    /**
+     *  본문에서 이미지 태그를 추출해서 이미지 링크를 전부 가져옵니다.
+     * @param content
+     * @return List
+     */
     public List<String> parseImageTag(String content) {
         Matcher matcher = pattern.matcher(content);
 
-        // URL 저장 리스트
         List<String> imageUrls = new ArrayList<>();
         while (matcher.find()) {
-            // 캡처 그룹에서 URL 추출
             imageUrls.add(matcher.group(1));
         }
         return imageUrls;
