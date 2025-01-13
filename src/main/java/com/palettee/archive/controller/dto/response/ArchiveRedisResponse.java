@@ -17,9 +17,7 @@ public record ArchiveRedisResponse(
         String createDate
 ) implements Serializable {
 
-    public static ArchiveRedisResponse toResponse(Archive archive) {
-        String imageUrl = archive.getArchiveImages().isEmpty() ? "" : archive.getArchiveImages().get(0).getImageUrl();
-
+    public static ArchiveRedisResponse toResponse(Archive archive, String thumbnail) {
         return new ArchiveRedisResponse(
                 archive.getId(),
                 archive.getTitle(),
@@ -30,7 +28,7 @@ public record ArchiveRedisResponse(
                 archive.isCanComment(),
                 archive.getLikeCount(),
                 false,
-                imageUrl,
+                thumbnail,
                 archive.getCreateAt().toLocalDate().toString()
         );
     }

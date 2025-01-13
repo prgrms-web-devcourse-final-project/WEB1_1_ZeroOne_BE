@@ -69,7 +69,7 @@ public class ArchiveService {
         Long myId = getOptionalUserId(optionalUser);
 
         List<ArchiveSimpleResponse> list = archives
-                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
 
         return new ArchiveListResponse(list, colorCounts, SliceInfo.of(archives));
@@ -113,7 +113,7 @@ public class ArchiveService {
 
         List<ArchiveSimpleResponse> result = archives
                 .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
         List<ColorCount> colorCounts = archiveRepository.countMyArchiveByArchiveType(user.getId());
         return new ArchiveListResponse(result, colorCounts, SliceInfo.of(archives));
@@ -125,7 +125,7 @@ public class ArchiveService {
         Slice<Archive> archives = archiveRepository.findAllInIds(ids, pageable);
         List<ArchiveSimpleResponse> result = archives
                 .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
         return new ArchiveListResponse(result, colorCounts, SliceInfo.of(archives));
     }
@@ -136,7 +136,7 @@ public class ArchiveService {
         Slice<Archive> archives = archiveRepository.searchArchive(searchKeyword, ids, pageable);
 
         List<ArchiveSimpleResponse> list = archives
-                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
 
         return new ArchiveListResponse(list, null, SliceInfo.of(archives));
@@ -164,7 +164,7 @@ public class ArchiveService {
         checkArchiveOwner(user, archive);
 
         tagRepository.deleteByArchive(archive);
-        archiveImageRepository.deleteByArchive(archive);
+        archiveImageRepository.deleteByArchiveId(archiveId);
         archiveRepository.delete(archive);
         return new ArchiveResponse(archiveId);
     }
@@ -227,6 +227,10 @@ public class ArchiveService {
     private User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private String getArchiveThumbnail(Long archiveId) {
+        return archiveImageRepository.getArchiveThumbnail(archiveId);
     }
 
 }

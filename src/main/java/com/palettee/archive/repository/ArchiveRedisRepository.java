@@ -32,6 +32,7 @@ public class ArchiveRedisRepository {
     private final RedisTemplate<String, Object> redisTemplateForArchive;
 
     private final ArchiveRepository archiveRepository;
+    private final ArchiveImageRepository archiveImageRepository;
 
     @Transactional
     public void settleHits() {
@@ -81,7 +82,7 @@ public class ArchiveRedisRepository {
         }
 
         List<ArchiveRedisResponse> redis = result.stream()
-                        .map(ArchiveRedisResponse::toResponse)
+                        .map(it -> ArchiveRedisResponse.toResponse(it, archiveImageRepository.getArchiveThumbnail(it.getId())))
                         .toList();
         log.info("Redis에 저장될 데이터: {}", redis);
         redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, new ArchiveRedisList(redis), 1, TimeUnit.HOURS);

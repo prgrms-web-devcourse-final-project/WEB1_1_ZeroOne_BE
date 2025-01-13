@@ -98,16 +98,16 @@ public class UserController {
      *
      * @param id 조회하고자 하는 사용자의 id
      */
-//    @GetMapping("/{userId}/archives")
-//    public GetUserArchiveResponse getUserArchives(
-//            @PathVariable("userId") Long id,
-//            @Min(1) @RequestParam("size") int size,
-//            @RequestParam(value = "nextArchiveId", required = false) Long nextArchiveId
-//    ) {
-//        return userService.getUserArchives(
-//                id, size, nextArchiveId
-//        );
-//    }
+    @GetMapping("/{userId}/archives")
+    public GetUserArchiveResponse getUserArchives(
+            @PathVariable("userId") Long id,
+            @Min(1) @RequestParam("size") int size,
+            @RequestParam(value = "nextArchiveId", required = false) Long nextArchiveId
+    ) {
+        return userService.getUserArchives(
+                id, size, nextArchiveId
+        );
+    }
 
     /**
      * 특정 유저의 {@code Gathering} 을 조회

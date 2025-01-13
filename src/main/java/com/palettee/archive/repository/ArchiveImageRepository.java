@@ -15,8 +15,11 @@ public interface ArchiveImageRepository extends JpaRepository<ArchiveImage, Long
     void deleteAllByArchiveId(@Param("archiveId") Long archiveId);
 
     @Modifying(flushAutomatically = true)
-    void deleteByArchive(Archive archive);
+    void deleteByArchiveId(Long archiveId);
 
     @Query("select ai.imageUrl from ArchiveImage ai where ai.archiveId = :archiveId")
-    List<String> findAllByArchiveId(Long archivedId);
+    List<String> findAllByArchiveId(Long archiveId);
+
+    @Query("select ai.imageUrl from ArchiveImage ai where ai.archiveId = :archiveId order by ai.id limit 1")
+    String getArchiveThumbnail(Long archiveId);
 }

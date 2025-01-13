@@ -16,9 +16,11 @@ import org.springframework.stereotype.*;
 public class ArchiveCustomRepositoryImpl implements ArchiveCustomRepository{
 
     private final JPAQueryFactory queryFactory;
+    private final ArchiveImageRepository archiveImageRepository;
 
-    public ArchiveCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
+    public ArchiveCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory, ArchiveImageRepository archiveImageRepository) {
         this.queryFactory = jpaQueryFactory;
+        this.archiveImageRepository = archiveImageRepository;
     }
 
     @Override
@@ -101,7 +103,7 @@ public class ArchiveCustomRepositoryImpl implements ArchiveCustomRepository{
         }
 
         return GetUserArchiveResponse.of(
-                searchResult, hasNext, nextOffset
+                searchResult, hasNext, nextOffset, archiveImageRepository
         );
     }
 
