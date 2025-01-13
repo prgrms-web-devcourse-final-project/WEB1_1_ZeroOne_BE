@@ -55,7 +55,6 @@ public class ArchiveService {
         archive.setOrder();
         processingTags(archiveRegisterRequest.tags(), archive);
         publisher.publishEvent(new ImageProcessingEvent(archive.getDescription(), archive.getId(), ContentType.ARCHIVE));
-//        processingImage(archiveRegisterRequest.imageUrls(), archive);
 
         // 아카이브 등록시 유저 권한 상승
         findUser.changeUserRole(UserRole.USER);
@@ -152,7 +151,6 @@ public class ArchiveService {
         deleteAllInfo(archiveId);
         processingTags(archiveUpdateRequest.tags(), archive);
         publisher.publishEvent(new ImageProcessingEvent(archiveUpdateRequest.description(), archive.getId(), ContentType.ARCHIVE));
-//        processingImage(archiveUpdateRequest.imageUrls(), archive);
 
         return new ArchiveResponse(updatedArchive.getId());
     }
