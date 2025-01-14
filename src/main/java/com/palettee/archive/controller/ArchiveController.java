@@ -39,13 +39,17 @@ public class ArchiveController {
     private final CommentService commentService;
 
     @PostMapping
-    public ArchiveResponse registerArchive(@Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest) {
+    public ArchiveResponse registerArchive(
+            @Valid @RequestBody ArchiveRegisterRequest archiveRegisterRequest
+    ) {
         User user = UserUtils.getContextUser();
         return archiveService.registerArchive(archiveRegisterRequest, user);
     }
 
     @GetMapping("/{archiveId}")
-    public ArchiveDetailResponse getArchive(@PathVariable("archiveId") long archiveId) {
+    public ArchiveDetailResponse getArchive(
+            @PathVariable("archiveId") Long archiveId
+    ) {
         return archiveService.getArchiveDetail(archiveId, getContextUser());
     }
 
@@ -92,27 +96,39 @@ public class ArchiveController {
     }
 
     @PutMapping("/{archiveId}")
-    public ArchiveResponse updateArchive(@PathVariable("archiveId") long archiveId, @Valid @RequestBody ArchiveUpdateRequest archiveUpdateRequest) {
+    public ArchiveResponse updateArchive(
+            @PathVariable("archiveId") Long archiveId,
+            @Valid @RequestBody ArchiveUpdateRequest archiveUpdateRequest
+    ) {
         return archiveService.updateArchive(archiveId, archiveUpdateRequest, UserUtils.getContextUser());
     }
 
     @DeleteMapping("/{archiveId}")
-    public ArchiveResponse deleteArchive(@PathVariable("archiveId") long archiveId) {
+    public ArchiveResponse deleteArchive(
+            @PathVariable("archiveId") Long archiveId
+    ) {
         return archiveService.deleteArchive(archiveId, UserUtils.getContextUser());
     }
 
     @PatchMapping
-    public void updateOrder(@Valid @RequestBody ChangeOrderRequest changeOrderRequest) {
+    public void updateOrder(
+            @Valid @RequestBody ChangeOrderRequest changeOrderRequest
+    ) {
         archiveService.changeArchiveOrder(changeOrderRequest, UserUtils.getContextUser());
     }
 
     @PostMapping("/{archiveId}")
-    public ArchiveResponse likeArchive(@PathVariable("archiveId") Long archiveId) {
+    public ArchiveResponse likeArchive(
+            @PathVariable("archiveId") Long archiveId
+    ) {
         return archiveService.likeArchive(archiveId, UserUtils.getContextUser());
     }
 
     @PostMapping("/{archiveId}/comment")
-    public CommentResponse writeComment(@PathVariable("archiveId") long archiveId, @Valid @RequestBody CommentWriteRequest commentWriteRequest) {
+    public CommentResponse writeComment(
+            @PathVariable("archiveId") Long archiveId,
+            @Valid @RequestBody CommentWriteRequest commentWriteRequest
+    ) {
         User user = UserUtils.getContextUser();
         return commentService.writeComment(user, archiveId, commentWriteRequest);
     }
@@ -129,13 +145,18 @@ public class ArchiveController {
     }
 
     @PutMapping("/comment/{commentId}")
-    public CommentResponse updateComment(@PathVariable("commentId") long commentId, @Valid @RequestBody CommentUpdateRequest commentUpdateRequest) {
+    public CommentResponse updateComment(
+            @PathVariable("commentId") Long commentId,
+            @Valid @RequestBody CommentUpdateRequest commentUpdateRequest
+    ) {
         User user = UserUtils.getContextUser();
         return commentService.updateComment(user, commentId, commentUpdateRequest);
     }
 
     @DeleteMapping("/comment/{commentId}")
-    public CommentResponse deleteComment(@PathVariable("commentId") long commentId) {
+    public CommentResponse deleteComment(
+            @PathVariable("commentId") Long commentId
+    ) {
         User user = UserUtils.getContextUser();
         return commentService.deleteComment(commentId, user.getId());
     }
