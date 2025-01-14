@@ -79,7 +79,7 @@ public class ArchiveService {
     }
 
     public ArchiveListResponse getMainArchive(User contextUser) {
-        Long userId = contextUser == null ? 0L : contextUser.getId();
+        Long userId = getOptionalUserId(contextUser);
         List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives().archives()
                 .stream()
                 .map(it -> ArchiveSimpleResponse.changeToSimpleResponse(it, userId, likeRepository))
@@ -90,7 +90,7 @@ public class ArchiveService {
     @Transactional
     public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);
-        Long userId = user == null ? 0L : user.getId();
+        Long userId = getOptionalUserId(user);
         String email = user == null ? "" : user.getEmail();
         publisher.publishEvent(new HitEvent(archiveId, email));
         return ArchiveDetailResponse.toResponse(
