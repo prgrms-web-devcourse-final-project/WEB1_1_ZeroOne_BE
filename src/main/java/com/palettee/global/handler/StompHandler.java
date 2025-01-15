@@ -145,10 +145,7 @@ public class StompHandler implements ChannelInterceptor {
         String chatRoomId = destination.substring(TOPIC_CHAT_ENDPOINT.length());
         ChatRoom chatRoom = chatRoomService.getChatRoom(Long.valueOf(chatRoomId));
 
-        if(!chatUserService.isExist(chatRoom, user)) {
-            log.error("해당 채팅방에 참여자가 아닙니다.");
-            throw ChatUserNotFoundException.EXCEPTION;
-        }
+        chatUserService.getChatUser(chatRoom.getId(), user.getId(), true);
     }
 
     private User getUser(String email) {

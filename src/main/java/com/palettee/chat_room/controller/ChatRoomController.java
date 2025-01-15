@@ -3,6 +3,7 @@ package com.palettee.chat_room.controller;
 import com.palettee.chat.controller.dto.response.ChatCustomResponse;
 import com.palettee.chat.service.ChatRedisService;
 import com.palettee.chat_room.controller.dto.request.ChatRoomCreateRequest;
+import com.palettee.chat_room.controller.dto.response.ChatRoomListResponse;
 import com.palettee.chat_room.controller.dto.response.ChatRoomResponse;
 import com.palettee.chat_room.service.ChatRoomService;
 import com.palettee.global.security.validation.UserUtils;
@@ -27,7 +28,6 @@ public class ChatRoomController {
         return chatRoomService.saveChatRoom(chatRoomCreateRequest, contextUser);
     }
 
-    // userId는 추후에 삭제할 예정
     // 채팅방 참여
     @PostMapping("/participation/{chatRoomId}")
     public void participateChatRoom(@PathVariable Long chatRoomId) {
@@ -35,7 +35,6 @@ public class ChatRoomController {
         chatRoomService.participation(chatRoomId, contextUser);
     }
 
-    // userId는 추후에 삭제할 예정
     // 채팅방 나가기
     @DeleteMapping("/leave/{chatRoomId}")
     public void leaveChatRoom(@PathVariable Long chatRoomId) {
@@ -48,5 +47,11 @@ public class ChatRoomController {
                                        @RequestParam(value = "size") int size,
                                        @RequestParam(value = "lastSendAt", required = false) LocalDateTime lastSendAt) {
         return chatRedisService.getChats(chatRoomId, size, lastSendAt);
+    }
+
+    @GetMapping("/me")
+    public ChatRoomListResponse getMyChatRooms() {
+        User contextUser = UserUtils.getContextUser();
+        return chatRoomService.getMyChatRooms(contextUser);
     }
 }
