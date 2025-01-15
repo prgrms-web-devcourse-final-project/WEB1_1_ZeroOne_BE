@@ -23,9 +23,21 @@ public class ChatUser {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
     @Builder
-    public ChatUser(ChatRoom chatRoom, User user) {
+    public ChatUser(ChatRoom chatRoom, User user, boolean isDeleted) {
         this.chatRoom = chatRoom;
         this.user = user;
+        this.isDeleted = isDeleted;
+    }
+
+    public void participation() {
+        this.isDeleted = true;
+    }
+
+    public void leave() {
+        this.isDeleted = false;
     }
 }

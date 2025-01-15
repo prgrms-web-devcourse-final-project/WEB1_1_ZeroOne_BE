@@ -18,23 +18,21 @@ public class ChatCustomResponse {
 
     private LocalDateTime lastSendAt;
 
-    public static ChatCustomResponse toResponseFromEntity(List<Chat> chats, boolean hasNext,
-                                                LocalDateTime nextChatTimeStamp) {
+    public static ChatCustomResponse toResponseFromEntity(List<Chat> chats, boolean hasNext) {
         return new ChatCustomResponse(
                 chats.stream()
                         .map(ChatResponse::toResponseFromEntity)
                         .toList(),
                 hasNext,
-                nextChatTimeStamp
+                null
         );
     }
 
-    public static ChatCustomResponse toResponseFromDto(List<ChatResponse> chats, boolean hasNext,
-                                                LocalDateTime nextChatTimeStamp) {
+    public static ChatCustomResponse toResponseFromDto(List<ChatResponse> chats, boolean hasNext) {
         return new ChatCustomResponse(
                 chats,
                 hasNext,
-                nextChatTimeStamp
+                hasNext ? chats.get(chats.size() - 1).getSendAt() : null
         );
     }
 }

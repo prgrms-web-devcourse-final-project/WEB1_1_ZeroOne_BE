@@ -9,36 +9,42 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ChatUserService {
     private final ChatUserRepository chatUserRepository;
 
-    public void saveChatUser(ChatRoom chatRoom, User user) {
-        ChatUser chatUser = makeChatUser(chatRoom, user);
+    public void saveChatUser(ChatRoom chatRoom, User user, boolean isDeleted) {
+        ChatUser chatUser = makeChatUser(chatRoom, user, isDeleted);
         chatUserRepository.save(chatUser);
     }
 
-    public void deleteChatUser(ChatRoom chatRoom, User user) {
-        ChatUser chatUser = getChatUser(chatRoom, user);
-        chatUserRepository.delete(chatUser);
+    public void deleteChatUsers(Long chatRoomId) {
+        chatUserRepository.deleteAllByChatRoomId(chatRoomId);
     }
 
-    public boolean isExist(ChatRoom chatRoom, User user) {
-        return chatUserRepository.existsByChatRoomAndUser(chatRoom, user);
+    public int countChatRoom(Long chatRoomId) {
+        return chatUserRepository.countChatUsersByChatRoom(chatRoomId, true);
     }
 
-    private ChatUser makeChatUser(ChatRoom chatRoom, User user) {
+    public ChatUser getChatUser(Long chatRoomId, Long userId, boolean isDeleted) {
+        return chatUserRepository
+                .findByChatRoomAndUser(chatRoomId, userId, isDeleted)
+                .orElseThrow(() -> ChatUserNotFoundException.EXCEPTION);
+    }
+
+    public List<ChatUser> getMyChatUsers(User user) {
+        return chatUserRepository.getChatUsersByMe(user);
+    }
+
+    private ChatUser makeChatUser(ChatRoom chatRoom, User user, boolean isDeleted) {
         return ChatUser.builder()
                 .chatRoom(chatRoom)
                 .user(user)
+                .isDeleted(isDeleted)
                 .build();
-    }
-
-    private ChatUser getChatUser(ChatRoom chatRoom, User user) {
-        return chatUserRepository
-                .findByChatRoomAndUser(chatRoom, user)
-                .orElseThrow(() -> ChatUserNotFoundException.EXCEPTION);
     }
 }

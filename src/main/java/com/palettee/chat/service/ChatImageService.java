@@ -18,4 +18,8 @@ public class ChatImageService {
     public List<ChatImage> saveChatImages(List<ChatImage> chatImages) {
         return chatImageRepository.saveAll(chatImages);
     }
+
+    public void deleteChatImages(Long chatRoomId) {
+        chatImageRepository.bulkDeleteChatImagesByChatRoomId(chatRoomId);
+    }
 }
