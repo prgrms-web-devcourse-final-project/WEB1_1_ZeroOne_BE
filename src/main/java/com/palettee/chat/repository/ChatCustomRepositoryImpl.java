@@ -38,15 +38,10 @@ public class ChatCustomRepositoryImpl implements ChatCustomRepository{
                 .fetch();
 
         boolean hasNext = chats.size() > size;
-
-        LocalDateTime lastSendAt = null;
         if(hasNext) {
-            if(size != 0) {
-                lastSendAt = chats.get(size-1).getSendAt();
-            }
             chats = chats.subList(0, size);
         }
 
-        return ChatCustomResponse.toResponseFromEntity(chats, hasNext, lastSendAt);
+        return ChatCustomResponse.toResponseFromEntity(chats, hasNext);
     }
 }
