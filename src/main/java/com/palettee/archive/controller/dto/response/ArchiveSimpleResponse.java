@@ -18,9 +18,7 @@ public record ArchiveSimpleResponse(
         String createDate
 ) implements Serializable {
 
-    public static ArchiveSimpleResponse toResponse(Archive archive, Long userId, LikeRepository likeRepository) {
-        String imageUrl = archive.getArchiveImages().isEmpty() ? "" : archive.getArchiveImages().get(0).getImageUrl();
-
+    public static ArchiveSimpleResponse toResponse(Archive archive, Long userId, LikeRepository likeRepository, String thumbnail) {
         return new ArchiveSimpleResponse(
                 archive.getId(),
                 archive.getTitle(),
@@ -31,7 +29,7 @@ public record ArchiveSimpleResponse(
                 archive.isCanComment(),
                 archive.getLikeCount(),
                 likeRepository.existByUserAndArchive(archive.getId(), userId).isPresent(),
-                imageUrl,
+                thumbnail,
                 archive.getCreateAt().toLocalDate().toString()
         );
     }

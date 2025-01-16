@@ -7,6 +7,8 @@ import com.palettee.archive.event.HitEvent;
 import com.palettee.archive.event.LikeEvent;
 import com.palettee.archive.exception.*;
 import com.palettee.archive.repository.*;
+import com.palettee.image.ContentType;
+import com.palettee.image.event.ImageProcessingEvent;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.*;
@@ -52,7 +54,7 @@ public class ArchiveService {
         Archive savedArchive = archiveRepository.save(archive);
         archive.setOrder();
         processingTags(archiveRegisterRequest.tags(), archive);
-        processingImage(archiveRegisterRequest.imageUrls(), archive);
+        publisher.publishEvent(new ImageProcessingEvent(archive.getDescription(), archive.getId(), ContentType.ARCHIVE));
 
         // 아카이브 등록시 유저 권한 상승
         findUser.changeUserRole(UserRole.USER);
@@ -66,7 +68,7 @@ public class ArchiveService {
         Long myId = getOptionalUserId(optionalUser);
 
         List<ArchiveSimpleResponse> list = archives
-                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
 
         return new ArchiveListResponse(list, colorCounts, SliceInfo.of(archives));
@@ -77,7 +79,7 @@ public class ArchiveService {
     }
 
     public ArchiveListResponse getMainArchive(User contextUser) {
-        Long userId = contextUser == null ? 0L : contextUser.getId();
+        Long userId = getOptionalUserId(contextUser);
         List<ArchiveSimpleResponse> result = archiveRedisRepository.getTopArchives().archives()
                 .stream()
                 .map(it -> ArchiveSimpleResponse.changeToSimpleResponse(it, userId, likeRepository))
@@ -88,7 +90,7 @@ public class ArchiveService {
     @Transactional
     public ArchiveDetailResponse getArchiveDetail(Long archiveId, User user) {
         Archive archive = getArchive(archiveId);
-        Long userId = user == null ? 0L : user.getId();
+        Long userId = getOptionalUserId(user);
         String email = user == null ? "" : user.getEmail();
         publisher.publishEvent(new HitEvent(archiveId, email));
         return ArchiveDetailResponse.toResponse(
@@ -110,7 +112,7 @@ public class ArchiveService {
 
         List<ArchiveSimpleResponse> result = archives
                 .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
         List<ColorCount> colorCounts = archiveRepository.countMyArchiveByArchiveType(user.getId());
         return new ArchiveListResponse(result, colorCounts, SliceInfo.of(archives));
@@ -122,7 +124,7 @@ public class ArchiveService {
         Slice<Archive> archives = archiveRepository.findAllInIds(ids, pageable);
         List<ArchiveSimpleResponse> result = archives
                 .stream()
-                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, user.getId(), likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
         return new ArchiveListResponse(result, colorCounts, SliceInfo.of(archives));
     }
@@ -133,7 +135,7 @@ public class ArchiveService {
         Slice<Archive> archives = archiveRepository.searchArchive(searchKeyword, ids, pageable);
 
         List<ArchiveSimpleResponse> list = archives
-                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository))
+                .map(it -> ArchiveSimpleResponse.toResponse(it, myId, likeRepository, getArchiveThumbnail(it.getId())))
                 .toList();
 
         return new ArchiveListResponse(list, null, SliceInfo.of(archives));
@@ -148,7 +150,7 @@ public class ArchiveService {
 
         deleteAllInfo(archiveId);
         processingTags(archiveUpdateRequest.tags(), archive);
-        processingImage(archiveUpdateRequest.imageUrls(), archive);
+        publisher.publishEvent(new ImageProcessingEvent(archiveUpdateRequest.description(), archive.getId(), ContentType.ARCHIVE));
 
         return new ArchiveResponse(updatedArchive.getId());
     }
@@ -160,7 +162,7 @@ public class ArchiveService {
         checkArchiveOwner(user, archive);
 
         tagRepository.deleteByArchive(archive);
-        archiveImageRepository.deleteByArchive(archive);
+        archiveImageRepository.deleteByArchiveId(archiveId);
         archiveRepository.delete(archive);
         return new ArchiveResponse(archiveId);
     }
@@ -216,12 +218,6 @@ public class ArchiveService {
         }
     }
 
-    private void processingImage(List<ImageUrlDto> imageUrls, Archive archive) {
-        for (ImageUrlDto dto : imageUrls) {
-            archiveImageRepository.save(new ArchiveImage(dto.url(), archive));
-        }
-    }
-
     private Archive getArchive(Long archiveId) {
         return archiveRepository.findById(archiveId).orElseThrow(() -> ArchiveNotFound.EXCEPTION);
     }
@@ -229,6 +225,10 @@ public class ArchiveService {
     private User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> UserNotFoundException.EXCEPTION);
+    }
+
+    private String getArchiveThumbnail(Long archiveId) {
+        return archiveImageRepository.getArchiveThumbnail(archiveId);
     }
 
 }

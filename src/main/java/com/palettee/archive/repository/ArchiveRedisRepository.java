@@ -13,29 +13,30 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Slf4j
 @RequiredArgsConstructor
 public class ArchiveRedisRepository {
-
-    private static final String INCR_PATTERN = "incr:hit:archiveId:*";
-    private static final String STD_PATTERN = "std:hit:archiveId:";
-    private static final String TOP_ARCHIVE = "top_archives";
-    private static final String DELIMITER = ":";
 
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisTemplate<String, Object> redisTemplateForArchive;
 
     private final ArchiveRepository archiveRepository;
+    private final ArchiveImageRepository archiveImageRepository;
+
+    private static final String INCR_KEY_PREFIX = "incr:hit:archiveId:";
+    private static final String STD_KEY_PREFIX = "std:hit:archiveId:";
+    private static final String LIKE_KEY_PREFIX = "like:archiveId:";
+    private static final String TOP_ARCHIVE_KEY = "top_archives";
+    private static final String DELIMITER = ":";
+    private static final long TOP_ARCHIVE_TTL = 1; // TTL in hours
 
     @Transactional
     public void settleHits() {
-        Set<String> incrKeys = redisTemplate.keys(INCR_PATTERN);
+        Set<String> incrKeys = redisTemplate.keys(INCR_KEY_PREFIX + "*");
         if (incrKeys == null || incrKeys.isEmpty()) {
             return;
         }
@@ -46,7 +47,7 @@ public class ArchiveRedisRepository {
             String incrHits = redisTemplate.opsForValue().get(incrKey);
             long incrCount = incrHits == null ? 0 : Long.parseLong(incrHits);
 
-            String stdKey = STD_PATTERN + archiveId;
+            String stdKey = STD_KEY_PREFIX + archiveId;
             String stdHits = redisTemplate.opsForValue().get(stdKey);
             long stdCount = stdHits == null ? 0 : Long.parseLong(stdHits);
 
@@ -64,55 +65,50 @@ public class ArchiveRedisRepository {
         archive.setHit(totalHits);
     }
 
-    private String extractId(String incrKey) {
-        return incrKey.split(DELIMITER)[3];
+    private String extractId(String key) {
+        return key.split(DELIMITER)[3];
     }
 
     @Transactional(readOnly = true)
     public void updateArchiveList() {
-        List<Long> top4IncrKeys = getTop4IncrKeys();
-        List<Archive> result = archiveRepository.findArchivesInIds(top4IncrKeys);
+        List<Long> top4ArchiveIds = getTop4ArchiveIds();
+        List<Archive> archives = archiveRepository.findArchivesInIds(top4ArchiveIds);
 
-        int redisSize = result.size();
+        int redisSize = archives.size();
         if (redisSize < 4) {
             int remaining = 4 - redisSize;
             List<Archive> additionalFromDB = archiveRepository.findTopArchives(remaining);
-            result.addAll(additionalFromDB);
+            archives.addAll(additionalFromDB);
         }
 
-        List<ArchiveRedisResponse> redis = result.stream()
-                        .map(ArchiveRedisResponse::toResponse)
-                        .toList();
-        log.info("Redis에 저장될 데이터: {}", redis);
-        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE, new ArchiveRedisList(redis), 1, TimeUnit.HOURS);
+        List<ArchiveRedisResponse> redisData = archives.stream()
+                .map(archive -> ArchiveRedisResponse.toResponse(
+                        archive, archiveImageRepository.getArchiveThumbnail(archive.getId())))
+                .toList();
+
+        redisTemplateForArchive.opsForValue().set(TOP_ARCHIVE_KEY, new ArchiveRedisList(redisData), TOP_ARCHIVE_TTL, TimeUnit.HOURS);
     }
 
-    private List<Long> getTop4IncrKeys() {
-        String hitPattern = "incr:hit:archiveId:*";
-        String likePattern = "like:archiveId:*";
-
-        // Redis에서 키 가져오기
-        Set<String> hitKeys = redisTemplate.keys(hitPattern);
-        Set<String> likeKeys = redisTemplate.keys(likePattern);
+    private List<Long> getTop4ArchiveIds() {
+        Set<String> hitKeys = redisTemplate.keys(INCR_KEY_PREFIX + "*");
+        Set<String> likeKeys = redisTemplate.keys(LIKE_KEY_PREFIX + "*");
 
         if (hitKeys == null || likeKeys == null) {
             return Collections.emptyList();
         }
 
-        // 점수 계산
         Map<Long, Integer> archiveScores = new HashMap<>();
         for (String hitKey : hitKeys) {
             Long archiveId = extractArchiveId(hitKey);
-            Integer hitCount = getValueAsInt(hitKey);
+            int hitCount = getValueAsInt(hitKey);
 
-            String likeKey = "like:archiveId:" + archiveId;
-            Integer likeCount = getValueAsInt(likeKey);
+            String likeKey = LIKE_KEY_PREFIX + archiveId;
+            int likeCount = getValueAsInt(likeKey);
 
             int score = hitCount + (likeCount * 5);
             archiveScores.put(archiveId, score);
         }
 
-        // 정렬 및 상위 4개 추출
         return archiveScores.entrySet().stream()
                 .sorted(Map.Entry.<Long, Integer>comparingByValue().reversed())
                 .limit(4)
@@ -121,21 +117,20 @@ public class ArchiveRedisRepository {
     }
 
     private Long extractArchiveId(String key) {
-        return Long.valueOf(key.replace("incr:hit:archiveId:", ""));
+        return Long.valueOf(key.replace(INCR_KEY_PREFIX, ""));
     }
 
-    private Integer getValueAsInt(String key) {
+    private int getValueAsInt(String key) {
         String value = redisTemplate.opsForValue().get(key);
         return value != null ? Integer.parseInt(value) : 0;
     }
 
     public ArchiveRedisList getTopArchives() {
         try {
-            ArchiveRedisList result = (ArchiveRedisList) redisTemplateForArchive.opsForValue().get(TOP_ARCHIVE);
+            ArchiveRedisList result = (ArchiveRedisList) redisTemplateForArchive.opsForValue().get(TOP_ARCHIVE_KEY);
             return result == null ? new ArchiveRedisList(new ArrayList<>()) : result;
         } catch (SerializationException e) {
-            log.error("Redis 역직렬화 실패: {}", e.getMessage());
-            redisTemplateForArchive.delete(TOP_ARCHIVE);
+            redisTemplateForArchive.delete(TOP_ARCHIVE_KEY);
             return new ArchiveRedisList(new ArrayList<>());
         }
     }

@@ -14,14 +14,11 @@ public class ArchiveImage {
 
     private String imageUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "archive_id")
-    private Archive archive;
+    private Long archiveId;
 
     @Builder
-    public ArchiveImage(String imageUrl, Archive archive) {
+    public ArchiveImage(String imageUrl, Long archiveId) {
         this.imageUrl = imageUrl;
-        this.archive = archive;
-        archive.addProjectImage(this);
+        this.archiveId = archiveId;
     }
 }

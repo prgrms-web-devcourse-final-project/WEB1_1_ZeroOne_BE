@@ -41,9 +41,6 @@ public class Archive extends BaseEntity {
     private List<Tag> tags = new ArrayList<>();
 
     @OneToMany(mappedBy = "archive", cascade = CascadeType.REMOVE)
-    private List<ArchiveImage> archiveImages = new ArrayList<>();
-
-    @OneToMany(mappedBy = "archive", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
@@ -64,10 +61,6 @@ public class Archive extends BaseEntity {
 
     public void addTag(Tag tag) {
         this.tags.add(tag);
-    }
-
-    public void addProjectImage(ArchiveImage archiveImage) {
-        this.archiveImages.add(archiveImage);
     }
 
     public void addComment(Comment comment) {
