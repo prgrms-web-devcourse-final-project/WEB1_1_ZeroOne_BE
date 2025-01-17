@@ -292,23 +292,6 @@ public class RedisService {
             }
         }
     }
-    public void deleteKeyExceptionPatterns(String pattern, String userKeySuffix, String targetKeySuffix) {
-        Set<String> keys = redisTemplate.keys(pattern);
-
-        if (keys != null && !keys.isEmpty()) {
-            Set<String> keyDelete;
-            if (userKeySuffix == null) {
-                keyDelete = keys;
-            } else {
-                keyDelete = keys.stream()
-                        .filter(key -> !key.contains(userKeySuffix) && !key.contains(targetKeySuffix))
-                        .collect(Collectors.toSet());
-            }
-            if (!keyDelete.isEmpty()) {
-                redisTemplate.delete(keyDelete);
-            }
-        }
-    }
 
     /**
      *
