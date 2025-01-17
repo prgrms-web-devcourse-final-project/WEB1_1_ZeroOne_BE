@@ -40,6 +40,8 @@ public class Gathering extends BaseEntity {
 
     private int personnel; // 모집 인원
 
+    private int hits;
+
     @Enumerated(EnumType.STRING)
     private Status status; // 현재 모집 상태
 
@@ -55,7 +57,6 @@ public class Gathering extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private int hits;
 
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GatheringTag> gatheringTagList = new ArrayList<>();

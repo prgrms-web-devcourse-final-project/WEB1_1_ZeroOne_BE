@@ -1,15 +1,20 @@
 package com.palettee.gathering.service;
 
-import com.palettee.gathering.controller.dto.Request.*;
-import com.palettee.gathering.controller.dto.Response.*;
-import com.palettee.gathering.domain.Sort;
+import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
+import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.domain.*;
-import com.palettee.gathering.repository.*;
-import com.palettee.global.exception.*;
-import com.palettee.user.domain.*;
-import com.palettee.user.repository.*;
+import com.palettee.gathering.repository.GatheringImageRepository;
+import com.palettee.gathering.repository.GatheringRepository;
+import com.palettee.gathering.repository.GatheringTagRepository;
+import com.palettee.global.exception.InvalidCategoryException;
+import com.palettee.user.domain.MajorJobGroup;
+import com.palettee.user.domain.MinorJobGroup;
+import com.palettee.user.domain.User;
+import com.palettee.user.domain.UserRole;
+import com.palettee.user.repository.UserRepository;
 import org.assertj.core.api.Assertions;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -156,7 +162,7 @@ class GatheringServiceTest {
 
         //when
 
-        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "온라인" ,null, "모집중", 3,null, PageRequest.of(0, 10), true);
+        CustomSliceResponse customSliceResponse = gatheringService.findAll("프로젝트", "개발","3개월", "온라인" ,null, "모집중", 3,null, PageRequest.of(0, 10), Optional.empty(),true);
 
 
         //then

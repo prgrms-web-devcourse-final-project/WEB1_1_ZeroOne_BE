@@ -3,8 +3,8 @@ package com.palettee.portfolio.service;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.global.redis.utils.TypeConverter;
 import com.palettee.likes.domain.LikeType;
-import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
+import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
 import com.palettee.portfolio.controller.dto.response.*;
 import com.palettee.portfolio.domain.PortFolio;
@@ -13,7 +13,6 @@ import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.palettee.global.Const.portFolio_Page_Size;
 import static com.palettee.portfolio.repository.PortFolioRedisRepository.RedisConstKey_PortFolio;
@@ -43,12 +41,16 @@ public class PortFolioService {
 
     private final RedisService redisService;
 
+    private final RedisTemplate<String, Object> redisTemplateForTarget;
+
+
 
     public CustomOffSetResponse findAllPortFolio(
             Pageable pageable,
             String majorJobGroup,
             String minorJobGroup,
             String sort,
+            Optional<User> user,
             boolean isFirstPage
 
     ) {
@@ -57,6 +59,7 @@ public class PortFolioService {
             CustomOffSetResponse cachedFirstPage = getCachedFirstPage(pageable);
 
             if(cachedFirstPage != null){
+                cacheInRedisIsLiked(user, cachedFirstPage.content());
                 return cachedFirstPage;
             }
             CustomOffSetResponse response = portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
@@ -66,11 +69,12 @@ public class PortFolioService {
             List<PortFolioResponse> results = response.content();
 
             results.forEach(result ->
-                    redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, result, TypeConverter.LocalDateTimeToDouble(result.createAt()))
+                    redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, result, TypeConverter.LocalDateTimeToDouble(result.getCreateAt()))
             );
             portFolio_Page_Size = pageable.getPageSize();
 
             redisTemplate.expire(RedisConstKey_PortFolio, 1, TimeUnit.HOURS); // 6시간으로 고정
+            cacheInRedisIsLiked(user, response.content());
             return response;
         }
         return portFolioRepository.PageFindAllPortfolio(pageable, majorJobGroup, minorJobGroup, sort);
@@ -88,8 +92,9 @@ public class PortFolioService {
 
         // 이미 DB에 반영된 좋아요 디비에서 삭제
         if(!flag){
-            cancelLike(portFolioId, user);
+           likeRepository.deleteAllByTargetId(user.getId(), portFolioId, LikeType.PORTFOLIO);
         }
+        notificationService.send(NotificationRequest.like(portFolioId, user.getName()));
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
@@ -101,43 +106,62 @@ public class PortFolioService {
         return portFolioRepository.PageFindLikePortfolio(pageable, userId, likeId);
     }
 
+    public PortFolioWrapper popularPf(Optional<User> user){
+        PortFolioWrapper portFolioWrapper = popularPortFolio(user);
+        if(user.isPresent()){
+            log.info("user가 들어옴");
+            Set<Long> portFolioIds = redisService.getLikeTargetIds(user.get().getId(), "portFolio");
+
+            if(portFolioIds.isEmpty()){
+                log.info("유저가 누른 아이디가 없음");
+            }
+
+            portFolioWrapper.portfolioResponses()
+                    .stream()
+                    .forEach(portFolioPopularResponse -> {
+                        boolean isLiked = portFolioIds != null && portFolioIds.contains(portFolioPopularResponse.getPortFolioId());
+                        portFolioPopularResponse.setLiked(isLiked);
+                    });
+
+            return portFolioWrapper;
+        }
+        return portFolioWrapper;
+    }
+
     /**
      * 상위 5개 레디스에 캐싱
      * @return
      */
-    @Cacheable(value = "pf_cache", key = "'cache'")
-    public PortFolioWrapper popularPortFolio(){
+    public PortFolioWrapper popularPortFolio(Optional<User> user) {
+        String zSetKey = "portFolio_Ranking";
 
-        Map<Long, Double> portFolioMap = redisService.getZSetPopularity("portFolio");
+        List<PortFolioPopularResponse> listFromRedis = getListFromRedis(zSetKey);
+        user.ifPresent(u -> {
+            List<Long> longs = listFromRedis
+                    .stream()
+                    .map(PortFolioPopularResponse::getPortFolioId)
+                    .toList();
 
-        Set<Long> longs = portFolioMap.keySet();
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndTarget(user.get().getId(),LikeType.PORTFOLIO ,longs);
 
-        List<Long> sortedPortFolio = new ArrayList<>(longs);
+            if (portFolioIds.isEmpty()) {
+                log.info("유저가 누른 아이디가 없음");
+            }
 
-        List<PortFolio> portfolios = portFolioRepository.findAllByPortfolioIdIn(sortedPortFolio);
+            listFromRedis.forEach(response -> {
+                response.setLiked(portFolioIds.contains(response.getPortFolioId()));
+            });
+        });
+        return new PortFolioWrapper(listFromRedis);
+        }
 
-
-        // in 절을 사용하면 정렬 순서가 바뀌기 때문에 Map으로 순서를 맞춰줌
-        Map<Long, PortFolio> portfoliosMap = portfolios.stream()
-                .collect(Collectors.toMap(PortFolio::getPortfolioId, portfolio -> portfolio));
-
-        // 본 List의 본 순서와 맞는 점수 대응
-        List<PortFolioPopularResponse> list = sortedPortFolio.stream()
-                .map(portFolioId -> {
-                    Double score = portFolioMap.get(portFolioId);
-                    PortFolio portFolio = portfoliosMap.get(portFolioId);
-                    return portFolio != null ? PortFolioPopularResponse.toDto(portFolio, score) : null;
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        return new PortFolioWrapper(list);
-    }
-
-
-    public PortFolio getPortFolio(Long portFolioId){
-       return portFolioRepository.findById(portFolioId)
-              .orElseThrow(() -> PortFolioNotFoundException.EXCEPTION);
+    @SuppressWarnings("unchecked")
+    public List<PortFolioPopularResponse> getListFromRedis(String zSetKey) {
+        Object result = redisTemplateForTarget.opsForValue().get(zSetKey);
+        if (result instanceof List) {
+            return (List<PortFolioPopularResponse>) result; // List<PortFolioPopularResponse>로 캐스팅
+        }
+        return Collections.emptyList(); // 빈 리스트 반환
     }
 
     public PortFolio getUserPortFolio(Long portFolioId){
@@ -166,16 +190,19 @@ public class PortFolioService {
         return null;
     }
 
+    private void cacheInRedisIsLiked(Optional<User> user, List<PortFolioResponse> portFolioResponses){
+        user.ifPresent(u ->{
+            List<Long> longs = portFolioResponses.stream()
+                    .map(PortFolioResponse::getPortFolioId)
+                    .toList();
 
+            Set<Long> portFolioIds = likeRepository.findByTargetIdAndTarget(u.getId(),LikeType.PORTFOLIO ,longs);
 
-
-    private boolean cancelLike(Long portfolioId, User user) {
-        List<Likes> findByLikes = likeRepository.findByList(user.getId(), portfolioId, LikeType.PORTFOLIO);
-
-        if(findByLikes != null) {
-            likeRepository.deleteAll(findByLikes);
-            return true;
-        }
-        return false;
+            portFolioResponses.forEach(portFolioResponse -> {
+                portFolioResponse.setLiked(portFolioIds.contains(portFolioResponse.getPortFolioId()));
+            });
+        });
     }
+
+
 }

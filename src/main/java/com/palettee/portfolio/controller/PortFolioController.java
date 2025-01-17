@@ -5,10 +5,13 @@ import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
 import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
 import com.palettee.portfolio.controller.dto.response.PortFolioWrapper;
 import com.palettee.portfolio.service.PortFolioService;
+import com.palettee.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,7 +30,7 @@ public class PortFolioController
             @RequestParam(required = false) String majorJobGroup,
             @RequestParam(required = false) String minorJobGroup
             ){
-        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, isFirst(pageable,majorJobGroup,minorJobGroup,sort));
+        return portFolioService.findAllPortFolio(pageable,majorJobGroup, minorJobGroup,sort, getUserFromContext(),isFirst(pageable,majorJobGroup,minorJobGroup,sort));
     }
 
     @GetMapping("/{portFolioId}")
@@ -54,7 +57,7 @@ public class PortFolioController
     @GetMapping("/main")
     public PortFolioWrapper findPopular(){
 
-     return portFolioService.popularPortFolio();
+     return portFolioService.popularPortFolio(getUserFromContext());
     }
 
 
@@ -65,7 +68,14 @@ public class PortFolioController
         return false;
     }
 
-
-
+    private Optional<User> getUserFromContext() {
+        User user = null;
+        try {
+            user = UserUtils.getContextUser();
+        } catch (Exception e) {
+            log.info("Current user is not logged in");
+        }
+        return Optional.ofNullable(user);
+    }
 
 }

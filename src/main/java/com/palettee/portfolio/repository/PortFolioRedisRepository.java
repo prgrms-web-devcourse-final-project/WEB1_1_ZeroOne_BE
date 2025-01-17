@@ -30,7 +30,9 @@ public class PortFolioRedisRepository
         log.info("저장 이벤트");
         Set<String> keys = redisTemplate.keys(RedisConstKey_PortFolio);
 
+
         if(!keys.isEmpty()){
+            log.info("키가 비어있음");
             PortFolio portFolio = portFolioService.getUserPortFolio(portFolioId);
             Long preSize = redisTemplate.opsForZSet().size(RedisConstKey_PortFolio);
 
@@ -49,7 +51,7 @@ public class PortFolioRedisRepository
             }
 
             PortFolioResponse portFolioResponse = PortFolioResponse.toDto(portFolio);
-            redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, portFolioResponse, TypeConverter.LocalDateTimeToDouble(portFolioResponse.createAt()));
+            redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, portFolioResponse, TypeConverter.LocalDateTimeToDouble(portFolioResponse.getCreateAt()));
         }
 
 
@@ -68,18 +70,18 @@ public class PortFolioRedisRepository
 
             if(isRemove != 0){
                 PortFolioResponse portFolioResponse = PortFolioResponse.toDto(portFolio);
-                redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, portFolioResponse, TypeConverter.LocalDateTimeToDouble(portFolioResponse.createAt()));
+                redisTemplate.opsForZSet().add(RedisConstKey_PortFolio, portFolioResponse, TypeConverter.LocalDateTimeToDouble(portFolioResponse.getCreateAt()));
             }
         }
     }
 
     private Long removeMatchingPortFolioFromCache(Set<PortFolioResponse> range, PortFolio portFolio) {
         return range.stream()
-                .filter(portFolioResponse -> portFolioResponse.userId().equals(portFolio.getUser().getId())) // 조건 필터링
+                .filter(portFolioResponse -> portFolioResponse.getUserId().equals(portFolio.getUser().getId())) // 조건 필터링
                 .findFirst()
                 .map(matchingResponse -> {
                     log.info("같은 포트폴리오 Redis 캐시에 존재");
-                    log.info("삭제된 Redis PortFolioId = {}", matchingResponse.portFolioId());
+                    log.info("삭제된 Redis PortFolioId = {}", matchingResponse.getPortFolioId());
                     // ZSet에서 조건에 맞는 항목 제거
                     return redisTemplate.opsForZSet().remove(RedisConstKey_PortFolio, matchingResponse);
                 })

@@ -9,10 +9,13 @@ import com.palettee.chat.controller.dto.response.ChatResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringResponse;
 import com.palettee.global.redis.sub.RedisSubscriber;
 import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -132,7 +135,22 @@ public class RedisConfig {
         return redisTemplate;
     }
 
-
+    @Bean
+    public RedisTemplate<String, PortFolioPopularResponse> portFolioPopular(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, PortFolioPopularResponse> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        redisTemplate.setConnectionFactory(connectionFactory);
+        return redisTemplate;
+    }
+    @Bean(name = "redisTemplateForTarget")
+    public RedisTemplate<String, Object> redisTemplateForTarget(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return template;
+    }
 
     @Bean
     public RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
@@ -153,7 +171,21 @@ public class RedisConfig {
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
+        }
+
+    @Bean(name = "customCacheManager")
+    @Primary
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+                .entryTtl(Duration.ofDays(7));
+
+        return RedisCacheManager.builder(connectionFactory)
+                .cacheDefaults(redisCacheConfiguration)
+                .build();
     }
+
 
     @Bean
     public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer() {

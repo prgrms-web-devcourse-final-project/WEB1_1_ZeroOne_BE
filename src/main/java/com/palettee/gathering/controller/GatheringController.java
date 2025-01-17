@@ -4,6 +4,7 @@ import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
 import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
 import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
 import com.palettee.gathering.repository.GatheringRedisRepository;
+import com.palettee.gathering.controller.dto.Response.GatheringPopularResponse;
 import com.palettee.gathering.service.GatheringService;
 import com.palettee.global.security.validation.UserUtils;
 import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,7 +50,7 @@ public class GatheringController {
             @RequestParam(required = false, defaultValue = "0") int personnel,
             Pageable pageable
     ) {
-        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable, isFirstTrue(gatheringId, sort, subject, period, contact, status, positions, personnel));
+        return gatheringService.findAll(sort, subject, period, contact, positions, status, personnel, gatheringId, pageable,getUserFromContext() ,isFirstTrue(gatheringId, sort, subject, period, contact, status, positions, personnel));
     }
 
     @GetMapping("/{gatheringId}")
@@ -91,6 +93,22 @@ public class GatheringController {
         User contextUser = UserUtils.getContextUser();
 
         return gatheringService.findLikeList(pageable, contextUser.getId(), likeId);
+    }
+
+    @GetMapping("/main")
+    public List<GatheringPopularResponse> findPopularGathering(){
+        return gatheringService.gatheringPopular(getUserFromContext());
+    }
+
+    private Optional<User> getUserFromContext() {
+        User user = null;
+        try {
+            user = UserUtils.getContextUser();
+        } catch (Exception e) {
+            log.info("Current user is not logged in");
+        }
+
+        return Optional.ofNullable(user);
     }
 
     private static boolean isFirstTrue(Long gatheringId, String sort, String subject, String period, String contact,String status ,List<String> positions, int personnel) {

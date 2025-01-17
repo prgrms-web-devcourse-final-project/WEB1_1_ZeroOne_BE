@@ -2,10 +2,7 @@ package com.palettee.gathering.service;
 
 import com.palettee.gathering.GatheringNotFoundException;
 import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
-import com.palettee.gathering.controller.dto.Response.CustomSliceResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringDetailsResponse;
-import com.palettee.gathering.controller.dto.Response.GatheringResponse;
+import com.palettee.gathering.controller.dto.Response.*;
 import com.palettee.gathering.domain.Contact;
 import com.palettee.gathering.domain.Gathering;
 import com.palettee.gathering.domain.Sort;
@@ -19,6 +16,7 @@ import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
+import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
 import com.palettee.user.exception.UserNotFoundException;
@@ -30,14 +28,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.palettee.global.Const.*;
-
 import static com.palettee.gathering.repository.GatheringRedisRepository.RedisConstKey_Gathering;
+import static com.palettee.global.Const.gathering_Page_Size;
 
 @Service
 @RequiredArgsConstructor
@@ -57,11 +52,9 @@ public class GatheringService {
 
     private final RedisService redisService;
 
+    private final RedisTemplate<String, Object> redisTemplateForTarget;
 
     private static boolean hasNext;
-
-
-
 
     @Transactional
     public GatheringCommonResponse createGathering(GatheringCommonRequest request, User user) {
@@ -99,6 +92,7 @@ public class GatheringService {
             int personnel,
             Long gatheringId,
             Pageable pageable,
+            Optional<User> user,
             boolean isFirstTrue
     ) {
 
@@ -106,6 +100,7 @@ public class GatheringService {
             CustomSliceResponse cachedFirstPage = getCachedFirstPage(pageable);
 
             if(cachedFirstPage != null){
+                cacheInRedisIsLiked(user, cachedFirstPage.content());
                 return cachedFirstPage;
             }
 
@@ -117,12 +112,13 @@ public class GatheringService {
             List<GatheringResponse> results = customSliceResponse.content();
 
             results.forEach(result ->
-                    redisTemplate.opsForZSet().add(RedisConstKey_Gathering, result, TypeConverter.LocalDateTimeToDouble(result.createDateTime()))
+                    redisTemplate.opsForZSet().add(RedisConstKey_Gathering, result, TypeConverter.LocalDateTimeToDouble(result.getCreateDateTime()))
             );
 
             gathering_Page_Size = pageable.getPageSize();
 
             redisTemplate.expire(RedisConstKey_Gathering, 1, TimeUnit.HOURS); // 1시간으로 고정
+            cacheInRedisIsLiked(user, customSliceResponse.content());
 
             return customSliceResponse;
         }
@@ -135,23 +131,13 @@ public class GatheringService {
     public GatheringDetailsResponse findByDetails(Long gatheringId, Long userId) {
         Gathering gathering = getFetchGathering(gatheringId);
 
+        boolean isHits = redisService.viewCount(gatheringId, userId, "gathering");
+
         long likeCounts = calculateLikeCounts(gatheringId);
 
-        return GatheringDetailsResponse.toDto(gathering, likeCounts, isLikedUserGathering(gatheringId, userId));
+        return GatheringDetailsResponse.toDto(gathering, likeCounts, calculateHitsCount(gathering),isLikedUserGathering(gatheringId, userId),isHits);
     }
 
-
-
-    private long calculateLikeCounts(Long gatheringId) {
-        long likeCounts = likeRepository.countByTargetId(gatheringId);
-
-        Long count = redisService.likeCountInRedis("gathering", gatheringId);
-
-        if(count == null){
-            count = 0L;
-        }
-        return likeCounts + count;
-    }
 
     @Transactional
     public GatheringCommonResponse updateGathering(Long gatheringId, GatheringCommonRequest request, User user) {
@@ -206,7 +192,7 @@ public class GatheringService {
 
         // 이미 DB에 반영된 좋아요 디비에서 삭제
         if(!flag){
-            cancelLike(gatheringId, user);
+            likeRepository.deleteAllByTargetId(user.getId(), gatheringId, LikeType.GATHERING);
         }
 
         Long targetId = gathering.getUser().getId();
@@ -228,11 +214,48 @@ public class GatheringService {
         return gatheringRepository.PageFindLikeGathering(pageable, userId, likeId);
     }
 
+    public List<GatheringPopularResponse> gatheringPopular(Optional<User> user){
+        String zSetKey = "gathering_Ranking";
+
+        List<GatheringPopularResponse> listFromRedis = getListFromRedis(zSetKey);
+
+        user.ifPresent(u -> {
+            List<Long> longs = listFromRedis
+                    .stream()
+                    .map(GatheringPopularResponse::getGatheringId)
+                    .toList();
+
+            Set<Long> gatheringIds = likeRepository.findByTargetIdAndTarget(user.get().getId(),LikeType.GATHERING ,longs);
+
+            if (gatheringIds.isEmpty()) {
+                log.info("유저가 누른 아이디가 없음");
+            }
+
+            listFromRedis.forEach(response -> response.setLiked(gatheringIds.contains(response.getGatheringId())));
+        });
+        return listFromRedis;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public List<GatheringPopularResponse> getListFromRedis(String zSetKey) {
+        Object result = redisTemplateForTarget.opsForValue().get(zSetKey);
+        if (result instanceof List) {
+            return (List<GatheringPopularResponse>) result; // List<PortFolioPopularResponse>로 캐스팅
+        }
+        return Collections.emptyList(); // 빈 리스트 반환
+    }
+
+
+
+
+
     public Gathering getGathering(Long gatheringId){
         return gatheringRepository.findById(gatheringId)
                 .orElseThrow(() -> GatheringNotFoundException.EXCEPTION);
 
     }
+
 
     private Gathering getFetchGathering(Long gatheringId) {
         return gatheringRepository.findByGatheringId(gatheringId)
@@ -255,16 +278,6 @@ public class GatheringService {
         return redisService.redisInLikeUser("gathering", gatheringId, userId);
     }
 
-
-    private boolean cancelLike(Long gatheringId, User user) {
-        List<Likes> findByLikes = likeRepository.findByList(user.getId(), gatheringId, LikeType.GATHERING);
-
-        if(findByLikes != null) {
-            likeRepository.deleteAll(findByLikes);
-            return true;
-        }
-        return false;
-    }
     private User getUser(Long userId){
         return  userRepository.findById(userId).orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
@@ -291,12 +304,46 @@ public class GatheringService {
                 return null;
             }
 
-            Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).gatheringId() : null;
+            Long nextId = hasNext ? gatheringResponses.get(gatheringResponses.size() - 1).getGatheringId() : null;
 
 
             return new CustomSliceResponse(gatheringResponses,hasNext, nextId);
         }
         return null;
+    }
+
+    private long calculateHitsCount(Gathering gathering){
+        long dbCount = gathering.getHits();
+
+        Long redisInViewCount = redisService.viewCountInRedis("gathering", gathering.getId());
+
+        return dbCount + redisInViewCount;
+    }
+
+    private long calculateLikeCounts(Long gatheringId) {
+        long likeCounts = likeRepository.countByTargetId(gatheringId);
+
+        Long count = redisService.likeCountInRedis("gathering", gatheringId);
+
+        if(count == null){
+            count = 0L;
+        }
+        return likeCounts + count;
+    }
+
+    private void cacheInRedisIsLiked(Optional<User> user, List<GatheringResponse> gatheringResponses){
+        user.ifPresent(u ->{
+            log.info("user가 있음");
+            List<Long> longs = gatheringResponses.stream()
+                    .map(GatheringResponse::getGatheringId)
+                    .toList();
+
+            Set<Long> gatheringIds = likeRepository.findByTargetIdAndTarget(u.getId(),LikeType.GATHERING ,longs);
+
+            gatheringResponses.forEach(gatheringResponse -> {
+                gatheringResponse.setLiked(gatheringIds.contains(gatheringResponse.getGatheringId()));
+            });
+        });
     }
 
 

@@ -38,7 +38,7 @@ public class GatheringRedisRepository {
                 redisTemplate.opsForZSet().removeRange(RedisConstKey_Gathering, 0, 0);
             }
             GatheringResponse gatheringResponse = GatheringResponse.toDto(gathering);
-            redisTemplate.opsForZSet().add(RedisConstKey_Gathering, gatheringResponse, TypeConverter.LocalDateTimeToDouble(gatheringResponse.createDateTime()));
+            redisTemplate.opsForZSet().add(RedisConstKey_Gathering, gatheringResponse, TypeConverter.LocalDateTimeToDouble(gatheringResponse.getCreateDateTime()));
         }
 
     }
@@ -53,13 +53,13 @@ public class GatheringRedisRepository {
 
             GatheringResponse gatheringResponse = GatheringResponse.toDto(gathering);
 
-            Double score = TypeConverter.LocalDateTimeToDouble(gatheringResponse.createDateTime());
+            Double score = TypeConverter.LocalDateTimeToDouble(gatheringResponse.getCreateDateTime());
 
             Long removeCount = redisTemplate.opsForZSet().removeRangeByScore(RedisConstKey_Gathering, score, score);
 
             if(removeCount != 0){
                 log.info("캐시 수정으로 인한 새로운 값 재캐싱");
-                redisTemplate.opsForZSet().add(RedisConstKey_Gathering, gatheringResponse, TypeConverter.LocalDateTimeToDouble(gatheringResponse.createDateTime()));
+                redisTemplate.opsForZSet().add(RedisConstKey_Gathering, gatheringResponse, TypeConverter.LocalDateTimeToDouble(gatheringResponse.getCreateDateTime()));
             }
         }
     }

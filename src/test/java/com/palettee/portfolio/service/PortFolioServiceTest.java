@@ -1,12 +1,17 @@
 package com.palettee.portfolio.service;
 
-import com.palettee.global.cache.MemoryCache;
+import com.palettee.gathering.controller.dto.Request.GatheringCommonRequest;
+import com.palettee.gathering.controller.dto.Response.GatheringCommonResponse;
+import com.palettee.gathering.controller.dto.Response.GatheringPopularResponse;
+import com.palettee.gathering.service.GatheringService;
+import com.palettee.global.cache.RedisWeightCache;
 import com.palettee.global.redis.service.RedisService;
 import com.palettee.likes.domain.LikeType;
 import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.portfolio.controller.dto.response.CustomOffSetResponse;
 import com.palettee.portfolio.controller.dto.response.CustomPortFolioResponse;
+import com.palettee.portfolio.controller.dto.response.PortFolioPopularResponse;
 import com.palettee.portfolio.domain.PortFolio;
 import com.palettee.portfolio.repository.PortFolioRepository;
 import com.palettee.user.domain.MajorJobGroup;
@@ -19,16 +24,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.palettee.global.Const.LIKE_PREFIX;
 import static com.palettee.global.Const.VIEW_PREFIX;
@@ -36,7 +40,7 @@ import static com.palettee.global.Const.VIEW_PREFIX;
 @SpringBootTest
 class PortFolioServiceTest {
 
-    private static final Logger log = LoggerFactory.getLogger(PortFolioServiceTest.class);
+
     @Autowired
     private PortFolioService portFolioService;
 
@@ -53,7 +57,17 @@ class PortFolioServiceTest {
     private RedisService redisService;
 
     @Autowired
-    private MemoryCache memoryCache;
+    private RedisWeightCache redisCache;
+
+    @Autowired
+    private GatheringService gatheringService;
+
+    @Autowired
+    private  RedisTemplate<String, Long> redisTemplate;
+
+    private final String constView= VIEW_PREFIX + "portFolio:";
+
+    private final String constLike = LIKE_PREFIX+ "portFolio:";
 
 
     private User user;
@@ -114,6 +128,7 @@ class PortFolioServiceTest {
                 MajorJobGroup.DEVELOPER.getMajorGroup(),
                 MinorJobGroup.BACKEND.getMinorJobGroup(),
                 "popularlity"
+                ,Optional.empty()
                 ,true
         );
         System.out.println(results.hasNext());
@@ -153,33 +168,30 @@ class PortFolioServiceTest {
         Assertions.assertThat(customSliceResponse.hasNext()).isEqualTo(true);
     }
 
-//    @Test
-//    @DisplayName("포트폴리오 좋아요 생성")
-//    void portFolio_Like_Create() {
-//        // given
-//        PortFolioLikeResponse portFolioLike = portFolioService.createPortFolioLike(portFolio.getPortfolioId(), user);
-//
-//        // when
-//        Likes likes = likeRepository.findById(portFolioLike.portFolioId()).orElseThrow();
-//
-//        // then
-//        Assertions.assertThat(likes.getLikeType()).isEqualTo(LikeType.PORTFOLIO);
-//    }
-//
-//    @Test
-//    @DisplayName("포트 폴리오 좋아요 취소")
-//    public void portFolio_Like_Cancel() throws Exception {
-//       //given
-//        PortFolioLikeResponse portFolioLike = portFolioService.createPortFolioLike(portFolio.getPortfolioId(), user);
-//
-//       //when
-//        PortFolioLikeResponse portFolioLik1 = portFolioService.createPortFolioLike(portFolio.getPortfolioId(), user);
-//
-//        Optional<Likes> findByLikes = likeRepository.findById(portFolioLike.portFolioId());
-//
-//        //then
-//        Assertions.assertThat(findByLikes.isPresent()).isEqualTo(false);
-//    }
+
+    @Test
+    @DisplayName("포트 폴리오 좋아요 취소")
+    public void portFolio_Like_Cancel() throws Exception {
+       //given
+        String setKeys = constLike + portFolio.getPortfolioId() + "_user";
+
+        String key = constLike + portFolio.getPortfolioId();
+
+       //when
+        redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+
+        redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+
+        redisService.likeRedisToDB( constLike, "portFolio" );
+
+        Long count = redisTemplate.opsForValue().get(key);
+
+        List<Likes> likes = likeRepository.findByTargetId(portFolio.getPortfolioId());
+
+        //then
+        Assertions.assertThat(count).isEqualTo(0);
+        Assertions.assertThat(likes.size()).isEqualTo(0);
+    }
 
     @Test
     @DisplayName("Redis를 사용한 포트폴리오 중복 조회수 증가 및 DB 반영 테스트")
@@ -195,17 +207,18 @@ class PortFolioServiceTest {
 
        //when
 
-        redisService.viewRedisToDB(VIEW_PREFIX + "portFolio: ");
+        // DB 반영
+        redisService.viewRedisToDB(constView, "portFolio");
 
-        Map<String, Long> localCache = memoryCache.getLocalCache();
+
+        Map<Long, Long> cache = redisCache.getCache(constView);
 
         PortFolio portFolio1 = portFolioRepository.findById(portFolio.getPortfolioId()).get();
 
 
+        Long remainCount = redisTemplate.opsForValue().get(constView + portFolio1.getPortfolioId());
 
-        Long remainCount = redisTemplate.opsForValue().get(VIEW_PREFIX + "portFolio" + ": " + portFolio.getPortfolioId());
-
-        Long cacheCount = localCache.get(VIEW_PREFIX + "portFolio" + ": " + portFolio.getPortfolioId());
+        Long cacheCount = cache.get(portFolio1.getPortfolioId());
 
         //then
         // 조회수는 1이여야 함
@@ -221,20 +234,14 @@ class PortFolioServiceTest {
        //given
         RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
 
-        redisTemplate.delete( LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId() + "_user");
-
-        redisTemplate.delete(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
-
-
+        String setKeys = constLike + portFolio.getPortfolioId() + "_user";
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
        //when
+        Long count = redisTemplate.opsForValue().get(constLike + portFolio.getPortfolioId());
 
-
-        Long count = redisTemplate.opsForValue().get(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
-
-        Set<Long> members = redisTemplate.opsForSet().members(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId() + "_user");
+        Set<Long> members = redisTemplate.opsForSet().members(setKeys);
 
         //then
         Assertions.assertThat(count).isEqualTo(1);
@@ -249,8 +256,6 @@ class PortFolioServiceTest {
         //given
         RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
 
-       redisTemplate.getConnectionFactory().getConnection().flushAll();
-
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
@@ -258,9 +263,9 @@ class PortFolioServiceTest {
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
-        Long count = redisTemplate.opsForValue().get(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
+        Long count = redisTemplate.opsForValue().get(constLike + portFolio.getPortfolioId());
 
-        Set<Long> members = redisTemplate.opsForSet().members(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId() + "_user");
+        Set<Long> members = redisTemplate.opsForSet().members(constLike + "_user");
 
         //then
         Assertions.assertThat(count).isEqualTo(0);
@@ -272,9 +277,6 @@ class PortFolioServiceTest {
     @DisplayName("redis 를 사용하여 유저가 좋아요 db batch insert")
     public void redis_like_db() throws Exception {
        //given
-        RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
-
-
         User user1 = User.builder()
                 .imageUrl("image")
                 .email("hellod")
@@ -299,6 +301,10 @@ class PortFolioServiceTest {
 
         userRepository.save(user2);
 
+
+        String keys = constLike + portFolio.getPortfolioId();
+
+
         //when
 
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
@@ -306,11 +312,11 @@ class PortFolioServiceTest {
         redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
 
-        redisService.likeRedisToDB( LIKE_PREFIX + "portFolio: ", "portFolio" );
+        redisService.likeRedisToDB( constLike, "portFolio" );
 
-        Map<String, Long> localCache = memoryCache.getLocalCache();
+        Map<Long, Long> cache = redisCache.getCache(keys);
 
-        Long aw = localCache.get(LIKE_PREFIX + "portFolio: " + portFolio.getPortfolioId());
+        Long aw = cache.get(portFolio.getPortfolioId());
 
 
         List<Likes> byTargetId = likeRepository.findByTargetId(portFolio.getPortfolioId());
@@ -327,8 +333,6 @@ class PortFolioServiceTest {
     @DisplayName("인기 포폴 RedisZset을 활용한 누적 점수 합산 후 순위 메기기")
     public void reids_score() throws Exception {
         //given
-        RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
-
 
         User user1 = User.builder()
                 .imageUrl("image")
@@ -350,98 +354,192 @@ class PortFolioServiceTest {
                 .minorJobGroup(MinorJobGroup.BACKEND)
                 .build();
 
+        PortFolio portFolio1 = PortFolio.builder()
+                .user(user)
+                .url("테스트테스트")
+                .build();
+
+        PortFolio portFolio2 = PortFolio.builder()
+                .user(user)
+                .url("테스트테스트")
+                .build();
+
+
+        portFolioRepository.save(portFolio1);
+
+        portFolioRepository.save(portFolio2);
+
         userRepository.save(user1);
 
         userRepository.save(user2);
 
         //when
 
-        // 좋아요 총 3개 점수 15점
+        // 포트폴리오1좋아요 15점
         redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
         redisService.likeCount(portFolio.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
         redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
-        // 중복 조회 이므로 1
-        for(int i =0 ; i < 5; i++){
-            redisService.viewCount(portFolio.getPortfolioId(), user.getId(),"portFolio");
-        }
+        //프토플리오2 좋아요 10점
+        redisService.likeCount(portFolio1.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio1.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
 
-        redisService.likeRedisToDB( LIKE_PREFIX + "portFolio: ", "portFolio" );
-        redisService.viewRedisToDB(VIEW_PREFIX + "portFolio: ");
+        //포트폴리오3 조회수 1점
+        redisService.viewCount(portFolio2.getPortfolioId(), user.getId(),"portFolio");
+
+
+        redisService.likeRedisToDB(constLike, "portFolio" );
+        redisService.viewRedisToDB(constView, "portFolio");
 
         redisService.rankingCategory("portFolio");
 
-        Long portFolioRanking = redisTemplate.opsForZSet().size("portFolio_Ranking");
-        Double score = redisTemplate.opsForZSet().score("portFolio_Ranking", portFolio.getPortfolioId());
-
-        System.out.println("portFolioId ="+ portFolioRanking);
+        List<PortFolioPopularResponse> portFolioPopularResponses = portFolioService.popularPortFolio(Optional.empty()).portfolioResponses();
 
 
         //then
-//        Assertions.assertThat(size).isEqualTo(1);
-        Assertions.assertThat(score).isEqualTo(16.0);
+        Assertions.assertThat(portFolioPopularResponses.size()).isEqualTo(3);
+        Assertions.assertThat(portFolioPopularResponses.get(0).getScore()).isEqualTo(15);
+        Assertions.assertThat(portFolioPopularResponses.get(1).getScore()).isEqualTo(10);
+        Assertions.assertThat(portFolioPopularResponses.get(2).getScore()).isEqualTo(1);
     }
 
-//
-//    @Test
-//    @DisplayName("인기 포트폴리오 캐시 ")
-//    public void popularity() throws Exception {
-//        User user1 = User.builder()
-//                .imageUrl("image")
-//                .email("hellod")
-//                .name("테스트")
-//                .briefIntro("안녕하세요")
-//                .majorJobGroup(MajorJobGroup.DEVELOPER)
-//                .minorJobGroup(MinorJobGroup.BACKEND)
-//                .build();
-//
-//        User user2 = User.builder()
-//                .imageUrl("image")
-//                .email("hellos")
-//                .name("테스트")
-//                .briefIntro("안녕하세요")
-//                .majorJobGroup(MajorJobGroup.DEVELOPER)
-//                .minorJobGroup(MinorJobGroup.BACKEND)
-//                .build();
-//
-//        userRepository.save(user1);
-//
-//        userRepository.save(user2);
-//
-//        PortFolio portFolio1 = PortFolio.builder()
-//                .user(user)
-//                .url("테스트테스트")
-//                .build();
-//        portFolioRepository.save(portFolio1);
-//
-//        //when
-//
-//        // portFolio 점수 20 점 포트폴리오 1 점수 15점
-//        redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
-//        redisService.likeCount(portFolio.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
-//        redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
-//
-//        redisService.likeCount(portFolio1.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
-//        redisService.likeCount(portFolio1.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
-//
-//
-//        for(int i =0 ; i < 5; i++){
-//            redisService.viewCount(portFolio.getPortfolioId(),user.getId(), "portFolio");
-//            redisService.viewCount(portFolio1.getPortfolioId(), user1.getId(),"portFolio");
-//        }
-//
-//        redisService.likeRedisToDB( LIKE_PREFIX + "portFolio: ", "portFolio" ); //DB반영
-//        redisService.viewRedisToDB(VIEW_PREFIX + "portFolio: "); // DB 반영
-//
-//        redisService.rankingCategory("portFolio"); // 누적 점수 반영
-//
-//        PortFolioWrapper portFolioWrapper = portFolioService.popularPortFolio();// 유명 포트폴리오 조회
-//
-//        List<PortFolioPopularResponse> portFolioResponses = portFolioWrapper.portfolioResponses();
-//
-//
-//        //then
-//        Assertions.assertThat(portFolioResponses.get(0).portFolioId()).isEqualTo(portFolio.getPortfolioId());
-//        Assertions.assertThat(portFolioResponses.get(1).portFolioId()).isEqualTo(portFolio1.getPortfolioId());
-//    }
+    @Test
+    @DisplayName("인기 포폴과 게더링 실시간 반영")
+    public void getPopularService() throws Exception {
+        //given
+
+        User user1 = User.builder()
+                .imageUrl("image")
+                .email("hellod")
+                .name("테스트")
+                .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
+                .build();
+
+        User user2 = User.builder()
+                .imageUrl("image")
+                .email("hellos")
+                .name("테스트")
+                .briefIntro("안녕하세요")
+                .userRole(UserRole.USER)
+                .majorJobGroup(MajorJobGroup.DEVELOPER)
+                .minorJobGroup(MinorJobGroup.BACKEND)
+                .build();
+
+        PortFolio portFolio1 = PortFolio.builder()
+                .user(user)
+                .url("테스트테스트")
+                .build();
+
+        PortFolio portFolio2 = PortFolio.builder()
+                .user(user)
+                .url("테스트테스트")
+                .build();
+
+        List<String> tagList = new ArrayList<>();
+
+        tagList.add("tag1");
+        tagList.add("tag2");
+
+
+        List<String> imageList = new ArrayList<>();
+        imageList.add("URL1");
+        imageList.add("URL2");
+
+
+        List<String> positions = new ArrayList<>();
+        positions.add("개발자");
+        positions.add("기획자");
+
+        GatheringCommonRequest gatheringCreateRequest1 = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content",null);
+
+        GatheringCommonRequest gatheringCreateRequest2 = new GatheringCommonRequest("프로젝트", "개발", "온라인", 3, "3개월", "2024-11-24", positions, tagList, "testUrl", "제목", "content",null);
+        GatheringCommonResponse gathering1 = gatheringService.createGathering(gatheringCreateRequest1, user);
+        GatheringCommonResponse gathering2 = gatheringService.createGathering(gatheringCreateRequest2, user);
+
+
+        portFolioRepository.save(portFolio1);
+
+        portFolioRepository.save(portFolio2);
+
+        userRepository.save(user1);
+
+        userRepository.save(user2);
+
+
+
+        // 포트폴리오1좋아요 15점
+        redisService.likeCount(portFolio.getPortfolioId(), user.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+
+        //프토플리오2 좋아요 10점
+        redisService.likeCount(portFolio1.getPortfolioId(), user1.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+        redisService.likeCount(portFolio1.getPortfolioId(), user2.getId(), "portFolio");  // 포트폴리오 유저 좋아요
+
+        //포트폴리오3 조회수 1점
+        redisService.viewCount(portFolio2.getPortfolioId(), user.getId(),"portFolio");
+
+
+        // 게더링 점수 10점
+        redisService.likeCount(gathering1.gatheringId(), user.getId(), "gathering");
+        redisService.likeCount(gathering1.gatheringId(), user1.getId(), "gathering");
+
+        // 게더링 점수 6점
+        redisService.likeCount(gathering2.gatheringId(), user.getId(), "gathering");
+        redisService.viewCount(gathering2.gatheringId(), user2.getId(), "gathering");
+
+        redisService.categoryToDb("portFolio");
+        redisService.categoryToDb("gathering");
+
+        redisService.rankingCategory("portFolio");
+        redisService.rankingCategory("gathering");
+
+        List<PortFolioPopularResponse> portFolioPopularResponses = portFolioService.popularPortFolio(Optional.empty()).portfolioResponses();
+        List<GatheringPopularResponse> gatheringPopularResponses = gatheringService.gatheringPopular(Optional.empty());
+
+        Assertions.assertThat(portFolioPopularResponses.size()).isEqualTo(3);
+        Assertions.assertThat(gatheringPopularResponses.size()).isEqualTo(2);
+        Assertions.assertThat(portFolioPopularResponses.get(0).getScore()).isEqualTo(15);
+        Assertions.assertThat(portFolioPopularResponses.get(1).getScore()).isEqualTo(10);
+        Assertions.assertThat(gatheringPopularResponses.get(0).getScore()).isEqualTo(10);
+        Assertions.assertThat(gatheringPopularResponses.get(1).getScore()).isEqualTo(6);
+
+       //then
+    }
+
+    @Test
+    @DisplayName("포트폴리오 redis를 사용한 조회수 동시성 처리")
+    public void increment_hits() throws Exception {
+       //given
+        final int threadCount = 100;
+        final ExecutorService executorService = Executors.newFixedThreadPool(32);
+        final CountDownLatch countDownLatch = new CountDownLatch(threadCount);
+
+        String key = constView + portFolio.getPortfolioId();
+
+
+        //when
+        for(int i = 0; i < threadCount; i++){
+            executorService.submit(()-> {
+                try{
+                    redisTemplate.opsForValue().increment(key, 1L);
+                }
+                finally {
+                    countDownLatch.countDown();
+                }
+            });
+        }
+        countDownLatch.await();
+
+        RedisTemplate<String, Long> redisTemplate = redisService.getRedisTemplate();
+        Long count = redisTemplate.opsForValue().get(key);
+
+        Assertions.assertThat(count).isEqualTo(100);
+
+       //then
+    }
+
 }

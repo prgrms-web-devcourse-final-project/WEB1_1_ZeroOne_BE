@@ -105,7 +105,7 @@ public class GatheringRepositoryImpl implements GatheringRepositoryCustom {
                 .stream()
                 .map(GatheringResponse::toDto).collect(Collectors.toList());
 
-        list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.gatheringId())));
+        list.sort(Comparator.comparingInt(item -> targetIds.indexOf(item.getGatheringId())));
 
 
         return new CustomSliceResponse(list, hasNext, nextId);
