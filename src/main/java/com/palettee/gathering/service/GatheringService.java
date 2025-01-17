@@ -192,7 +192,7 @@ public class GatheringService {
 
         // 이미 DB에 반영된 좋아요 디비에서 삭제
         if(!flag){
-            cancelLike(gatheringId, user);
+            likeRepository.deleteAllByTargetId(user.getId(), gatheringId, LikeType.GATHERING);
         }
 
         Long targetId = gathering.getUser().getId();
@@ -278,16 +278,6 @@ public class GatheringService {
         return redisService.redisInLikeUser("gathering", gatheringId, userId);
     }
 
-
-    private boolean cancelLike(Long gatheringId, User user) {
-        List<Likes> findByLikes = likeRepository.findByList(user.getId(), gatheringId, LikeType.GATHERING);
-
-        if(findByLikes != null) {
-            likeRepository.deleteAll(findByLikes);
-            return true;
-        }
-        return false;
-    }
     private User getUser(Long userId){
         return  userRepository.findById(userId).orElseThrow(() -> UserNotFoundException.EXCEPTION);
     }
@@ -343,6 +333,7 @@ public class GatheringService {
 
     private void cacheInRedisIsLiked(Optional<User> user, List<GatheringResponse> gatheringResponses){
         user.ifPresent(u ->{
+            log.info("user가 있음");
             List<Long> longs = gatheringResponses.stream()
                     .map(GatheringResponse::getGatheringId)
                     .toList();

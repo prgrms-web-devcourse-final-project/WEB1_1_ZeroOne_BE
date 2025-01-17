@@ -83,7 +83,6 @@ public class Gathering extends BaseEntity {
             List<GatheringTag> gatheringTagList,
             List<GatheringImage> gatheringImages
     ) {
-        this.hits = 0;
         this.sort = sort;
         this.subject = subject;
         this.period = period;

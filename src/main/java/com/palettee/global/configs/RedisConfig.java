@@ -135,8 +135,6 @@ public class RedisConfig {
         return redisTemplate;
     }
 
-
-
     @Bean
     public RedisTemplate<String, PortFolioPopularResponse> portFolioPopular(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, PortFolioPopularResponse> redisTemplate = new RedisTemplate<>();
