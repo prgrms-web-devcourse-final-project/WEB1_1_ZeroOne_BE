@@ -24,8 +24,6 @@ public class RedisScheduled {
         redisService.categoryToDb("portFolio");
         redisService.categoryToDb("gathering");
 
-//        //여기에 아카이빙이나 게더링 넣으시면 됩니다
-//        redisService.deleteKeyIncludePattern("Like_*", "_targetCount");
     }
 
     /**
@@ -38,7 +36,6 @@ public class RedisScheduled {
         redisRankingZset();
 
 
-        // 여기에 아카이브 넣으시면 됩니다.
 
 
         //카운트 redis 한번 비우기
