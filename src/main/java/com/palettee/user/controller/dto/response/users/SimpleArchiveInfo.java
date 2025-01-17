@@ -1,7 +1,6 @@
 package com.palettee.user.controller.dto.response.users;
 
 import com.palettee.archive.domain.*;
-import java.util.*;
 
 public record SimpleArchiveInfo(
         Long archiveId,
@@ -15,19 +14,14 @@ public record SimpleArchiveInfo(
         String createDate
 ) {
 
-    public static SimpleArchiveInfo of(Archive archive) {
-        List<ArchiveImage> images = archive.getArchiveImages();
-        String imageUrl = images.stream()
-                .map(ArchiveImage::getImageUrl)
-                .findFirst()
-                .orElse(null);
+    public static SimpleArchiveInfo of(Archive archive, String thumbnail) {
 
         ArchiveType type = archive.getType();
 
         return new SimpleArchiveInfo(
                 archive.getId(), archive.getTitle(),
                 !type.equals(ArchiveType.NO_COLOR) ? type.toString() : "DEFAULT",
-                imageUrl,
+                thumbnail,
                 archive.getDescription(), archive.getIntroduction(),
                 archive.isCanComment(), archive.getCreateAt().toString()
         );

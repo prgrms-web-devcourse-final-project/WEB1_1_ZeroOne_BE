@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static com.palettee.global.Const.*;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
@@ -74,7 +75,7 @@ public class ChatRedisServiceTest {
         chatRoomRepository.deleteAll();
         chatRepository.deleteAll();
 
-        redisTemplate.delete(String.valueOf(savedChatRoom.getId()));
+        redisTemplate.delete(CHATROOM_KEY_PREFIX + String.valueOf(savedChatRoom.getId()));
     }
 
     @Test
@@ -89,7 +90,7 @@ public class ChatRedisServiceTest {
         // when
         ChatResponse chatResponse = chatRedisService.addChat(userEmail, chatRoomId, chatRequest);
         Double sendAt = TypeConverter.LocalDateTimeToDouble(chatResponse.getSendAt());
-        List<ChatResponse> results = zSetOperations.rangeByScore(String.valueOf(chatResponse.getChatRoomId()), sendAt, sendAt).stream().toList();
+        List<ChatResponse> results = zSetOperations.rangeByScore(CHATROOM_KEY_PREFIX + String.valueOf(chatResponse.getChatRoomId()), sendAt, sendAt).stream().toList();
 
         // then
         assertThat(results.size()).isEqualTo(1);

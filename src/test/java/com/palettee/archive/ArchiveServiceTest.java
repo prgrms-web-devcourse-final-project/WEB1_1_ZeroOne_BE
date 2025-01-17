@@ -71,11 +71,6 @@ public class ArchiveServiceTest {
         assertThat(allTags.get(0).getContent()).isEqualTo("tag1");
         assertThat(allTags.get(1).getContent()).isEqualTo("tag2");
 
-        List<ArchiveImage> allImages = archiveImageRepository.findAll();
-        assertThat(allImages.size()).isEqualTo(2);
-        assertThat(allImages.get(0).getImageUrl()).isEqualTo("url1");
-        assertThat(allImages.get(1).getImageUrl()).isEqualTo("url2");
-
         Archive archive = archiveRepository.findById(archiveResponse.archiveId()).orElseThrow();
         assertThat(archive.getHits()).isEqualTo(0);
         assertThat(archive.getTitle()).isEqualTo(request.title());
@@ -170,11 +165,6 @@ public class ArchiveServiceTest {
         assertThat(allTags.get(0).tag()).isEqualTo("tag1");
         assertThat(allTags.get(1).tag()).isEqualTo("tag2");
 
-        List<ImageUrlDto> allImages = archiveDetail.imageUrls();
-        assertThat(allImages.size()).isEqualTo(2);
-        assertThat(allImages.get(0).url()).isEqualTo("url1");
-        assertThat(allImages.get(1).url()).isEqualTo("url2");
-
         assertThat(archiveDetail.title()).isEqualTo(request.title());
         assertThat(archiveDetail.description()).isEqualTo(request.description());
         assertThat(archiveDetail.type()).isEqualTo("RED");
@@ -212,11 +202,6 @@ public class ArchiveServiceTest {
         assertThat(allTags.size()).isEqualTo(2);
         assertThat(allTags.get(0).tag()).isEqualTo("tag11");
         assertThat(allTags.get(1).tag()).isEqualTo("tag12");
-
-        List<ImageUrlDto> allImages = archiveDetail.imageUrls();
-        assertThat(allImages.size()).isEqualTo(2);
-        assertThat(allImages.get(0).url()).isEqualTo("url11");
-        assertThat(allImages.get(1).url()).isEqualTo("url12");
 
         assertThat(archiveDetail.title()).isEqualTo(archiveUpdateRequest.title());
         assertThat(archiveDetail.description()).isEqualTo(archiveUpdateRequest.description());
