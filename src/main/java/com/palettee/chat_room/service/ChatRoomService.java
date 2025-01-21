@@ -10,6 +10,9 @@ import com.palettee.chat_room.controller.dto.response.ChatRoomResponse;
 import com.palettee.chat_room.domain.ChatCategory;
 import com.palettee.chat_room.domain.ChatRoom;
 import com.palettee.chat_room.exception.ChatRoomNotFoundException;
+import com.palettee.chat_room.exception.DuplicateCreateException;
+import com.palettee.chat_room.exception.DuplicateLeaveException;
+import com.palettee.chat_room.exception.DuplicateParticipationException;
 import com.palettee.chat_room.repository.ChatRoomRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.domain.AlertType;
@@ -17,6 +20,7 @@ import com.palettee.notification.service.NotificationService;
 import com.palettee.user.domain.User;
 import com.palettee.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +29,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
@@ -42,8 +47,13 @@ public class ChatRoomService {
 
         User findUser = getUser(user.getId());
         User targetUser = getUser(chatRoomCreateRequest.targetId());
-        chatUserService.saveChatUser(savedChatRoom, findUser, true);
-        chatUserService.saveChatUser(savedChatRoom, targetUser, false);
+
+        if(chatRoomRepository.existsChatRoomWithTwoUsers(findUser, targetUser)) {
+            throw DuplicateCreateException.EXCEPTION;
+        }
+
+        chatUserService.saveChatUser(savedChatRoom, findUser, false);
+        chatUserService.saveChatUser(savedChatRoom, targetUser, true);
 
         sendNotification(chatRoomCreateRequest, savedChatRoom);
 
@@ -74,15 +84,22 @@ public class ChatRoomService {
         ChatRoom chatRoom = getChatRoom(chatRoomId);
         User findUser = getUser(user.getId());
 
-        ChatUser chatUser = chatUserService.getChatUser(chatRoomId, findUser.getId(), false);
+        ChatUser chatUser = chatUserService.getChatUser(chatRoomId, findUser.getId());
+        if(!chatUser.isDeleted()) {
+            throw DuplicateParticipationException.EXCEPTION;
+        }
 
         chatUser.participation();
     }
 
     @Transactional
     public void leave(Long chatRoomId, User user) {
+        ChatUser chatUser = chatUserService.getChatUser(chatRoomId, user.getId());
+        if(chatUser.isDeleted()) {
+            throw DuplicateLeaveException.EXCEPTION;
+        }
+
         if(chatUserService.countChatRoom(chatRoomId) > 1) {
-            ChatUser chatUser = chatUserService.getChatUser(chatRoomId, user.getId(), true);
             chatUser.leave();
         } else {
             deleteAll(chatRoomId);
