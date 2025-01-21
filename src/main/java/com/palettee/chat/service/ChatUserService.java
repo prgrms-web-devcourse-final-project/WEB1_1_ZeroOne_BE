@@ -27,12 +27,12 @@ public class ChatUserService {
     }
 
     public int countChatRoom(Long chatRoomId) {
-        return chatUserRepository.countChatUsersByChatRoom(chatRoomId, true);
+        return chatUserRepository.countChatUsersByChatRoom(chatRoomId, false);
     }
 
-    public ChatUser getChatUser(Long chatRoomId, Long userId, boolean isDeleted) {
+    public ChatUser getChatUser(Long chatRoomId, Long userId) {
         return chatUserRepository
-                .findByChatRoomAndUser(chatRoomId, userId, isDeleted)
+                .findByChatRoomAndUser(chatRoomId, userId)
                 .orElseThrow(() -> ChatUserNotFoundException.EXCEPTION);
     }
 

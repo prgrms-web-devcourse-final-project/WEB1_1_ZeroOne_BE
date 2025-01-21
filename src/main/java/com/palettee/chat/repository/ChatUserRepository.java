@@ -11,11 +11,9 @@ import java.util.Optional;
 public interface ChatUserRepository extends JpaRepository<ChatUser, Long> {
     @Query("SELECT cu from ChatUser cu " +
             "WHERE cu.chatRoom.id = :chatRoomId " +
-            "AND cu.user.id = :userId " +
-            "AND cu.isDeleted = :isDeleted ")
+            "AND cu.user.id = :userId ")
     Optional<ChatUser> findByChatRoomAndUser(@Param("chatRoomId") Long chatRoomId,
-                                             @Param("userId") Long userId,
-                                             @Param("isDeleted") boolean isDeleted);
+                                             @Param("userId") Long userId);
 
     @Query("SELECT count(cu) from ChatUser cu WHERE cu.chatRoom.id = :chatRoomId And cu.isDeleted = :isDeleted")
     int countChatUsersByChatRoom(@Param("chatRoomId") Long chatRoomId,
