@@ -94,7 +94,7 @@ public class PortFolioService {
         if(!flag){
            likeRepository.deleteAllByTargetId(user.getId(), portFolioId, LikeType.PORTFOLIO);
         }
-        notificationService.send(NotificationRequest.like(portFolioId, user.getName()));
+        notificationService.send(NotificationRequest.like(portFolioId, user.getName(), user.getId(), portFolioId, LikeType.PORTFOLIO));
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 
