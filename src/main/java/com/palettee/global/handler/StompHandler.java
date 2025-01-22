@@ -3,6 +3,7 @@ package com.palettee.global.handler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palettee.chat.controller.dto.request.ChatRequest;
+import com.palettee.chat.domain.ChatUser;
 import com.palettee.chat.exception.ChatUserNotFoundException;
 import com.palettee.chat.repository.ChatRepository;
 import com.palettee.chat.service.ChatUserService;
@@ -145,7 +146,10 @@ public class StompHandler implements ChannelInterceptor {
         String chatRoomId = destination.substring(TOPIC_CHAT_ENDPOINT.length());
         ChatRoom chatRoom = chatRoomService.getChatRoom(Long.valueOf(chatRoomId));
 
-        chatUserService.getChatUser(chatRoom.getId(), user.getId(), true);
+        ChatUser chatUser = chatUserService.getChatUser(chatRoom.getId(), user.getId());
+        if(chatUser.isDeleted()) {
+           throw ChatUserNotFoundException.EXCEPTION;
+        }
     }
 
     private User getUser(String email) {

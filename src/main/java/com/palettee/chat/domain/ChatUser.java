@@ -34,10 +34,10 @@ public class ChatUser {
     }
 
     public void participation() {
-        this.isDeleted = true;
+        this.isDeleted = false;
     }
 
     public void leave() {
-        this.isDeleted = false;
+        this.isDeleted = true;
     }
 }
