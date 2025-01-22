@@ -28,6 +28,7 @@ public class NotificationService {
 
     private final EmitterRepository emitterRepository;
     private final NotificationRepository notificationRepository;
+    private final NotificationRedisService notificationRedisService;
 
     @Value("${sse.timeout}")
     private Long ONE_HOUR;
@@ -81,6 +82,11 @@ public class NotificationService {
 
     @Transactional
     public void send(NotificationRequest request) {
+
+        if (notificationRedisService.checkLikeNotification(request)) {
+            return;
+        }
+
         sendNotification(request, saveNotification(request));
     }
 
