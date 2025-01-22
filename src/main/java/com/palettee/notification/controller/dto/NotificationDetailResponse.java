@@ -11,7 +11,7 @@ public record NotificationDetailResponse(
         String content,
         AlertType type,
         boolean isRead,
-        Long userId,
+        String contentTitle,
         Long contentId,
         LikeType likeType,
 
@@ -28,7 +28,7 @@ public record NotificationDetailResponse(
                 notification.getContent(),
                 type,
                 notification.getIsRead(),
-                notification.getUserId(),
+                notification.getContentTitle(),
                 notification.getContentId(),
                 notification.getLikeType(),
                 type.getUrl() + notification.getChatRoomId(),

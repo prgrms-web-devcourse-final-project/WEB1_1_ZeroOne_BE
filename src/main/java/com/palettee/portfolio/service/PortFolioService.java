@@ -89,12 +89,12 @@ public class PortFolioService {
     public boolean likePortFolio(User user, Long portFolioId) {
 
         Boolean flag = redisService.likeExistInRedis("portFolio", portFolioId, user.getId());
-
+        PortFolio userPortFolio = getUserPortFolio(portFolioId);
         // 이미 DB에 반영된 좋아요 디비에서 삭제
         if(!flag){
            likeRepository.deleteAllByTargetId(user.getId(), portFolioId, LikeType.PORTFOLIO);
         }
-        notificationService.send(NotificationRequest.like(portFolioId, user.getName(), user.getId(), portFolioId, LikeType.PORTFOLIO));
+        notificationService.send(NotificationRequest.like(portFolioId, user.getName(), userPortFolio.getUser().getName() + "의 포트폴리오", portFolioId, LikeType.PORTFOLIO));
         return redisService.likeCount(portFolioId, user.getId(),"portFolio");
     }
 

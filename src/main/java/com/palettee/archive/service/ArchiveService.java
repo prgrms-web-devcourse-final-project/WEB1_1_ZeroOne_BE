@@ -207,7 +207,7 @@ public class ArchiveService {
         likeRepository.save(like);
 
         Long targetId = archive.getUser().getId();
-        notificationService.send(NotificationRequest.like(targetId, user.getName(), user.getId(), archiveId, LikeType.ARCHIVE));
+        notificationService.send(NotificationRequest.like(targetId, user.getName(), archive.getTitle(), archiveId, LikeType.ARCHIVE));
         publisher.publishEvent(new LikeEvent(archiveId, findUser.getId()));
         return new ArchiveResponse(archive.getId());
     }

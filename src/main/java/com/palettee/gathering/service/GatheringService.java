@@ -195,7 +195,7 @@ public class GatheringService {
         }
 
         Long targetId = gathering.getUser().getId();
-        notificationService.send(NotificationRequest.like(targetId, user.getName(), user.getId(), gatheringId, LikeType.GATHERING));
+        notificationService.send(NotificationRequest.like(targetId, user.getName(), gathering.getTitle(), gatheringId, LikeType.GATHERING));
 
         return redisService.likeCount(gatheringId, user.getId(),"gathering");
     }
