@@ -91,6 +91,9 @@ public class NotificationService {
                 .title(request.title())
                 .content(request.content())
                 .chatRoomId(request.chatRoomId())
+                .userId(request.userId())
+                .contentId(request.contentId())
+                .likeType(request.likeType())
                 .type(AlertType.findByInput(request.type()))
                 .build();
         return notificationRepository.save(notification);
