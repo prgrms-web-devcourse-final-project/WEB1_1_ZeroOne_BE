@@ -16,7 +16,6 @@ import com.palettee.likes.domain.Likes;
 import com.palettee.likes.repository.LikeRepository;
 import com.palettee.notification.controller.dto.NotificationRequest;
 import com.palettee.notification.service.NotificationService;
-import com.palettee.portfolio.controller.dto.response.PortFolioResponse;
 import com.palettee.user.domain.User;
 import com.palettee.user.exception.UserAccessException;
 import com.palettee.user.exception.UserNotFoundException;
@@ -196,7 +195,7 @@ public class GatheringService {
         }
 
         Long targetId = gathering.getUser().getId();
-        notificationService.send(NotificationRequest.like(targetId, user.getName()));
+        notificationService.send(NotificationRequest.like(targetId, user.getName(), user.getId(), gatheringId, LikeType.GATHERING));
 
         return redisService.likeCount(gatheringId, user.getId(),"gathering");
     }

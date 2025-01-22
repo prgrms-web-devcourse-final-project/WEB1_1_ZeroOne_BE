@@ -45,17 +45,17 @@ public class ChatRoomService {
         chatUserService.saveChatUser(savedChatRoom, findUser, true);
         chatUserService.saveChatUser(savedChatRoom, targetUser, false);
 
-        sendNotification(chatRoomCreateRequest, savedChatRoom);
+        sendNotification(chatRoomCreateRequest, savedChatRoom, user.getId());
 
         return ChatRoomResponse.of(savedChatRoom);
     }
 
-    private void sendNotification(ChatRoomCreateRequest chatRoomCreateRequest, ChatRoom savedChatRoom) {
+    private void sendNotification(ChatRoomCreateRequest chatRoomCreateRequest, ChatRoom savedChatRoom, Long userId) {
         AlertType type = getType(chatRoomCreateRequest.chatCategory());
         Long targetId = chatRoomCreateRequest.targetId();
         String username = userRepository.getUsername(targetId);
 
-        notificationService.send(NotificationRequest.chat(targetId, username, type, savedChatRoom.getId()));
+        notificationService.send(NotificationRequest.chat(targetId, username, type, savedChatRoom.getId(), userId));
     }
 
     private AlertType getType(ChatCategory chatCategory) {
