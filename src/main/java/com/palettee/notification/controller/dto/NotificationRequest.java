@@ -9,12 +9,12 @@ public record NotificationRequest(
         String content,
         String type,
         Long chatRoomId,
-        Long userId,
+        String contentTitle,
         Long contentId,
         LikeType likeType
 ) {
 
-    public static NotificationRequest like(Long targetId, String username, Long userId, Long contentId, LikeType likeType) {
+    public static NotificationRequest like(Long targetId, String username, String contentTitle, Long contentId, LikeType likeType) {
         AlertType type = AlertType.LIKE;
         return new NotificationRequest(
                 targetId,
@@ -22,20 +22,20 @@ public record NotificationRequest(
                 username + type.getMessage(),
                 type.name(),
                 null,
-                userId,
+                contentTitle,
                 contentId,
                 likeType
         );
     }
 
-    public static NotificationRequest chat(Long targetId, String username, AlertType type, Long chatRoomId, Long userId) {
+    public static NotificationRequest chat(Long targetId, String username, AlertType type, Long chatRoomId) {
         return new NotificationRequest(
                 targetId,
                 type.getTitle(),
                 username + type.getMessage(),
                 type.name(),
                 chatRoomId,
-                userId,
+                null,
                 null,
                 null
         );

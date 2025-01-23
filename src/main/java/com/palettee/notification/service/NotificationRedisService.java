@@ -17,7 +17,8 @@ public class NotificationRedisService {
     public boolean checkLikeNotification(NotificationRequest request) {
         String redisKey = makeRedisKey(request);
         Long result = redisTemplate.opsForSet()
-                .add(makeRedisKey(request), request.userId());
+                .add(makeRedisKey(request), request.contentTitle());
+
 
         redisTemplate.expire(redisKey, 5, TimeUnit.SECONDS);
 
@@ -30,7 +31,8 @@ public class NotificationRedisService {
     }
 
     private String makeRedisKey(NotificationRequest request) {
-        return "notification:" + request.likeType().name() + "-userId:" + request.userId() + "-contentId:"
+        return "notification:" + request.likeType().name() + "-userId:" + request.contentTitle() + "-contentId:"
+
                 + request.contentId();
     }
 

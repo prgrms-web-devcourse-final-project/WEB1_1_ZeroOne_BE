@@ -32,7 +32,7 @@ public class Notification extends BaseEntity {
 
     private Long chatRoomId;
 
-    private Long userId;
+    private String contentTitle;
 
     private Long contentId;
 
@@ -40,7 +40,7 @@ public class Notification extends BaseEntity {
     private LikeType likeType;
 
     @Builder
-    public Notification(Long targetId, String title, String content, AlertType type, Long chatRoomId, Long userId,
+    public Notification(Long targetId, String title, String content, AlertType type, Long chatRoomId, String contentTitle,
                         Long contentId, LikeType likeType) {
         this.targetId = targetId;
         this.title = title;
@@ -48,7 +48,7 @@ public class Notification extends BaseEntity {
         this.type = type;
         this.isRead = false;
         this.chatRoomId = chatRoomId;
-        this.userId = userId;
+        this.contentTitle = contentTitle;
         this.contentId = contentId;
         this.likeType = likeType;
     }
