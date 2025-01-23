@@ -28,6 +28,8 @@ public enum ErrorCode {
     CHAT_OVER_LENGTH(400, "채팅 가능 숫자를 넘었습니다."),
     CHAT_IMAGE_NUMBER_OVER(400, "채팅 이미지 가능 숫자를 넘었습니다."),
     DUPLICATE_PARTICIPATION(400, "중복 참여하였습니다."),
+    DUPLICATE_CREATE(400, "해당 사용자랑 생성된 채팅방이 이미 있습니다."),
+    DUPLICATE_LEAVE(400, "해당 사용자는 이미 채팅방을 나간 상태입니다."),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     EXPIRED_TOKEN(401, "토큰이 만료되었습니다."),

@@ -19,6 +19,7 @@ public class NotificationRedisService {
         Long result = redisTemplate.opsForSet()
                 .add(makeRedisKey(request), request.contentTitle());
 
+
         redisTemplate.expire(redisKey, 5, TimeUnit.SECONDS);
 
         if (result == null) {
@@ -31,6 +32,7 @@ public class NotificationRedisService {
 
     private String makeRedisKey(NotificationRequest request) {
         return "notification:" + request.likeType().name() + "-userId:" + request.contentTitle() + "-contentId:"
+
                 + request.contentId();
     }
 
