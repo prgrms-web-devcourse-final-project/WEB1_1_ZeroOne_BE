@@ -15,6 +15,11 @@ public class NotificationRedisService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     public boolean checkLikeNotification(NotificationRequest request) {
+
+        if (request.likeType() == null) {
+            return false;
+        }
+
         String redisKey = makeRedisKey(request);
         Long result = redisTemplate.opsForSet()
                 .add(makeRedisKey(request), request.contentTitle());
