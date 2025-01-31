@@ -16,7 +16,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:3000", "https://palettee22.netlify.app", "https://www.palettee.site"));
+        config.setAllowedOrigins(List.of("http://localhost:3000", "https://palettee22.netlify.app", "https://www.palettee.site", "wss://www.palettee.site"));
         config.addAllowedMethod("*");
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("*"));
