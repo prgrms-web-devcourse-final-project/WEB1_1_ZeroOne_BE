@@ -27,6 +27,7 @@ public record GatheringDetailsResponse(
         String title,
         String content,
         Long hits,
+        String userImageUrl,
         boolean isLiked,
         boolean isHits
 ) {
@@ -60,6 +61,7 @@ public record GatheringDetailsResponse(
                 gathering.getTitle(),
                 gathering.getContent(),
                 hits,
+                gathering.getUser().getImageUrl(),
                 isLiked,
                 isHits
         );
